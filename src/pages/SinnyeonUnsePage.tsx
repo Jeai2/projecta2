@@ -1,16 +1,27 @@
 // src/pages/SinnyeonUnsePage.tsx
 
+import { useState } from 'react';
 import { FortunePageLayout } from "@/components/layout/FortunePageLayout"; // ✅ 1. 새로운 레이아웃 부품을 가져온다.
 import { UserInfoForm } from '@/components/forms/UserInfoForm';
 import type { UserData } from '@/components/forms/UserInfoForm';
+import { FortuneResult } from "@/components/results/FortuneResult";
 
 // ✅ 2. 페이지 컴포넌트를 정의한다.
 const SinnyeonUnsePage = () => {
+  const [showResult, setShowResult] = useState(false);
+  const [formData, setFormData] = useState<UserData | null>(null);
+
   const handleFortuneSubmit = (data: UserData) => {
     console.log("페이지가 전달받은 데이터:", data);
-    alert("입력된 정보를 브라우저 개발자 도구 콘솔에서 확인하세요.");
+    setFormData(data);
+    setShowResult(true);
   }; 
   
+  const handleReset = () => {
+    setShowResult(false);
+    setFormData(null);
+  };
+
   return (
     // ✅ 3. FortunePageLayout을 '틀'로 사용한다.
     <FortunePageLayout
@@ -24,12 +35,16 @@ const SinnyeonUnsePage = () => {
         </>
       }
     >
-      {/* ✅ 3. '틀'의 children으로 정보 입력 폼을 넣어준다. */}
-      <UserInfoForm 
-        title="사주 정보 입력" 
-        buttonText="신년운세 보기" 
-        onSubmit={handleFortuneSubmit}
-      />
+      {/* ✅ 5. showResult 값에 따라 폼 또는 결과를 선택적으로 보여준다. */}
+      {showResult ? (
+        <FortuneResult data={formData} onReset={handleReset} />
+      ) : (
+        <UserInfoForm
+          title="사주 정보 입력"
+          buttonText="신년운세 보기"
+          onSubmit={handleFortuneSubmit}
+        />
+      )}
     </FortunePageLayout>
   );
 };
