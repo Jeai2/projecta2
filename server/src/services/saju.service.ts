@@ -1,211 +1,164 @@
-// [수석 설계자 노트]
-// jjhome 만세력 엔진 (ver 0.2)
-// 현재 연주(年柱)와 월주(月柱) 계산 기능이 탑재됨.
-// 사주팔자 중 네 글자를 완성한 상태.
+// src/services/saju.engine.ts
+// jjhome 만세력 엔진 v3.2 - '현재'의 운세에 집중
 
-// =================================================================
-// 1. 원재료 (Constants)
-// '고대 천문학자의 유산'에서 확인한 핵심 데이터들을 우리 방식(TypeScript)으로 정의.
-// =================================================================
+import { getSipsin } from './sipsin.service';
+import { getSibiwunseong } from './sibiwunseong.service';
+// [주석] Daewoon 타입을 import하여 대운 데이터의 구조를 명확히 합니다.
+import { getDaewoon, Daewoon } from './daewoon.service';
+// [주석] 새로 만든 세운 계산 서비스를 가져옵니다.
+import { getSewoonForYear } from './sewoon.service';
+import { getSeasonalDataForYear, getLoadedSeasonalData } from './seasonal-data.loader';
+import { GAN, JI, GANJI } from '../data/saju.data';
 
-const GAN = ['갑', '을', '병', '정', '무', '기', '경', '신', '임', '계'];
-const JI = ['자', '축', '인', '묘', '진', '사', '오', '미', '신', '유', '술', '해'];
-const GANJI = [
-  '갑자', '을축', '병인', '정묘', '무진', '기사', '경오', '신미', '임신', '계유',
-  '갑술', '을해', '병자', '정축', '무인', '기묘', '경진', '신사', '임오', '계미',
-  '갑신', '을유', '병술', '정해', '무자', '기축', '경인', '신묘', '임진', '계사',
-  '갑오', '을미', '병신', '정유', '무술', '기해', '경자', '신축', '임인', '계묘',
-  '갑진', '을사', '병오', '정미', '무신', '기유', '경술', '신해', '임자', '계축',
-  '갑인', '을묘', '병진', '정사', '무오', '기미', '경신', '신유', '임술', '계해'
-];
+// [주석] 다른 파일에서도 이 타입을 사용해야 할 수 있으므로, 나중에 별도의 types.ts 파일로 분리하는 것을 고려해볼 수 있습니다.
+type SeasonalData = { [year: number]: { name: string; date: Date }[] };
 
-// [핵심 데이터] 24절기 데이터 (천문 현상표)
-// 실제 서비스에서는 이 데이터 전체를 별도의 파일이나 DB에서 관리해야 한다.
-// 우선 2024년, 2025년 데이터만 예시로 추가했다.
-const SEASONAL_DATA: { [year: number]: { name: string; date: Date }[] } = {
-  2024: [
-    { name: '소한', date: new Date('2024-01-06T05:49:00') }, { name: '대한', date: new Date('2024-01-20T22:07:00') },
-    { name: '입춘', date: new Date('2024-02-04T17:27:00') }, { name: '우수', date: new Date('2024-02-19T13:13:00') },
-    { name: '경칩', date: new Date('2024-03-05T11:23:00') }, { name: '춘분', date: new Date('2024-03-20T12:07:00') },
-    { name: '청명', date: new Date('2024-04-04T16:03:00') }, { name: '곡우', date: new Date('2024-04-19T22:00:00') },
-    { name: '입하', date: new Date('2024-05-05T09:10:00') }, { name: '소만', date: new Date('2024-05-21T09:00:00') },
-    { name: '망종', date: new Date('2024-06-05T13:10:00') }, { name: '하지', date: new Date('2024-06-21T05:51:00') },
-    { name: '소서', date: new Date('2024-07-07T00:07:00') }, { name: '대서', date: new Date('2024-07-22T16:45:00') },
-    { name: '입추', date: new Date('2024-08-07T09:09:00') }, { name: '처서', date: new Date('2024-08-22T23:55:00') },
-    { name: '백로', date: new Date('2024-09-07T12:11:00') }, { name: '추분', date: new Date('2024-09-22T21:44:00') },
-    { name: '한로', date: new Date('2024-10-08T04:00:00') }, { name: '상강', date: new Date('2024-10-23T07:15:00') },
-    { name: '입동', date: new Date('2024-11-07T07:20:00') }, { name: '소설', date: new Date('2024-11-22T05:57:00') },
-    { name: '대설', date: new Date('2024-12-07T00:16:00') }, { name: '동지', date: new Date('2024-12-21T18:21:00') }
-  ],
-  2025: [
-    { name: '소한', date: new Date('2025-01-05T11:33:00') }, { name: '대한', date: new Date('2025-01-20T04:00:00') },
-    { name: '입춘', date: new Date('2025-02-04T23:11:00') }, { name: '우수', date: new Date('2025-02-19T19:00:00') },
-    // ... (이후 절기 데이터)
-  ],
-};
+// ---------------------------------------------------
+// 1. 내부 계산 함수 (Internal Calculators)
+// 모듈 외부로 노출할 필요가 없는 내부 계산용 함수들
+// ---------------------------------------------------
 
-
-// =================================================================
-// 2. 핵심 계산 함수 (Core Functions)
-// '고대 천문학자의 유산'에서 학습한 원리를 우리만의 함수로 재창조.
-// =================================================================
-
-/**
- * 특정 년도의 연주(年柱) 간지를 계산한다. (첫 번째 렌즈)
- * @param year 계산할 년도
- * @returns 해당 년도의 간지 (예: "을사")
- */
-const getYearGanji = (year: number): string => {
+const getYearGanjiByYear = (year: number): string => {
   const ganIndex = (year - 4) % 10;
   const jiIndex = (year - 4) % 12;
-  const correctedGanIndex = (ganIndex + 10) % 10;
-  const correctedJiIndex = (jiIndex + 12) % 12;
-  return GAN[correctedGanIndex] + JI[correctedJiIndex];
+  return GAN[(ganIndex + 10) % 10] + JI[(jiIndex + 12) % 12];
 };
 
-/**
- * 특정 날짜의 월주(月柱) 간지를 계산한다. (두 번째 렌즈)
- * @param date 계산할 날짜 객체
- * @param yearGan 연주의 천간 (월주 천간 계산에 필요)
- * @returns 해당 월의 간지 (예: "병인")
- */
-const getMonthGanji = (date: Date, yearGan: string): string => {
-  const year = date.getFullYear();
-  const seasonsForYear = SEASONAL_DATA[year];
-
-  if (!seasonsForYear) {
-    return "해당 년도의 절기 데이터가 없습니다.";
-  }
-
-  // 1. 월 지지(地支) 찾기: 사용자의 생일이 어떤 '절기' 앞에 있는지 역순으로 찾는다.
-  let monthJiIndex = -1;
-  let foundingSeasonIndex = -1;
-
-  for (let i = seasonsForYear.length - 1; i >= 0; i--) {
-    // [핵심 수정] 짝수 인덱스인 '절기'만 기준으로 삼는다. (0:소한, 2:입춘, 4:경칩...)
-    // 24절기는 '소한'부터 시작하지만, 월은 '입춘'부터 시작하므로 인덱스 처리에 주의.
-    if (i % 2 === 0 && date >= seasonsForYear[i].date) {
-      foundingSeasonIndex = i;
-      break;
+// [주석] getMonthGanji 함수가 이제 로드된 seasonalData를 파라미터로 받아 사용합니다.
+const getMonthGanji = (date: Date, yearGan: string, seasonalData: SeasonalData): string => {
+    const year = date.getFullYear();
+    const seasons = seasonalData[year] || seasonalData[year - 1];
+    if (!seasons) return "";
+    let foundingIndex = -1;
+    for (let i = seasons.length - 1; i >= 0; i--) {
+        if (i % 2 === 0 && date >= seasons[i].date) {
+            foundingIndex = i;
+            break;
+        }
     }
-  }
-
-  // 만약 1월 1일 ~ 입춘 사이라면, 작년의 마지막달(축월)로 계산
-  if (foundingSeasonIndex === -1 || foundingSeasonIndex < 2) {
-    // 1월 소한, 대한은 전년도의 자, 축월에 해당
-    if (foundingSeasonIndex === 0) { // 소한
-      monthJiIndex = 0; // 자(子)월
-    } else { // 입춘 전
-      monthJiIndex = 1; // 축(丑)월
+    const DONGJI_INDEX = seasons.length > 0 ? seasons.length - 2 : -1;
+    if (foundingIndex === -1 && DONGJI_INDEX !== -1) {
+        foundingIndex = DONGJI_INDEX;
     }
-  } else {
-    // 사주명리학의 1월(인월)은 '입춘'부터 시작. '입춘'의 지지는 '인(寅)'이고 JI 배열의 2번 인덱스.
-    // 절기 인덱스와 월 지지 인덱스를 맞춰주기 위한 보정. (입춘(index 2) -> 인월(index 2))
-    monthJiIndex = (foundingSeasonIndex / 2 + 1) % 12;
-  }
-  
+
+  const monthJiIndex = (Math.floor(foundingIndex / 2) + 2) % 12;
   const monthJi = JI[monthJiIndex];
 
-  // 2. 월 천간(天干) 찾기 (월두법 月頭法 적용)
-  let monthGanIndex = -1;
   const yearGanIndex = GAN.indexOf(yearGan);
+  // [코드 간결성 유지] 월간을 찾는 간결한 로직
+  const monthGanStartIndex =
+    [0, 5].includes(yearGanIndex) ? 2 : // 갑/기 -> 병
+    [1, 6].includes(yearGanIndex) ? 4 : // 을/경 -> 무
+    [2, 7].includes(yearGanIndex) ? 6 : // 병/신 -> 경
+    [3, 8].includes(yearGanIndex) ? 8 : // 정/임 -> 임
+    /*[4, 9]*/ 0;                      // 무/계 -> 갑
 
-  if (yearGanIndex === 0 || yearGanIndex === 5) monthGanIndex = 2; // 갑/기 -> 병
-  else if (yearGanIndex === 1 || yearGanIndex === 6) monthGanIndex = 4; // 을/경 -> 무
-  else if (yearGanIndex === 2 || yearGanIndex === 7) monthGanIndex = 6; // 병/신 -> 경
-  else if (yearGanIndex === 3 || yearGanIndex === 8) monthGanIndex = 8; // 정/임 -> 임
-  else if (yearGanIndex === 4 || yearGanIndex === 9) monthGanIndex = 0; // 무/계 -> 갑
-
-  // 월 지지에 맞춰 천간 순환 (인월이 시작)
-  const monthOffset = (monthJiIndex - 2 < 0) ? monthJiIndex + 10 : monthJiIndex - 2;
-  const finalMonthGanIndex = (monthGanIndex + monthOffset) % 10;
-  const monthGan = GAN[finalMonthGanIndex];
+  const finalGanIndex = (monthGanStartIndex + monthJiIndex - 2 + 10) % 10;
+  const monthGan = GAN[finalGanIndex];
 
   return monthGan + monthJi;
 };
 
-/**
- * 특정 날짜의 율리우스일(Julian Day)을 계산한다.
- * 모든 날짜 계산의 기준점이 되는 절대적인 일수.
- */
-const getJulianDay = (year: number, month: number, day: number): number => {
-  if (month <= 2) {
-    year -= 1;
-    month += 12;
-  }
-  const a = Math.floor(year / 100);
+const getJulianDay = (y: number, m: number, d: number): number => {
+  if (m <= 2) { y -= 1; m += 12; }
+  const a = Math.floor(y / 100);
   const b = 2 - a + Math.floor(a / 4);
-  const julianDay = Math.floor(365.25 * (year + 4716)) + Math.floor(30.6001 * (month + 1)) + day + b - 1524.5;
-  return julianDay;
+  return Math.floor(365.25 * (y + 4716)) + Math.floor(30.6001 * (m + 1)) + d + b - 1524.5;
 };
 
-const BASE_JULIAN_DAY = 2445191.5
-const BASE_GANJI_INDEX = 0; 
-
-/**
- * 특정 날짜의 일주(日柱) 간지를 계산한다. (세 번째 렌즈)
- */
+// [수정] 율리우스력 기준점을 '갑자일' 기준으로 최종 정정
 const getDayGanji = (date: Date): string => {
-  const julianDay = getJulianDay(date.getFullYear(), date.getMonth() + 1, date.getDate());
-  const dayDifference = julianDay - BASE_JULIAN_DAY;
-  const ganjiIndex = (BASE_GANJI_INDEX + dayDifference) % 60;
-  const correctedGanjiIndex = Math.floor((ganjiIndex + 60) % 60);
+  // 기준점: 1982년 8월 9일 (임술년 무신월 갑자일)의 율리우스력
+  const BASE_JD = 2445191.5;
+  // '갑자'는 60갑자 배열(GANJI)에서 0번째에 위치.
+  const BASE_GANJI_INDEX = 0; 
 
-  return GANJI[correctedGanjiIndex];
+  const jd = getJulianDay(date.getFullYear(), date.getMonth() + 1, date.getDate());
+  const dayDifference = jd - BASE_JD;
+  
+  const idx = (BASE_GANJI_INDEX + dayDifference) % 60;
+  // Javascript의 % 연산자는 음수 나머지를 반환할 수 있으므로, 항상 양수가 되도록 보정
+  const correctedIdx = Math.floor((idx + 60) % 60);
+  
+  return GANJI[correctedIdx];
 };
 
 const getHourGanji = (date: Date, dayGan: string): string => {
-  // 1. 시지(時支) 찾기: 태어난 시간으로 12지지 중 하나를 결정.
   const hour = date.getHours();
-  // 23:30 ~ 01:29는 자시(子時)
-  const hourJiIndex = Math.floor((hour + 1) / 2) % 12;
+  const min = date.getMinutes();
+  const hourJiIndex = (hour === 23 && min >= 30) ? 0 : Math.floor((hour + 1) / 2) % 12;
   const hourJi = JI[hourJiIndex];
 
-  // 2. 시간(時干) 찾기: 일간(日干)에 따라 시작하는 천간이 다름 (시두법)
   const dayGanIndex = GAN.indexOf(dayGan);
-  let startGanIndex = -1;
+  const startGanIndex =
+    [0, 5].includes(dayGanIndex) ? 0 : // 갑기 -> 갑
+    [1, 6].includes(dayGanIndex) ? 2 : // 을경 -> 병
+    [2, 7].includes(dayGanIndex) ? 4 : // 병신 -> 무
+    [3, 8].includes(dayGanIndex) ? 6 : // 정임 -> 경
+    /*[4, 9]*/ 8;                      // 무계 -> 임
 
-  if (dayGanIndex === 0 || dayGanIndex === 5) startGanIndex = 0; // 갑기 -> 갑자시 
-  else if (dayGanIndex === 1 || dayGanIndex === 6) startGanIndex = 2; // 을/경 -> 병자시
-  else if (dayGanIndex === 2 || dayGanIndex === 7) startGanIndex = 4; // 병/신 -> 무자시
-  else if (dayGanIndex === 3 || dayGanIndex === 8) startGanIndex = 6; // 정/임 -> 경자시
-  else if (dayGanIndex === 4 || dayGanIndex === 9) startGanIndex = 8; // 무/계 -> 임자시
-  
-  const hourGanIndex = (startGanIndex + hourJiIndex) % 10;
-  const hourGan = GAN[hourGanIndex];
-
+  const hourGan = GAN[(startGanIndex + hourJiIndex) % 10];
   return hourGan + hourJi;
 };
 
+// ---------------------------------------------------
+// 2. 메인 사주 엔진 (외부 노출 함수)
+// ---------------------------------------------------
 
+// [수정] getSajuDetails를 async 함수로 변경하여 비동기 처리
+export const getSajuDetails = async (birthDate: Date, gender: 'M' | 'W') => {
+  
+  // 1. 필요한 절기 데이터를 동적으로 불러옵니다.
+  await getSeasonalDataForYear(birthDate.getFullYear());
+  await getSeasonalDataForYear(birthDate.getFullYear() - 1); // 입춘 이전 출생 고려
+  const SEASONAL_DATA = getLoadedSeasonalData();
 
+  // 2. 사주팔자 계산 (로드된 데이터 사용)
+  let sajuYear = birthDate.getFullYear();
+  const yearSeasons = SEASONAL_DATA[sajuYear];
+  
+  if (yearSeasons && birthDate < yearSeasons[2].date) {
+    sajuYear -= 1;
+  }
+  
+  const yearPillar = getYearGanjiByYear(sajuYear);
+  const monthPillar = getMonthGanji(birthDate, yearPillar[0], SEASONAL_DATA);
 
+  // 야자시(夜子時)를 고려하여 일주를 계산
+  let dayPillar: string;
+  if (birthDate.getHours() === 23 && birthDate.getMinutes() >= 30) {
+    const nextDay = new Date(birthDate);
+    nextDay.setDate(nextDay.getDate() + 1);
+    dayPillar = getDayGanji(nextDay);
+  } else {
+    dayPillar = getDayGanji(birthDate);
+  }
 
+  const hourPillar = getHourGanji(birthDate, dayPillar[0]);
 
+  // 3. 십성, 십이운성, 대운 계산
+  const dayGan = dayPillar[0];
+  const pillars = { year: yearPillar, month: monthPillar, day: dayPillar, hour: hourPillar };
+  const sipsin = getSipsin(dayGan, pillars);
+  const sibiwunseong = getSibiwunseong(dayGan, pillars);
+  const daewoonFull = getDaewoon(birthDate, gender, { yearPillar, monthPillar, dayPillar }, SEASONAL_DATA);
+  
+  // [주석] 4. '현재'에 초점을 맞춘 운세 정보를 계산합니다.
+  const currentYear = new Date().getFullYear();
+  
+  // [주석] 4-1. 전체 대운 정보에서 현재 내가 어떤 대운에 속해있는지 찾아냅니다.
+  const currentDaewoon = daewoonFull.find((d: Daewoon) => currentYear >= d.year && currentYear < d.year + 10) || null;
+  
+  // [주석] 4-2. 새로 만든 세운 서비스를 호출하여 '올해'의 운세를 계산합니다.
+  const currentSewoon = getSewoonForYear(currentYear, dayGan);
 
-
-// =================================================================
-// 3. 메인 서비스 함수 (Main Service)
-// 모든 부품을 조립하여 최종 결과를 내보내는 메인 작업대.
-// =================================================================
-
-/**
- * 사용자의 생년월일시 정보를 받아 사주팔자를 완성한다.
- * @param birthDate 사용자의 생년월일시가 포함된 Date 객체
- * @param gender 사용자의 성별
- */
-export const getSajuInfo = (birthDate: Date, gender: string) => {
-  const yearPillar = getYearGanji(birthDate.getFullYear());
-  const monthPillar = getMonthGanji(birthDate, yearPillar[0]);
-  const dayPillar = getDayGanji(birthDate);
-  const hourPillar = getHourGanji(birthDate, dayPillar[0]); // 시주 계산 함수 호출
-
-  return {
-    message: "사주팔자 변환이 완료되었습니다.",
-    yearPillar,
-    monthPillar,
-    dayPillar,
-    hourPillar,
+  // [주석] 5. 최종적으로 사용자에게 필요한 모든 정보를 구조화하여 반환합니다.
+  return { 
+    pillars,       // 사주 원국
+    sipsin,        // 원국의 십성
+    sibiwunseong,  // 원국의 십이운성
+    currentDaewoon, // 현재 대운 정보
+    currentSewoon, // 올해 세운 정보
+    daewoonFull,   // UI에서는 숨기거나, '전체 대운 보기' 같은 버튼으로 제공할 수 있는 참고용 데이터
   };
 };
-
