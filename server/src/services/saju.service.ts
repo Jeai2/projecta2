@@ -9,12 +9,38 @@ import { getDaewoon, Daewoon } from './daewoon.service';
 import { getSewoonForYear } from './sewoon.service';
 import { getSeasonalDataForYear, getLoadedSeasonalData } from './seasonal-data.loader';
 import { GAN, JI, GANJI } from '../data/saju.data';
+import { interpretSaju, interpretationResult } from './sajuInterpret.service';
 
 // [주석] 다른 파일에서도 이 타입을 사용해야 할 수 있으므로, 나중에 별도의 types.ts 파일로 분리하는 것을 고려해볼 수 있습니다.
 type SeasonalData = { [year: number]: { name: string; date: Date }[] };
 
+// =================================================================
+// 1. 데이터 타입 정의 (Type Definitions) - 이 부분이 제가 누락했던 부분입니다.
+// =================================================================
+
+// saju.service.ts가 계산하는 모든 데이터의 타입을 명확하게 정의합니다.
+export interface SajuData {
+  pillars: {
+    year: string;
+    month: string;
+    day: string;
+    hour: string;
+  };
+  sipsin: ReturnType<typeof getSipsin>;
+  sibiwunseong: ReturnType<typeof getSibiwunseong>;
+  currentDaewoon: Daewoon | null;
+  currentSewoon: SewoonData;
+  daewoonFull: Daewoon[];
+}
+
+// API가 최종적으로 반환할 결과물의 타입입니다.
+export interface FortuneResult {
+  sajuData: SajuData;
+  interpretation: InterpretationResult;
+}
+
 // ---------------------------------------------------
-// 1. 내부 계산 함수 (Internal Calculators)
+// 2 내부 계산 함수 (Internal Calculators)
 // 모듈 외부로 노출할 필요가 없는 내부 계산용 함수들
 // ---------------------------------------------------
 
@@ -101,30 +127,24 @@ const getHourGanji = (date: Date, dayGan: string): string => {
   return hourGan + hourJi;
 };
 
-// ---------------------------------------------------
-// 2. 메인 사주 엔진 (외부 노출 함수)
-// ---------------------------------------------------
+// =================================================================
+// 3. 메인 엔진 (수정된 최종 버전)
+// =================================================================
 
-// [수정] getSajuDetails를 async 함수로 변경하여 비동기 처리
-export const getSajuDetails = async (birthDate: Date, gender: 'M' | 'W') => {
-  
-  // 1. 필요한 절기 데이터를 동적으로 불러옵니다.
+export const getSajuDetails = async (birthDate: Date, gender: 'M' | 'W'): Promise<FortuneResult> => {
+  // 1. 절기 데이터 로드
   await getSeasonalDataForYear(birthDate.getFullYear());
-  await getSeasonalDataForYear(birthDate.getFullYear() - 1); // 입춘 이전 출생 고려
+  await getSeasonalDataForYear(birthDate.getFullYear() - 1);
   const SEASONAL_DATA = getLoadedSeasonalData();
 
-  // 2. 사주팔자 계산 (로드된 데이터 사용)
+  // 2. 사주팔자 계산
   let sajuYear = birthDate.getFullYear();
   const yearSeasons = SEASONAL_DATA[sajuYear];
-  
   if (yearSeasons && birthDate < yearSeasons[2].date) {
     sajuYear -= 1;
   }
-  
   const yearPillar = getYearGanjiByYear(sajuYear);
   const monthPillar = getMonthGanji(birthDate, yearPillar[0], SEASONAL_DATA);
-
-  // 야자시(夜子時)를 고려하여 일주를 계산
   let dayPillar: string;
   if (birthDate.getHours() === 23 && birthDate.getMinutes() >= 30) {
     const nextDay = new Date(birthDate);
@@ -133,32 +153,34 @@ export const getSajuDetails = async (birthDate: Date, gender: 'M' | 'W') => {
   } else {
     dayPillar = getDayGanji(birthDate);
   }
-
   const hourPillar = getHourGanji(birthDate, dayPillar[0]);
-
-  // 3. 십성, 십이운성, 대운 계산
-  const dayGan = dayPillar[0];
   const pillars = { year: yearPillar, month: monthPillar, day: dayPillar, hour: hourPillar };
+  const dayGan = dayPillar[0];
+
+  // 3. 십성, 십이운성, 대운, 세운 등 모든 데이터 계산
   const sipsin = getSipsin(dayGan, pillars);
   const sibiwunseong = getSibiwunseong(dayGan, pillars);
   const daewoonFull = getDaewoon(birthDate, gender, { yearPillar, monthPillar, dayPillar }, SEASONAL_DATA);
-  
-  // [주석] 4. '현재'에 초점을 맞춘 운세 정보를 계산합니다.
   const currentYear = new Date().getFullYear();
-  
-  // [주석] 4-1. 전체 대운 정보에서 현재 내가 어떤 대운에 속해있는지 찾아냅니다.
-  const currentDaewoon = daewoonFull.find((d: Daewoon) => currentYear >= d.year && currentYear < d.year + 10) || null;
-  
-  // [주석] 4-2. 새로 만든 세운 서비스를 호출하여 '올해'의 운세를 계산합니다.
+  const currentDaewoon = daewoonFull.find((d) => currentYear >= d.year && currentYear < d.year + 10) || null;
   const currentSewoon = getSewoonForYear(currentYear, dayGan);
 
-  // [주석] 5. 최종적으로 사용자에게 필요한 모든 정보를 구조화하여 반환합니다.
-  return { 
-    pillars,       // 사주 원국
-    sipsin,        // 원국의 십성
-    sibiwunseong,  // 원국의 십이운성
-    currentDaewoon, // 현재 대운 정보
-    currentSewoon, // 올해 세운 정보
-    daewoonFull,   // UI에서는 숨기거나, '전체 대운 보기' 같은 버튼으로 제공할 수 있는 참고용 데이터
+  // 4. 계산된 모든 데이터를 SajuData 객체에 담기
+  const sajuData: SajuData = {
+    pillars,
+    sipsin,
+    sibiwunseong,
+    currentDaewoon,
+    currentSewoon,
+    daewoonFull,
+  };
+
+  // 5. 해석 서비스 호출
+  const interpretation = interpretSaju(sajuData);
+
+  // 6. 최종 결과 반환
+  return {
+    sajuData,
+    interpretation,
   };
 };
