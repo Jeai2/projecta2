@@ -1,29 +1,27 @@
-// src/pages/SinnyeonUnsePage.tsx
-
-import { useState } from 'react';
-import { FortunePageLayout } from "@/components/layout/FortunePageLayout"; // ✅ 1. 새로운 레이아웃 부품을 가져온다.
-import { UserInfoForm } from '@/components/forms/UserInfoForm';
-import type { UserData } from '@/components/forms/UserInfoForm';
+import { useState } from "react";
+import { FortunePageLayout } from "@/components/layout/FortunePageLayout";
+import { UserInfoForm } from "@/components/forms/UserInfoForm";
 import { FortuneResult } from "@/components/results/FortuneResult";
+// ✅ 1. API 전체 응답 타입을 import 합니다.
+import type { FortuneResponseData } from "@/types/fortune";
 
-// ✅ 2. 페이지 컴포넌트를 정의한다.
 const SinnyeonUnsePage = () => {
-  const [showResult, setShowResult] = useState(false);
-  const [formData, setFormData] = useState<UserData | null>(null);
+  // ✅ 2. API 최종 결과를 담을 단 하나의 state를 생성합니다.
+  const [fortuneResult, setFortuneResult] =
+    useState<FortuneResponseData | null>(null);
 
-  const handleFortuneSubmit = (data: UserData) => {
-    console.log("페이지가 전달받은 데이터:", data);
-    setFormData(data);
-    setShowResult(true);
-  }; 
-  
+  // ✅ 3. UserInfoForm으로부터 성공적인 API 결과를 전달받을 함수입니다.
+  const handleSuccess = (data: FortuneResponseData) => {
+    console.log("신년 운세 페이지가 받은 데이터:", data);
+    setFortuneResult(data);
+  };
+
+  // ✅ 4. 결과를 리셋하고 다시 입력 폼으로 돌아가는 함수입니다.
   const handleReset = () => {
-    setShowResult(false);
-    setFormData(null);
+    setFortuneResult(null);
   };
 
   return (
-    // ✅ 3. FortunePageLayout을 '틀'로 사용한다.
     <FortunePageLayout
       imageUrl="https://placehold.co/1200x400/334155/ffffff?text=New+Year"
       title="2025년 신년운세"
@@ -35,14 +33,14 @@ const SinnyeonUnsePage = () => {
         </>
       }
     >
-      {/* ✅ 5. showResult 값에 따라 폼 또는 결과를 선택적으로 보여준다. */}
-      {showResult ? (
-        <FortuneResult data={formData} onReset={handleReset} />
+      {/* ✅ 5. fortuneResult 데이터 유무에 따라 폼 또는 결과를 보여줍니다. */}
+      {fortuneResult ? (
+        <FortuneResult data={fortuneResult} onReset={handleReset} />
       ) : (
         <UserInfoForm
           title="사주 정보 입력"
           buttonText="신년운세 보기"
-          onSubmit={handleFortuneSubmit}
+          onSuccess={handleSuccess} // ✅ 6. onSuccess prop으로 함수를 전달합니다.
         />
       )}
     </FortunePageLayout>

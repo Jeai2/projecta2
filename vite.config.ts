@@ -6,10 +6,18 @@ import path from "path"; // Node.js의 기본 'path' 모듈을 가져온다.
 export default defineConfig({
   plugins: [react()],
   resolve: {
-    alias: [
-      // '@' 라는 별칭이 사용되면,
-      // 현재 디렉토리(__dirname)를 기준으로 'src' 폴더를 가리키도록 설정한다.
-      { find: "@", replacement: path.resolve(__dirname, "src") },
-    ],
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
+  // ✅✅✅ 아래 server 객체를 추가해주세요. ✅✅✅
+  server: {
+    proxy: {
+      // '/api'로 시작하는 모든 요청을 http://localhost:3001 로 보냅니다.
+      "/api": {
+        target: "http://localhost:3001",
+        changeOrigin: true,
+      },
+    },
   },
 });

@@ -23,7 +23,7 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
 
-    /* ✅ 여기 추가해야 한다! */
+    /* ✅✅✅ 바로 여기에 경로 별칭 설정을 추가해야 합니다. ✅✅✅ */
     "baseUrl": "./",
     "paths": {
       "@/*": ["src/*"]

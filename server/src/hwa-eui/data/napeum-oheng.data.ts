@@ -9,7 +9,7 @@ export interface NapeumOhengElement {
 }
 
 export const NAPEUM_OHENG_DATA: { [key: string]: NapeumOhengElement } = {
-  갑자: { name: "해중금", oheng: "金", description: "바다 속의 금속" },
+  갑자: { name: "해중금", oheng: "金", description: "심해의 신비로운 광물" },
   을축: { name: "해중금", oheng: "金", description: "바다 속의 금속" },
   병인: { name: "노중화", oheng: "火", description: "화로 속의 불" },
   정묘: { name: "노중화", oheng: "火", description: "화로 속의 불" },

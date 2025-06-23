@@ -5,6 +5,8 @@ import { CUSTOM_DAY_GAN_INTERPRETATION } from "../data/interpretation/custom"; /
 import { SIBIWUNSEONG_INTERPRETATION } from "../data/interpretation/sibiunseong"; //✅ 십이운성 해석 //
 import { SINSAL_INTERPRETATION } from "../data/interpretation/sinsal"; //✅ 신살 //
 import { COMBINATION_INTERPRETATION } from "../data/interpretation/custom"; // ✅ 1. 조합 해석 데이터 import
+import { NapeumResult } from "../hwa-eui/data/hwa-eui.data";
+import { LANDSCAPE_PHRASES } from "../hwa-eui/data/landscape-phrases.data";
 import { SajuData } from "../services/saju.service";
 
 /**
@@ -162,4 +164,39 @@ export const interpretCombinations = (sajuData: SajuData): string[] => {
   // if (조건) { foundInterpretations.push(COMBINATION_INTERPRETATION['002']); }
 
   return foundInterpretations;
+};
+
+// ★★★★★ 새로운 '풍경 묘사 프롬프트' 생성 함수를 추가합니다. ★★★★★
+/**
+ * 화의론(畵意論)의 기반이 되는 풍경 묘사 프롬프트를 생성합니다.
+ * @param napeumData 사주 네 기둥의 납음오행 데이터 객체
+ * @returns 조합된 최종 프롬프트 텍스트
+ */
+export const createLandscapePrompt = (napeumData: NapeumResult): string => {
+  const phrases: string[] = [];
+
+  // 각 기둥의 납음오행에 해당하는 묘사 문장을 찾아 배열에 추가합니다.
+  if (napeumData.year && LANDSCAPE_PHRASES[napeumData.year.name]) {
+    phrases.push(LANDSCAPE_PHRASES[napeumData.year.name]);
+  }
+  if (napeumData.month && LANDSCAPE_PHRASES[napeumData.month.name]) {
+    phrases.push(LANDSCAPE_PHRASES[napeumData.month.name]);
+  }
+  if (napeumData.day && LANDSCAPE_PHRASES[napeumData.day.name]) {
+    phrases.push(LANDSCAPE_PHRASES[napeumData.day.name]);
+  }
+  if (napeumData.hour && LANDSCAPE_PHRASES[napeumData.hour.name]) {
+    phrases.push(LANDSCAPE_PHRASES[napeumData.hour.name]);
+  }
+
+  if (phrases.length === 0) {
+    return "이 사주의 고유한 풍경을 그리기 위한 정보가 부족합니다.";
+  }
+
+  // 최종 프롬프트: 기본 묘사 + 조합된 문장들 + 스타일 가이드
+  const basePrompt =
+    "A deep, sacred, and sublime landscape painting in a mystical oriental fantasy style. cinematic lighting, epic scale. ";
+  const combinedPhrases = phrases.join(" ");
+
+  return basePrompt + combinedPhrases;
 };
