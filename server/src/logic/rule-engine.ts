@@ -4,6 +4,7 @@ import { SIPSIN_INTERPRETATION } from "../data/interpretation/sipsin"; //✅ 십
 import { CUSTOM_DAY_GAN_INTERPRETATION } from "../data/interpretation/custom"; //✅ 일간 심화 해석 //
 import { SIBIWUNSEONG_INTERPRETATION } from "../data/interpretation/sibiunseong"; //✅ 십이운성 해석 //
 import { SINSAL_INTERPRETATION } from "../data/interpretation/sinsal"; //✅ 신살 //
+import { COMBINATION_INTERPRETATION } from "../data/interpretation/custom"; // ✅ 1. 조합 해석 데이터 import
 import { SajuData } from "../services/saju.service";
 
 /**
@@ -138,4 +139,27 @@ export const interpretSinsal = (sinsalData: SajuData["sinsal"]): string => {
   });
 
   return descriptions.join("\n\n");
+};
+
+/**
+ * 규칙 5: 여러 사주 데이터를 조합하여 특별한 의미를 해석합니다.
+ * @param sajuData 전체 사주 데이터 객체
+ * @returns 조합 해석 텍스트 배열
+ */
+export const interpretCombinations = (sajuData: SajuData): string[] => {
+  const foundInterpretations: string[] = [];
+
+  // 규칙 #001: 신(辛)일간이 술(戌)월에 태어났고, 월지가 정인일 경우
+  if (
+    sajuData.pillars.day[0] === "辛" && // 조건 1: 일간이 辛
+    sajuData.pillars.month[1] === "戌" && // 조건 2: 월지가 戌
+    sajuData.sipsin.month.ji === "정인" // 조건 3: 월지 십성이 정인
+  ) {
+    foundInterpretations.push(COMBINATION_INTERPRETATION["001"]);
+  }
+
+  // 앞으로 여기에 if 문으로 새로운 규칙들을 계속 추가하게 됩니다.
+  // if (조건) { foundInterpretations.push(COMBINATION_INTERPRETATION['002']); }
+
+  return foundInterpretations;
 };

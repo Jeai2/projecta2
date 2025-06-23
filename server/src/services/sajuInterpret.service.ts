@@ -4,6 +4,7 @@ import {
   interpretSipsinPresence,
   interpretSibiwunseong,
   interpretSinsal,
+  interpretCombinations,
 } from "../logic/rule-engine";
 import { SajuData } from "./saju.service";
 
@@ -13,6 +14,7 @@ export interface InterpretationResult {
   sipsinAnalysis: string;
   sibiwunseongAnalysis: string; // 십이운성 분석 결과 추가
   sinsalAnalysis: string; // 신살 분석 결과 추가
+  combinationAnalysis: string[];
 }
 
 export const interpretSaju = (sajuData: SajuData): InterpretationResult => {
@@ -24,6 +26,7 @@ export const interpretSaju = (sajuData: SajuData): InterpretationResult => {
 
   // ★★★★★ 2. 새로운 십성 해석 규칙을 호출합니다. ★★★★★
   const sipsinAnalysis = interpretSipsinPresence(sajuData.sipsin);
+  const combinationAnalysis = interpretCombinations(sajuData);
 
   // 3. 최종 결과 객체에 새로운 해석을 포함시킵니다.
   const result: InterpretationResult = {
@@ -31,6 +34,7 @@ export const interpretSaju = (sajuData: SajuData): InterpretationResult => {
     sipsinAnalysis: sipsinAnalysis,
     sibiwunseongAnalysis: sibiwunseongAnalysis, // 결과 객체에 추가
     sinsalAnalysis: sinsalAnalysis, // 결과 객체에 추가
+    combinationAnalysis: combinationAnalysis,
   };
 
   return result;

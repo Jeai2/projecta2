@@ -10,6 +10,10 @@ import {
 } from "./seasonal-data.loader";
 import { GAN, JI, GANJI } from "../data/saju.data";
 import { interpretSaju, InterpretationResult } from "./sajuInterpret.service";
+import {
+  getNapeumFromPillars,
+  NapeumResult,
+} from "../hwa-eui/data/hwa-eui.data";
 
 type SeasonalData = { [year: number]: { name: string; date: Date }[] };
 
@@ -19,6 +23,7 @@ export interface SajuData {
   sipsin: ReturnType<typeof getSipsin>;
   sibiwunseong: ReturnType<typeof getSibiwunseong>;
   sinsal: ReturnType<typeof getAllSinsals>; // 신살 데이터 타입 추가
+  napeum: NapeumResult;
   currentDaewoon: Daewoon | null;
   currentSewoon: SewoonData;
   daewoonFull: Daewoon[];
@@ -77,17 +82,40 @@ const getMonthGanji = (
   return monthGan + monthJi;
 };
 
+// 율리우스력 계산 함수
+const getJulianDay = (y: number, m: number, d: number): number => {
+  if (m <= 2) {
+    y -= 1;
+    m += 12;
+  }
+  const a = Math.floor(y / 100);
+  const b = 2 - a + Math.floor(a / 4);
+  return (
+    Math.floor(365.25 * (y + 4716)) +
+    Math.floor(30.6001 * (m + 1)) +
+    d +
+    b -
+    1524.5
+  );
+};
+
+// 일주 계산 함수 (선생님께서 찾아주신 정확한 기준점이 적용된 최종 버전)
 const getDayGanji = (date: Date): string => {
-  const baseDate = new Date("2024-05-05T00:00:00+09:00");
-  const baseGanjiIndex = 0;
+  // 기준점: 1982년 8월 9일 (월요일)은 '갑자일'
+  // 해당 날짜 자정(0시)의 율리우스력(JD)은 2445190.5 입니다.
+  const BASE_JD = 2445190.5;
+  // '갑자'는 60갑자 배열(GANJI)에서 0번째에 위치합니다.
+  const BASE_GANJI_INDEX = 0;
 
-  const targetDate = new Date(date);
-  targetDate.setHours(0, 0, 0, 0);
+  const jd = getJulianDay(
+    date.getFullYear(),
+    date.getMonth() + 1,
+    date.getDate()
+  );
+  const dayDifference = jd - BASE_JD;
 
-  const timeDiff = targetDate.getTime() - baseDate.getTime();
-  const dayDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
-
-  const correctedIdx = (baseGanjiIndex + (dayDiff % 60) + 60) % 60;
+  const idx = (BASE_GANJI_INDEX + dayDifference) % 60;
+  const correctedIdx = Math.floor((idx + 60) % 60);
 
   return GANJI[correctedIdx];
 };
@@ -151,6 +179,7 @@ export const getSajuDetails = async (
   const sibiwunseong = getSibiwunseong(dayGan, pillars);
   // ✅ 3. 신살 계산 로직을 호출합니다.
   const sinsal = getAllSinsals(pillars, gender);
+  const napeum = getNapeumFromPillars(pillars);
   const daewoonFull = getDaewoon(
     birthDate,
     gender,
@@ -169,7 +198,8 @@ export const getSajuDetails = async (
     pillars,
     sipsin,
     sibiwunseong,
-    sinsal: sinsal, // 신살 데이터 포함
+    sinsal: sinsal,
+    napeum: napeum,
     currentDaewoon,
     currentSewoon,
     daewoonFull,
