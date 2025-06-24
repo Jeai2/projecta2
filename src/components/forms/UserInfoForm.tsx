@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "../ui/common/Select";
 import type { FortuneResponseData } from "../../types/fortune";
+import { useFortuneStore } from "@/store/fortuneStore";
 
 // ✅ 1. 드롭다운에 필요한 데이터들을 미리 생성한다.
 const CURRENT_YEAR = new Date().getFullYear();
@@ -42,14 +43,9 @@ const TIMES = [
 interface UserInfoFormProps {
   title: string;
   buttonText: string;
-  onSuccess: (data: FortuneResponseData) => void;
 }
 
-export const UserInfoForm = ({
-  title,
-  buttonText,
-  onSuccess,
-}: UserInfoFormProps) => {
+export const UserInfoForm = ({ title, buttonText }: UserInfoFormProps) => {
   const [gender, setGender] = useState<"M" | "W">("M"); // M: 남성, W: 여성
   const [calendarType, setCalendarType] = useState("solar");
   const [birthYear, setBirthYear] = useState<string>("");
@@ -58,6 +54,7 @@ export const UserInfoForm = ({
   const [birthTime, setBirthTime] = useState<string>("unknown");
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
+  const { setFortuneResult } = useFortuneStore();
 
   // ✅ 표준 form 제출 함수로 변경
   const handleFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -85,7 +82,7 @@ export const UserInfoForm = ({
         "/api/fortune/today",
         requestBody
       );
-      onSuccess(response.data);
+      setFortuneResult(response.data);
     } catch (err) {
       if (axios.isAxiosError(err) && err.response) {
         setApiError(err.response.data.message || "오류가 발생했습니다.");

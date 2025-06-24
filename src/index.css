@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  scroll-behavior: smooth;
+}
+
 @layer base {
   :root {
     --gold: 45 75% 58%; /* 금색 */
@@ -52,9 +56,15 @@
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
-    
+
     /* 미묘하게 움직이는 밤하늘 그라데이션 */
-    background-image: linear-gradient(-45deg, #020617, #131122, #0B0F1A, #1e1b4b);
+    background-image: linear-gradient(
+      -45deg,
+      #020617,
+      #131122,
+      #0b0f1a,
+      #1e1b4b
+    );
     background-size: 400% 400%;
     animation: gradientBG 25s ease infinite;
 
