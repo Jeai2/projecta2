@@ -10,7 +10,6 @@ export default {
       // 이제 너는 마법의 숫자(#0B0F1A)가 아닌, 의미(bg-background-main)를 사용하게 된다.
       // ---------------------------------------------------------
       colors: {
-
         background: {
           //main: "#0B0F1A", // deepNavy
           sub: "#1B1F2A", // charcoalGray
@@ -33,10 +32,10 @@ export default {
         system: {
           danger: "#A94438", // crimsonRed (경고/에러)
         },
-         gold: {
+        gold: {
           DEFAULT: "hsl(var(--gold))",
           foreground: "hsl(var(--gold-foreground))",
-        }
+        },
       },
 
       // ---------------------------------------------------------
@@ -44,6 +43,7 @@ export default {
       // ---------------------------------------------------------
       fontFamily: {
         sans: ['"Noto Sans KR"', "Helvetica", "sans-serif"],
+        myeongjo: ["'Nanum Myeongjo'", "serif"],
       },
       fontSize: {
         "h1-xl": ["28px", { lineHeight: "36px", fontWeight: "700" }],

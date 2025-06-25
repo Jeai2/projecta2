@@ -5,6 +5,7 @@ import { FortunePageLayout } from "@/components/layout/FortunePageLayout";
 import { UserInfoForm } from "@/components/forms/UserInfoForm";
 import { NavigationHelper } from "@/components/results/layout/NavigationHelper";
 import { ForewordSection } from "@/components/results/sections/ForewordSection";
+import { HwaEuiSection } from "@/components/results/sections/HwaEuiSection";
 import { MySajuIntro } from "@/components/results/sections/MySajuIntro";
 import {
   Card,
@@ -22,6 +23,8 @@ const JonghapSajuPage = () => {
     switch (resultCurrentPage) {
       case 1:
         return <ForewordSection />;
+      case 2:
+        return <HwaEuiSection />;
       case 3:
         return (
           <MySajuIntro
