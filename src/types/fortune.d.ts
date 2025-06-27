@@ -17,6 +17,17 @@ export interface NapeumResult {
   hour: NapeumOhengElement | null;
 }
 
+export interface PillarData {
+  gan: string;
+  ji: string;
+  ganOhaeng: string;
+  jiOhaeng: string;
+  ganSipsin: string | null;
+  jiSipsin: string | null;
+  sibiwunseong: string;
+  sinsal: string[];
+}
+
 // 십성
 export interface SipsinPillar {
   gan: string | null;
@@ -58,7 +69,12 @@ export interface SewoonData {
 
 // 전체 사주 데이터
 export interface SajuData {
-  pillars: { year: string; month: string; day: string; hour: string };
+  pillars: {
+    year: PillarData;
+    month: PillarData;
+    day: PillarData;
+    hour: PillarData;
+  };
   sipsin: {
     year: SipsinPillar;
     month: SipsinPillar;
@@ -75,12 +91,13 @@ export interface SajuData {
 
 // 전체 해석 결과
 export interface InterpretationResult {
-  dayMasterNature: { base: string; custom: string };
-  sipsinAnalysis: string;
-  sibiwunseongAnalysis: string;
-  sinsalAnalysis: string;
-  combinationAnalysis: string[];
+  dayMasterNature: { base: string; custom: string | null };
+  dayMasterCharacter: string;
   hwaEuiPrompt: string;
+  sipsinAnalysis: string; // ✅ 백엔드와 동일하게 string 타입으로 수정
+  sibiunseongAnalysis: string; // ✅ 백엔드와 동일하게 string 타입으로 수정
+  sinsalAnalysis: string; // 이 타입도 string일 가능성이 높으므로 함께 수정합니다.
+  combinationAnalysis: string[];
 }
 
 // AI 응답

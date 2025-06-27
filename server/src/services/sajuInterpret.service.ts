@@ -1,42 +1,33 @@
-// server/src/services/sajuInterpret.service.ts
+// server/src/services/sajuInterpret.service.ts (최종 완성본)
+
 import {
   interpretDayGan,
+  interpretDayMasterCharacter, // ✅ 1. '일간 상세 성품' 해석 함수 import
   interpretSipsinPresence,
   interpretSibiwunseong,
   interpretSinsal,
   interpretCombinations,
   createLandscapePrompt,
 } from "../logic/rule-engine";
-import { SajuData } from "./saju.service";
-
-// 1. 최종 결과 타입에 sipsinAnalysis를 추가합니다.
-export interface InterpretationResult {
-  dayMasterNature: { base: string; custom: string };
-  sipsinAnalysis: string;
-  sibiwunseongAnalysis: string; // 십이운성 분석 결과 추가
-  sinsalAnalysis: string; // 신살 분석 결과 추가
-  combinationAnalysis: string[];
-  hwaEuiPrompt: string;
-}
+import type { SajuData, InterpretationResult } from "../types/saju.d";
 
 export const interpretSaju = (sajuData: SajuData): InterpretationResult => {
-  // --- 기존 일간 해석 ---
-  const dayGan = sajuData.pillars.day[0];
+  // ✅ 3. 모든 로직은 최종 수정본과 동일하게 유지합니다.
+  const dayGan = sajuData.pillars.day.gan;
   const dayMasterNature = interpretDayGan(dayGan);
+  const dayMasterCharacter = interpretDayMasterCharacter(dayGan);
   const sibiwunseongAnalysis = interpretSibiwunseong(sajuData.sibiwunseong);
   const sinsalAnalysis = interpretSinsal(sajuData.sinsal);
-
-  // ★★★★★ 2. 새로운 십성 해석 규칙을 호출합니다. ★★★★★
   const sipsinAnalysis = interpretSipsinPresence(sajuData.sipsin);
   const combinationAnalysis = interpretCombinations(sajuData);
   const hwaEuiPrompt = createLandscapePrompt(sajuData.napeum);
 
-  // 3. 최종 결과 객체에 새로운 해석을 포함시킵니다.
   const result: InterpretationResult = {
     dayMasterNature: dayMasterNature,
+    dayMasterCharacter: dayMasterCharacter, // ✅ 최종 결과에 포함
     sipsinAnalysis: sipsinAnalysis,
-    sibiwunseongAnalysis: sibiwunseongAnalysis, // 결과 객체에 추가
-    sinsalAnalysis: sinsalAnalysis, // 결과 객체에 추가
+    sibiwunseongAnalysis: sibiwunseongAnalysis,
+    sinsalAnalysis: sinsalAnalysis,
     combinationAnalysis: combinationAnalysis,
     hwaEuiPrompt: hwaEuiPrompt,
   };

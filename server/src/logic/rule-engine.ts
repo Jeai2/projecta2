@@ -1,5 +1,5 @@
 // server/src/logic/rule-engine.ts
-import { DAY_GAN_INTERPRETATION } from "../data/interpretation/dgan"; //✅ 일간 기본 해석 //
+import { DAY_GAN_CHARACTER } from "../data/interpretation/dgan-character"; //✅ 일간 기본 해석 //
 import { SIPSIN_INTERPRETATION } from "../data/interpretation/sipsin"; //✅ 십성 해석 //
 import { CUSTOM_DAY_GAN_INTERPRETATION } from "../data/interpretation/custom"; //✅ 일간 심화 해석 //
 import { SIBIWUNSEONG_INTERPRETATION } from "../data/interpretation/sibiunseong"; //✅ 십이운성 해석 //
@@ -7,7 +7,7 @@ import { SINSAL_INTERPRETATION } from "../data/interpretation/sinsal"; //✅ 신
 import { COMBINATION_INTERPRETATION } from "../data/interpretation/custom"; // ✅ 1. 조합 해석 데이터 import
 import { NapeumResult } from "../hwa-eui/data/hwa-eui.data";
 import { LANDSCAPE_PHRASES } from "../hwa-eui/data/landscape-phrases.data";
-import { SajuData } from "../services/saju.service";
+import type { SajuData } from "../types/saju.d";
 
 /**
  * 규칙 1: 일간(Day Master) 데이터를 기반으로 '기본 해석'과 '심화 해석'을 모두 반환합니다.
@@ -16,7 +16,7 @@ export const interpretDayGan = (
   dayGan: string
 ): { base: string; custom: string } => {
   const baseInterpretation =
-    DAY_GAN_INTERPRETATION[dayGan] ||
+    DAY_GAN_CHARACTER[dayGan] ||
     "해당 일간에 대한 기본 해석을 찾을 수 없습니다.";
   const customInterpretation =
     CUSTOM_DAY_GAN_INTERPRETATION[dayGan] ||
@@ -151,10 +151,11 @@ export const interpretSinsal = (sinsalData: SajuData["sinsal"]): string => {
 export const interpretCombinations = (sajuData: SajuData): string[] => {
   const foundInterpretations: string[] = [];
 
+  // ✅ [수정] 새로운 객체 구조에 맞게 .gan과 .ji를 사용하여 접근합니다.
   // 규칙 #001: 신(辛)일간이 술(戌)월에 태어났고, 월지가 정인일 경우
   if (
-    sajuData.pillars.day[0] === "辛" && // 조건 1: 일간이 辛
-    sajuData.pillars.month[1] === "戌" && // 조건 2: 월지가 戌
+    sajuData.pillars.day.gan === "辛" && // 조건 1: 일간이 辛
+    sajuData.pillars.month.ji === "戌" && // 조건 2: 월지가 戌
     sajuData.sipsin.month.ji === "정인" // 조건 3: 월지 십성이 정인
   ) {
     foundInterpretations.push(COMBINATION_INTERPRETATION["001"]);
@@ -199,4 +200,12 @@ export const createLandscapePrompt = (napeumData: NapeumResult): string => {
   const combinedPhrases = phrases.join(" ");
 
   return basePrompt + combinedPhrases;
+};
+
+// ✅ [추가] '일간 상세 성품'을 해석하는 새로운 함수를 추가합니다.
+export const interpretDayMasterCharacter = (dayGan: string): string => {
+  return (
+    DAY_GAN_CHARACTER[dayGan] ||
+    "해당 일간에 대한 상세 성품 정보를 찾을 수 없습니다."
+  );
 };

@@ -1,40 +1,22 @@
-// server/src/services/saju.service.ts
+// server/src/services/saju.service.ts (최종 완성본)
+
 import { getSipsin } from "./sipsin.service";
 import { getSibiwunseong } from "./sibiwunseong.service";
-import { getDaewoon, Daewoon } from "./daewoon.service";
-import { getSewoonForYear, SewoonData } from "./sewoon.service";
-import { getAllSinsals } from "./sinsal.service"; // ✅ 1. 신살 서비스를 import 합니다.
+import { getDaewoon } from "./daewoon.service";
+import { getSewoonForYear } from "./sewoon.service";
+import { getAllSinsals } from "./sinsal.service";
 import {
   getSeasonalDataForYear,
   getLoadedSeasonalData,
 } from "./seasonal-data.loader";
-import { GAN, JI, GANJI } from "../data/saju.data";
-import { interpretSaju, InterpretationResult } from "./sajuInterpret.service";
-import {
-  getNapeumFromPillars,
-  NapeumResult,
-} from "../hwa-eui/data/hwa-eui.data";
+import { GAN, JI, GANJI, GAN_OHENG, JI_OHENG } from "../data/saju.data"; // ✅ 오행 데이터 import
+import { interpretSaju } from "./sajuInterpret.service";
+import { getNapeumFromPillars } from "../hwa-eui/data/hwa-eui.data";
+import { SajuData, InterpretationResult, FortuneResult } from "../types/saju.d";
 
 type SeasonalData = { [year: number]: { name: string; date: Date }[] };
 
-// ✅ 2. SajuData 타입(설계도)에 sinsal 항목을 추가합니다.
-export interface SajuData {
-  pillars: { year: string; month: string; day: string; hour: string };
-  sipsin: ReturnType<typeof getSipsin>;
-  sibiwunseong: ReturnType<typeof getSibiwunseong>;
-  sinsal: ReturnType<typeof getAllSinsals>; // 신살 데이터 타입 추가
-  napeum: NapeumResult;
-  currentDaewoon: Daewoon | null;
-  currentSewoon: SewoonData;
-  daewoonFull: Daewoon[];
-}
-
-export interface FortuneResult {
-  sajuData: SajuData;
-  interpretation: InterpretationResult;
-}
-
-// 내부 계산 함수
+// 내부 계산 함수 (수정 없음)
 const getYearGanjiByYear = (year: number): string => {
   const ganIndex = (year - 4) % 10;
   const jiIndex = (year - 4) % 12;
@@ -82,7 +64,6 @@ const getMonthGanji = (
   return monthGan + monthJi;
 };
 
-// 율리우스력 계산 함수
 const getJulianDay = (y: number, m: number, d: number): number => {
   if (m <= 2) {
     y -= 1;
@@ -99,12 +80,8 @@ const getJulianDay = (y: number, m: number, d: number): number => {
   );
 };
 
-// 일주 계산 함수 (선생님께서 찾아주신 정확한 기준점이 적용된 최종 버전)
 const getDayGanji = (date: Date): string => {
-  // 기준점: 1982년 8월 9일 (월요일)은 '갑자일'
-  // 해당 날짜 자정(0시)의 율리우스력(JD)은 2445190.5 입니다.
   const BASE_JD = 2445190.5;
-  // '갑자'는 60갑자 배열(GANJI)에서 0번째에 위치합니다.
   const BASE_GANJI_INDEX = 0;
 
   const jd = getJulianDay(
@@ -142,7 +119,7 @@ const getHourGanji = (date: Date, dayGan: string): string => {
   return hourGan + hourJi;
 };
 
-// 메인 엔진
+// 메인 엔진 (getSajuDetails)
 export const getSajuDetails = async (
   birthDate: Date,
   gender: "M" | "W"
@@ -177,7 +154,6 @@ export const getSajuDetails = async (
 
   const sipsin = getSipsin(dayGan, pillars);
   const sibiwunseong = getSibiwunseong(dayGan, pillars);
-  // ✅ 3. 신살 계산 로직을 호출합니다.
   const sinsal = getAllSinsals(pillars, gender);
   const napeum = getNapeumFromPillars(pillars);
   const daewoonFull = getDaewoon(
@@ -193,19 +169,60 @@ export const getSajuDetails = async (
     ) || null;
   const currentSewoon = getSewoonForYear(currentYear, dayGan);
 
-  // ✅ 4. 계산된 sinsal 결과를 sajuData 객체에 포함시킵니다.
+  // ✅ 3. 최종 sajuData 객체를 조립하는 부분을 오행 정보가 포함되도록 수정합니다.
   const sajuData: SajuData = {
-    pillars,
+    pillars: {
+      year: {
+        gan: yearPillar[0],
+        ji: yearPillar[1],
+        ganOhaeng: GAN_OHENG[yearPillar[0]],
+        jiOhaeng: JI_OHENG[yearPillar[1]],
+        ganSipsin: sipsin.year.gan,
+        jiSipsin: sipsin.year.ji,
+        sibiwunseong: sibiwunseong.year,
+        sinsal: sinsal.year,
+      },
+      month: {
+        gan: monthPillar[0],
+        ji: monthPillar[1],
+        ganOhaeng: GAN_OHENG[monthPillar[0]],
+        jiOhaeng: JI_OHENG[monthPillar[1]],
+        ganSipsin: sipsin.month.gan,
+        jiSipsin: sipsin.month.ji,
+        sibiwunseong: sibiwunseong.month,
+        sinsal: sinsal.month,
+      },
+      day: {
+        gan: dayPillar[0],
+        ji: dayPillar[1],
+        ganOhaeng: GAN_OHENG[dayPillar[0]],
+        jiOhaeng: JI_OHENG[dayPillar[1]],
+        ganSipsin: sipsin.day.gan,
+        jiSipsin: sipsin.day.ji,
+        sibiwunseong: sibiwunseong.day,
+        sinsal: sinsal.day,
+      },
+      hour: {
+        gan: hourPillar[0],
+        ji: hourPillar[1],
+        ganOhaeng: GAN_OHENG[hourPillar[0]],
+        jiOhaeng: JI_OHENG[hourPillar[1]],
+        ganSipsin: sipsin.hour.gan,
+        jiSipsin: sipsin.hour.ji,
+        sibiwunseong: sibiwunseong.hour,
+        sinsal: sinsal.hour,
+      },
+    },
     sipsin,
     sibiwunseong,
-    sinsal: sinsal,
-    napeum: napeum,
+    sinsal,
+    napeum,
     currentDaewoon,
     currentSewoon,
     daewoonFull,
   };
 
-  const interpretation = interpretSaju(sajuData);
+  const interpretation: InterpretationResult = interpretSaju(sajuData);
 
   return {
     sajuData,

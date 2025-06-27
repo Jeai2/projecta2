@@ -1,7 +1,7 @@
 // src/data/interpretation/dgan.ts
 // 각 일간의 핵심 기질에 대한 해석 데이터
 
-export const DAY_GAN_INTERPRETATION: { [key: string]: string } = {
+export const DAY_GAN_CHARACTER: { [key: string]: string } = {
   甲: "하늘을 향해 뻗어 나가는 거목처럼, 당신은 리더십과 개척 정신이 강한 사람입니다.",
   乙: "부드러운 풀잎처럼 유연하고 생활력이 강하지만, 내면에는 꺾이지 않는 고집과 끈기가 있습니다.",
   丙: "세상을 밝게 비추는 태양처럼, 당신은 열정적이고 명랑하며 주변에 긍정적인 에너지를 전파합니다.",

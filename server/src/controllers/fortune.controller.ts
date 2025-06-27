@@ -1,12 +1,12 @@
-// src/controllers/fortune.controller.ts
+// server/src/controllers/fortune.controller.ts (최종 완성본)
 
 import { Request, Response } from "express";
 import { getSajuDetails } from "../services/saju.service";
 import { ParamsDictionary } from "express-serve-static-core";
-// ✅ AI 관련 import는 추후 AI 연동 단계에서 추가될 예정입니다.
-// import { getAiGeneratedResponse, AiGeneratedOutput } from '../ai/ai.service';
+// ✅ 1. 주석을 해제하고 AI 관련 모듈을 정식으로 import 합니다.
+import { getAiGeneratedResponse, AiGeneratedOutput } from "../ai/ai.service";
 
-// 1. 요청(Request)으로 들어올 데이터의 형태 (기존과 동일)
+// 요청(Request)으로 들어올 데이터의 형태
 interface FortuneRequestBody {
   birthDate: string;
   gender: "M" | "W";
@@ -14,23 +14,22 @@ interface FortuneRequestBody {
   birthTime?: string;
 }
 
-// 2. 성공 시 응답(Response)으로 나갈 데이터의 형태
+// 성공 시 응답(Response)으로 나갈 데이터의 형태
 type SajuResult = Awaited<ReturnType<typeof getSajuDetails>>;
 
-// ✅ [수정] SuccessResponseBody에서 fortune 속성을 제거합니다.
 interface SuccessResponseBody {
   userInfo: { birthDate: string; gender: "M" | "W" };
   saju: SajuResult;
-  // aiResponse: AiGeneratedOutput | null; // AI 연동 시 이 부분을 추가하게 됩니다.
+  aiResponse: AiGeneratedOutput | null; // ✅ 2. aiResponse 타입을 응답에 포함시킵니다.
 }
 
-// 3. 실패 시 응답(Response)으로 나갈 데이터의 형태 (기존과 동일)
+// 실패 시 응답(Response)으로 나갈 데이터의 형태
 interface ErrorResponseBody {
   error: true;
   message: string;
 }
 
-// 4. 오늘의 운세 API의 핵심 로직을 담당하는 '컨트롤러' 함수.
+// API의 핵심 로직을 담당하는 '컨트롤러' 함수
 export const getTodaysFortune = async (
   req: Request<
     ParamsDictionary,
@@ -48,20 +47,26 @@ export const getTodaysFortune = async (
         .json({ error: true, message: "필수 정보가 누락되었습니다." });
     }
 
-    const birthDateObject = new Date(`${birthDate}T${birthTime || "00:00"}:00`);
+    const birthDateObject = new Date(`${birthDate}T${birthTime || "12:00"}:00`);
     if (isNaN(birthDateObject.getTime())) {
       return res
         .status(400)
         .json({ error: true, message: "잘못된 날짜/시간 형식입니다." });
     }
 
+    // 1. 사주 데이터 전체를 계산합니다.
     const sajuResult = await getSajuDetails(birthDateObject, gender);
 
-    // ✅ [수정] 최종 응답 객체에서 fortune 속성을 제거합니다.
+    // ✅ 3. 계산된 사주 해석에서 '화의론 프롬프트'를 추출하여 AI 서비스를 호출합니다.
+    const aiResponse = await getAiGeneratedResponse(
+      sajuResult.interpretation.hwaEuiPrompt
+    );
+
+    // ✅ 4. 최종 응답 객체에 AI 결과(`aiResponse`)를 포함시킵니다.
     const finalResponse: SuccessResponseBody = {
       userInfo: { birthDate, gender },
       saju: sajuResult,
-      // aiResponse: await getAiGeneratedResponse(sajuResult.interpretation.hwaEuiPrompt), // AI 연동 시 이 로직 추가
+      aiResponse: aiResponse,
     };
 
     return res.status(200).json(finalResponse);

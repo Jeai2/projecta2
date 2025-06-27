@@ -26,12 +26,7 @@ const JonghapSajuPage = () => {
       case 2:
         return <HwaEuiSection />;
       case 3:
-        return (
-          <MySajuIntro
-            sajuData={fortuneResult.saju.sajuData}
-            interpretation={fortuneResult.saju.interpretation}
-          />
-        );
+        return <MySajuIntro />;
       default:
         return (
           <Card>

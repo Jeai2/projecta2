@@ -14,7 +14,10 @@ import { useFortuneStore } from "@/store/fortuneStore";
 const TABLE_OF_CONTENTS = [
   "서문",
   "화의(畵意)",
-  "내 사주, 나는 누구인가",
+  "사주팔자",
+  "일주 해석",
+  "십신 해석",
+  "십이운성 해석",
   "초년과 청년기",
   "중년과 말년",
   "살의(殺意)",
