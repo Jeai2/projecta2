@@ -2,7 +2,7 @@
 // 각 아이콘은 다른 로직 없이, 그저 SVG를 렌더링하는 순수한 '병사(Dumb Component)'다.
 
 // className prop을 받아서, 부모 컴포넌트에서 크기나 색상을 제어할 수 있도록 한다.
-interface IconProps {
+export interface IconProps {
   className?: string;
 }
 

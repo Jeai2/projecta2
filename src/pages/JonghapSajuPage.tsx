@@ -7,6 +7,12 @@ import { NavigationHelper } from "@/components/results/layout/NavigationHelper";
 import { ForewordSection } from "@/components/results/sections/ForewordSection";
 import { HwaEuiSection } from "@/components/results/sections/HwaEuiSection";
 import { MySajuIntro } from "@/components/results/sections/MySajuIntro";
+import { DayMasterSection } from "@/components/results/sections/DayMasterSection";
+import { SipsinSection } from "@/components/results/sections/SipsinSection";
+import { SibiwunseongSection } from "@/components/results/sections/SibiwunseongSection";
+import { EarlyYearsSection } from "@/components/results/sections/EarlyYearsSection";
+import { LaterYearsSection } from "@/components/results/sections/LaterYearsSection";
+import { SinsalSection } from "@/components/results/sections/SinsalSection";
 import {
   Card,
   CardContent,
@@ -27,6 +33,19 @@ const JonghapSajuPage = () => {
         return <HwaEuiSection />;
       case 3:
         return <MySajuIntro />;
+      case 4:
+        return <DayMasterSection />;
+      case 5:
+        return <SipsinSection />;
+      case 6:
+        return <SibiwunseongSection />;
+      case 7:
+        return <EarlyYearsSection />;
+      case 8:
+        return <LaterYearsSection />;
+      case 9:
+        return <SinsalSection />;
+
       default:
         return (
           <Card>

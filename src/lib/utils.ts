@@ -6,3 +6,31 @@ import { twMerge } from "tailwind-merge";
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
+
+export function titleToKey(title: string): "year" | "month" | "day" | "hour" {
+  switch (title) {
+    case "년주":
+      return "year";
+    case "월주":
+      return "month";
+    case "일주":
+      return "day";
+    case "시주":
+      return "hour";
+    default:
+      throw new Error(`Invalid title: ${title}`);
+  }
+}
+
+export function keyToTitle(key: "year" | "month" | "day" | "hour"): string {
+  switch (key) {
+    case "year":
+      return "년주";
+    case "month":
+      return "월주";
+    case "day":
+      return "일주";
+    case "hour":
+      return "시주";
+  }
+}

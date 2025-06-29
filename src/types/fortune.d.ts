@@ -95,8 +95,8 @@ export interface InterpretationResult {
   dayMasterCharacter: string;
   hwaEuiPrompt: string;
   sipsinAnalysis: string; // ✅ 백엔드와 동일하게 string 타입으로 수정
-  sibiunseongAnalysis: string; // ✅ 백엔드와 동일하게 string 타입으로 수정
-  sinsalAnalysis: string; // 이 타입도 string일 가능성이 높으므로 함께 수정합니다.
+  sibiwunseongAnalysis: string; // ✅ 백엔드와 동일하게 string 타입으로 수정
+  sinsalAnalysis: SinsalData[]; // 이 타입도 string일 가능성이 높으므로 함께 수정합니다.
   combinationAnalysis: string[];
 }
 
@@ -114,4 +114,13 @@ export interface FortuneResponseData {
     interpretation: InterpretationResult;
   };
   aiResponse: AiGeneratedOutput | null;
+}
+
+// '살의' 섹션의 개별 카드 데이터 타입
+export interface SinsalData {
+  name: string; // 살의 이름 (예: "귀문관살")
+  description: string; // 한 줄 요약
+  details: string; // 상세 정의
+  elements: string[]; // 구성 요소 (예: ["巳", "戌"])
+  illustration: string; // 일러스트 이미지 경로
 }

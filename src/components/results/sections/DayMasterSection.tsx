@@ -1,5 +1,4 @@
-// src/components/results/sections/DayMasterSection.tsx (새 파일)
-
+import { SajuPillar } from "@/components/results/common/SajuPillar"; // 추가
 import { useFortuneStore } from "@/store/fortuneStore";
 import {
   Card,
@@ -15,6 +14,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/common/Accordion";
 import { AlertCircle } from "lucide-react";
+import { titleToKey } from "@/lib/utils";
 
 export const DayMasterSection = () => {
   const { fortuneResult } = useFortuneStore();
@@ -36,6 +36,7 @@ export const DayMasterSection = () => {
   }
 
   const { sajuData, interpretation } = fortuneResult.saju;
+  const { pillars } = sajuData;
 
   return (
     <Card className="animate-in fade-in-50 duration-500">
@@ -44,11 +45,23 @@ export const DayMasterSection = () => {
           4. 일간 해석 (나의 본질)
         </CardTitle>
         <CardDescription>
-          당신을 상징하는 핵심 기운, 일간({sajuData.pillars.day.gan})을 중심으로
+          당신을 상징하는 핵심 기운, 일주({sajuData.pillars.day.gan})을 중심으로
           당신의 성향과 에너지를 분석합니다.
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-6">
+        <div className="grid grid-cols-4 gap-2 text-center">
+          {["시주", "일주", "월주", "년주"].map((title) => (
+            <SajuPillar
+              key={title}
+              title={title}
+              data={pillars[titleToKey(title)]}
+              isHighlighted={title === "일주"}
+              shouldDimOthers
+            />
+          ))}
+        </div>
+
         <Accordion
           type="single"
           collapsible
@@ -64,7 +77,7 @@ export const DayMasterSection = () => {
               {interpretation.dayMasterNature.custom && (
                 <div className="pt-4 border-t border-white/10">
                   <p className="text-sm font-semibold text-accent-gold mb-2">
-                    심층 분석 (나의 관법)
+                    심층 분석
                   </p>
                   <p>{interpretation.dayMasterNature.custom}</p>
                 </div>
