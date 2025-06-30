@@ -1,7 +1,7 @@
 // src/components/results/common/SajuPillar.tsx
 
 import React from "react";
-import type { PillarData } from "@/types/fortune";
+import type { PillarData, SinsalHit } from "@/types/fortune";
 import { cn } from "@/lib/utils";
 
 // 오행별 색상 매핑
@@ -26,8 +26,10 @@ export const SajuPillar: React.FC<SajuPillarProps> = ({
   isHighlighted,
   shouldDimOthers,
 }) => {
-  const guiin = data.sinsal.find((s) => s.includes("귀인")) || "";
-  const otherSinsal = data.sinsal.find((s) => !s.includes("귀인")) || "";
+  const guiin =
+    data.sinsal.find((s: SinsalHit) => s.name.includes("귀인"))?.name || "";
+  const otherSinsal =
+    data.sinsal.find((s: SinsalHit) => !s.name.includes("귀인"))?.name || "";
 
   return (
     <div

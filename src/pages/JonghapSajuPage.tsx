@@ -13,6 +13,7 @@ import { SibiwunseongSection } from "@/components/results/sections/SibiwunseongS
 import { EarlyYearsSection } from "@/components/results/sections/EarlyYearsSection";
 import { LaterYearsSection } from "@/components/results/sections/LaterYearsSection";
 import { SinsalSection } from "@/components/results/sections/SinsalSection";
+import { GilsinSection } from "@/components/results/sections/GilsinSection";
 import {
   Card,
   CardContent,
@@ -45,6 +46,8 @@ const JonghapSajuPage = () => {
         return <LaterYearsSection />;
       case 9:
         return <SinsalSection />;
+      case 10:
+        return <GilsinSection />;
 
       default:
         return (

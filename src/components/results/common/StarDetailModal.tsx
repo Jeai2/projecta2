@@ -1,10 +1,10 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { XIcon } from "@/components/ui/common/Icons";
-import type { SinsalData } from "@/types/fortune";
+import type { StarData } from "@/types/fortune";
 
 interface SinsalDetailModalProps {
-  sinsal: SinsalData;
+  sinsal: StarData;
   onClose: () => void;
   layoutId: string;
 }

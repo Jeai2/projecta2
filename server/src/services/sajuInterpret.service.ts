@@ -17,7 +17,20 @@ export const interpretSaju = (sajuData: SajuData): InterpretationResult => {
   const dayMasterNature = interpretDayGan(dayGan);
   const dayMasterCharacter = interpretDayMasterCharacter(dayGan);
   const sibiwunseongAnalysis = interpretSibiwunseong(sajuData.sibiwunseong);
-  const sinsalAnalysis = interpretSinsal(sajuData.sinsal);
+  const allStarData = interpretSinsal(sajuData.sinsal);
+  const gilsinAnalysis = allStarData.filter((star) => star.type === "길신");
+  const sinsalAnalysis = allStarData.filter((star) => star.type === "흉살");
+
+  // --- 🕵️‍♂️ 디버깅 로그 #1 ---
+  console.log("--- [1단계] 최종 관문 (sajuInterpret.service) ---");
+  console.log(
+    "생성된 전체 StarData 배열:",
+    JSON.stringify(allStarData, null, 2)
+  );
+  console.log("필터링된 길신:", gilsinAnalysis);
+  console.log("필터링된 흉살(살의):", sinsalAnalysis);
+  // --------------------------
+
   const sipsinAnalysis = interpretSipsinPresence(sajuData.sipsin);
   const combinationAnalysis = interpretCombinations(sajuData);
   const hwaEuiPrompt = createLandscapePrompt(sajuData.napeum);
@@ -27,9 +40,10 @@ export const interpretSaju = (sajuData: SajuData): InterpretationResult => {
     dayMasterCharacter: dayMasterCharacter, // ✅ 최종 결과에 포함
     sipsinAnalysis: sipsinAnalysis,
     sibiwunseongAnalysis: sibiwunseongAnalysis,
-    sinsalAnalysis: sinsalAnalysis,
     combinationAnalysis: combinationAnalysis,
     hwaEuiPrompt: hwaEuiPrompt,
+    sinsalAnalysis: sinsalAnalysis, // 구조화된 흉살 데이터
+    gilsinAnalysis: gilsinAnalysis, // 구조화된 길신 데이터
   };
 
   return result;

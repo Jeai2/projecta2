@@ -25,13 +25,18 @@ export interface PillarData {
   ganSipsin: string | null;
   jiSipsin: string | null;
   sibiwunseong: string;
-  sinsal: string[];
+  sinsal: SinsalHit[];
 }
 
 // 십성
 export interface SipsinPillar {
   gan: string | null;
   ji: string | null;
+}
+
+export interface SinsalHit {
+  name: string;
+  elements: StarElement[];
 }
 
 // 십이운성
@@ -96,7 +101,8 @@ export interface InterpretationResult {
   hwaEuiPrompt: string;
   sipsinAnalysis: string; // ✅ 백엔드와 동일하게 string 타입으로 수정
   sibiwunseongAnalysis: string; // ✅ 백엔드와 동일하게 string 타입으로 수정
-  sinsalAnalysis: SinsalData[]; // 이 타입도 string일 가능성이 높으므로 함께 수정합니다.
+  sinsalAnalysis: StarData[]; // 이 타입도 string일 가능성이 높으므로 함께 수정합니다.
+  gilsinAnalysis: StarData[]; // 길신 데이터
   combinationAnalysis: string[];
 }
 
@@ -116,11 +122,18 @@ export interface FortuneResponseData {
   aiResponse: AiGeneratedOutput | null;
 }
 
+// ✅ [추가] '살'을 구성하는 개별 요소의 상세 정보 타입
+export interface SinsalElement {
+  pillar: "년주" | "월주" | "일주" | "시주"; // 어느 기둥인지
+  type: "천간" | "지지"; // 천간인지 지지인지
+  character: string; // 실제 글자 (예: '巳')
+}
+
 // '살의' 섹션의 개별 카드 데이터 타입
-export interface SinsalData {
+export interface StarData {
   name: string; // 살의 이름 (예: "귀문관살")
   description: string; // 한 줄 요약
   details: string; // 상세 정의
-  elements: string[]; // 구성 요소 (예: ["巳", "戌"])
+  elements: StarElement[]; // 구성 요소 (예: ["巳", "戌"])
   illustration: string; // 일러스트 이미지 경로
 }

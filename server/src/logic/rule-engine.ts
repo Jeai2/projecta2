@@ -4,10 +4,11 @@ import { SIPSIN_INTERPRETATION } from "../data/interpretation/sipsin"; //✅ 십
 import { CUSTOM_DAY_GAN_INTERPRETATION } from "../data/interpretation/custom"; //✅ 일간 심화 해석 //
 import { SIBIWUNSEONG_INTERPRETATION } from "../data/interpretation/sibiunseong"; //✅ 십이운성 해석 //
 import { SINSAL_INTERPRETATION } from "../data/interpretation/sinsal"; //✅ 신살 //
+import type { SajuData, StarData } from "../types/saju.d";
+import { SinsalHit } from "../services/sinsal.service";
 import { COMBINATION_INTERPRETATION } from "../data/interpretation/custom"; // ✅ 1. 조합 해석 데이터 import
 import { NapeumResult } from "../hwa-eui/data/hwa-eui.data";
 import { LANDSCAPE_PHRASES } from "../hwa-eui/data/landscape-phrases.data";
-import type { SajuData } from "../types/saju.d";
 
 /**
  * 규칙 1: 일간(Day Master) 데이터를 기반으로 '기본 해석'과 '심화 해석'을 모두 반환합니다.
@@ -110,37 +111,51 @@ export const interpretSibiwunseong = (
   return foundSibiwunseong.join("\n\n");
 };
 
-// ✅ 3. 신살 해석 규칙 함수
-// [최종 수정] interpretSinsal 함수의 로직을 올바르게 수정합니다.
+// ✅ [전면 수정] interpretSinsal 함수를 아래 내용으로 교체합니다.
 /**
- * 규칙 4: 사주 원국에 있는 모든 신살의 의미를 종합하여 설명합니다.
- * @param sinsalData 사주 원국의 신살 데이터 객체 (e.g. { year: [], month: ["천을귀인"], ...})
- * @returns 신살 종합 분석 텍스트
+ * 사주 데이터에서 모든 신살(길신, 흉살)을 찾아 구조화된 배열로 반환합니다.
+ * @param sajuData 전체 사주 데이터
+ * @returns StarData 객체의 배열
  */
+export const interpretSinsal = (
+  sinsalObject: SajuData["sinsal"]
+): StarData[] => {
+  const allSinsalHits: SinsalHit[] = [
+    ...sinsalObject.year,
+    ...sinsalObject.month,
+    ...sinsalObject.day,
+    ...sinsalObject.hour,
+  ];
 
-export const interpretSinsal = (sinsalData: SajuData["sinsal"]): string => {
-  const allSinsals = new Set<string>(); // 중복된 신살을 하나로 합치기 위해 Set을 사용
-
-  // year, month, day, hour 각 기둥의 신살 배열을 순회하며 모든 신살을 Set에 추가합니다.
-  Object.values(sinsalData).forEach((sinsalArray) => {
-    sinsalArray.forEach((sinsal) => {
-      allSinsals.add(sinsal);
-    });
-  });
-
-  if (allSinsals.size === 0) {
-    return "사주에 특별히 작용하는 신살은 나타나지 않았습니다.";
-  }
-
-  const descriptions: string[] = [];
-  allSinsals.forEach((sinsalName) => {
-    if (SINSAL_INTERPRETATION[sinsalName]) {
-      const description = `\`${sinsalName}\`의 기운을 가지고 있습니다. 이는 ${SINSAL_INTERPRETATION[sinsalName]}`;
-      descriptions.push(description);
+  const uniqueSinsalMap = new Map<string, SinsalHit>();
+  allSinsalHits.forEach((hit) => {
+    if (!uniqueSinsalMap.has(hit.name)) {
+      uniqueSinsalMap.set(hit.name, hit);
     }
   });
 
-  return descriptions.join("\n\n");
+  // --- 🕵️‍♂️ 디버깅 로그 #2 ---
+  console.log("--- [2단계] 핵심 로직 (rule-engine) ---");
+  console.log("sinsal.service에서 넘어온 신살 이름 목록:", [...allSinsalHits]);
+  // --------------------------
+
+  const starDataArray: StarData[] = [];
+
+  uniqueSinsalMap.forEach((hit) => {
+    const definition = SINSAL_INTERPRETATION[hit.name];
+    if (!definition) return;
+
+    starDataArray.push({
+      name: definition.name,
+      type: definition.type,
+      description: definition.description,
+      details: definition.details,
+      elements: hit.elements,
+      illustration: `/images/illustrations/placeholder.png`,
+    });
+  });
+
+  return starDataArray;
 };
 
 /**
