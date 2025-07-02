@@ -80,8 +80,12 @@ const getJulianDay = (y: number, m: number, d: number): number => {
   );
 };
 
+// 일주 계산 함수 (선생님께서 찾아주신 정확한 기준점이 적용된 최종 버전)
 const getDayGanji = (date: Date): string => {
+  // 기준점: 1982년 8월 9일 (월요일)은 '갑자일'
+  // 해당 날짜 자정(0시)의 율리우스력(JD)은 2445190.5 입니다.
   const BASE_JD = 2445190.5;
+  // '갑자'는 60갑자 배열(GANJI)에서 0번째에 위치합니다.
   const BASE_GANJI_INDEX = 0;
 
   const jd = getJulianDay(

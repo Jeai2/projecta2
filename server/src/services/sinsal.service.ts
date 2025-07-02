@@ -1,8 +1,8 @@
 // src/services/sinsal.service.ts
-// jjhome 만세력 엔진 - 통합 신살(神殺) 계산 서비스 v3 (타입-안전, 전체 규칙 적용)
-// 12신살과 유산 코드의 모든 길신/흉살을 명확한 타입과 구조로 계산한다.
+// jjhome 만세력 엔辰 - 통합 申살(神殺) 계산 서비스 v3 (타입-안전, 전체 규칙 적용)
+// 12申살과 酉산 코드의 모든 길申/흉살을 명확한 타입과 구조로 계산한다.
 
-import { GANJI } from "../data/saju.data";
+/* import { GANJI } from "../data/saju.data"; */
 import type { StarElement } from "../types/saju.d";
 
 // -----------------------------------------------------------------------------
@@ -25,12 +25,13 @@ export type SinsalResult = { [key in PillarKey]: SinsalHit[] };
 
 type BaseKey = "dayGan" | "dayJi" | "monthJi" | "yearJi";
 
-// 신살 규칙의 종류를 명확한 타입으로 정의
+// 申살 규칙의 종류를 명확한 타입으로 정의
 type GanjiRule = { type: "ganji"; values: string[] };
 type PairRule = {
   type: "pair";
   base: "dayJi" | "yearJi";
   pairs: { [key: string]: string };
+  allowedPositions?: ("year" | "month" | "day" | "hour")[];
 };
 type CriteriaRule = {
   type: "criteria";
@@ -40,15 +41,15 @@ type CriteriaRule = {
 };
 type SinsalRule = GanjiRule | PairRule | CriteriaRule;
 
-// [주석] 유산 코드(sinsal1.txt)의 모든 규칙을 타입-안전 구조로 재구성합니다.
+// [주석] 酉산 코드(sinsal1.txt)의 모든 규칙을 타입-안전 구조로 재구성합니다.
 const SINSAL_RULES: { [sinsalName: string]: SinsalRule } = {
-  // --- 길신 (Auspicious Stars) ---
+  // --- 길申 (Auspicious Stars) ---
   천을귀인: {
     type: "criteria",
     base: "dayGan",
     target: "ji",
     rules: {
-      "甲,무,경": ["丑", "未"],
+      "甲,戊,庚": ["丑", "未"],
       "乙,己": ["子", "申"],
       "丙,丁": ["亥", "酉"],
       "壬,癸": ["巳", "卯"],
@@ -91,10 +92,10 @@ const SINSAL_RULES: { [sinsalName: string]: SinsalRule } = {
     base: "monthJi",
     target: "gan",
     rules: {
-      "인,오,술": "丙",
-      "사,유,축": "庚",
-      "신,자,진": "壬",
-      "해,묘,미": "甲",
+      "寅,午,戌": "丙",
+      "巳,酉,丑": "庚",
+      "申,子,辰": "壬",
+      "亥,卯,未": "甲",
     },
   },
   문창귀인: {
@@ -232,10 +233,10 @@ const SINSAL_RULES: { [sinsalName: string]: SinsalRule } = {
     base: "monthJi",
     target: "ji",
     rules: {
-      "인,묘,진": ["亥", "子"],
-      "사,오,미": ["卯", "未"],
-      "신,유,술": ["寅", "戌"],
-      "해,자,축": ["丑", "辰"],
+      "寅,卯,辰": ["亥", "子"],
+      "巳,午,未": ["卯", "未"],
+      "申,酉,戌": ["寅", "戌"],
+      "亥,子,丑": ["丑", "辰"],
     },
   },
   홍염: {
@@ -257,83 +258,122 @@ const SINSAL_RULES: { [sinsalName: string]: SinsalRule } = {
     type: "criteria",
     base: "dayJi",
     target: "ji",
-    rules: { "인,오,술": "午", "사,유,축": "丑", "신,자,진": "寅" },
+    rules: { "寅,午,戌": "午", "巳,酉,丑": "丑", "申,子,辰": "寅" },
   }, // 일지 기준 삼합으로 단순화
-};
-
-const SINSAL_12_MAP: { [groupKey: string]: { [pillarJi: string]: string } } = {
-  // 년지가 인(寅), 오(午), 술(戌)일 경우 (인오술 화국)
-  인오술: {
-    인: "지살",
-    묘: "연살",
-    진: "월살",
-    사: "망신살",
-    오: "장성살",
-    미: "반안살",
-    신: "역마살",
-    유: "육해살",
-    술: "화개살",
-    해: "겁살",
-    자: "재살",
-    축: "천살",
+  고란: {
+    type: "criteria",
+    base: "dayGan",
+    target: "ji",
+    rules: { 甲: "寅", 乙: "巳", 丁: "巳", 戊: "申", 辛: "亥" },
   },
-  // 년지가 사(巳), 유(酉), 축(丑)일 경우 (사유축 금국)
-  사유축: {
-    사: "지살",
-    오: "연살",
-    미: "월살",
-    신: "망신살",
-    유: "장성살",
-    술: "반안살",
-    해: "역마살",
-    자: "육해살",
-    축: "화개살",
-    인: "겁살",
-    묘: "재살",
-    진: "천살",
+  음양차착: {
+    type: "criteria",
+    base: "dayGan",
+    target: "ji",
+    rules: {
+      丙: ["午", "子"],
+      丁: ["未", "丑"],
+      戊: ["申", "寅"],
+      辛: ["卯", "酉"],
+      壬: ["辰", "戌"],
+      癸: ["巳", "亥"],
+    },
   },
-  // 년지가 신(申), 자(子), 진(辰)일 경우 (신자진 수국)
-  신자진: {
-    신: "지살",
-    유: "연살",
-    술: "월살",
-    해: "망신살",
-    자: "장성살",
-    축: "반안살",
-    인: "역마살",
-    묘: "육해살",
-    진: "화개살",
-    사: "겁살",
-    오: "재살",
-    미: "천살",
+  고과살: {
+    type: "criteria",
+    base: "dayGan",
+    target: "ji",
+    rules: {
+      丙: ["午", "子"],
+      丁: ["未", "丑"],
+      戊: ["申", "寅"],
+      辛: ["卯", "酉"],
+      壬: ["辰", "戌"],
+      癸: ["巳", "亥"],
+    },
   },
-  // 년지가 해(亥), 묘(卯), 미(未)일 경우 (해묘미 목국)
-  해묘미: {
-    해: "지살",
-    자: "연살",
-    축: "월살",
-    인: "망신살",
-    묘: "장성살",
-    진: "반안살",
-    사: "역마살",
-    오: "육해살",
-    미: "화개살",
-    신: "겁살",
-    유: "재살",
-    술: "천살",
+  과인살: {
+    type: "criteria",
+    base: "dayGan",
+    target: "ji",
+    rules: {
+      丙: ["午", "子"],
+      丁: ["未", "丑"],
+      戊: ["申", "寅"],
+      辛: ["卯", "酉"],
+      壬: ["辰", "戌"],
+      癸: ["巳", "亥"],
+    },
   },
 };
 
-// 삼합 그룹을 찾는 헬퍼 함수
-const getSamhapGroup = (yearJi: string): keyof typeof SINSAL_12_MAP | null => {
-  if (["인", "오", "술"].includes(yearJi)) return "인오술";
-  if (["사", "유", "축"].includes(yearJi)) return "사유축";
-  if (["신", "자", "진"].includes(yearJi)) return "신자진";
-  if (["해", "묘", "미"].includes(yearJi)) return "해묘미";
+const SINSAL_12_MAP: { [key: string]: { [key: string]: string } } = {
+  寅午戌: {
+    寅: "지살",
+    卯: "연살",
+    辰: "월살",
+    巳: "망신살",
+    午: "장성살",
+    未: "반안살",
+    申: "역마살",
+    酉: "육해살",
+    戌: "화개살",
+    亥: "겁살",
+    子: "재살",
+    丑: "천살",
+  },
+  巳酉丑: {
+    巳: "지살",
+    午: "연살",
+    未: "월살",
+    申: "망신살",
+    酉: "장성살",
+    戌: "반안살",
+    亥: "역마살",
+    子: "육해살",
+    丑: "화개살",
+    寅: "겁살",
+    卯: "재살",
+    辰: "천살",
+  },
+  申子辰: {
+    申: "지살",
+    酉: "연살",
+    戌: "월살",
+    亥: "망신살",
+    子: "장성살",
+    丑: "반안살",
+    寅: "역마살",
+    卯: "육해살",
+    辰: "화개살",
+    巳: "겁살",
+    午: "재살",
+    未: "천살",
+  },
+  亥卯未: {
+    亥: "지살",
+    子: "연살",
+    丑: "월살",
+    寅: "망신살",
+    卯: "장성살",
+    辰: "반안살",
+    巳: "역마살",
+    午: "육해살",
+    未: "화개살",
+    申: "겁살",
+    酉: "재살",
+    戌: "천살",
+  },
+};
+const getSamhapGroup = (yearJi: string) => {
+  if (["寅", "午", "戌"].includes(yearJi)) return "寅午戌";
+  if (["巳", "酉", "丑"].includes(yearJi)) return "巳酉丑";
+  if (["申", "子", "辰"].includes(yearJi)) return "申子辰";
+  if (["亥", "卯", "未"].includes(yearJi)) return "亥卯未";
   return null;
 };
 
-/* // 12신살 규칙 데이터
+/* // 12申살 규칙 데이터
 const SINSAL_12_NAMES = [
   "겁살",
   "재살",
@@ -341,70 +381,70 @@ const SINSAL_12_NAMES = [
   "지살",
   "연살",
   "월살",
-  "망신살",
+  "망申살",
   "장성살",
   "반안살",
   "역마살",
-  "육해살",
+  "육亥살",
   "화개살",
 ];
 const SINSAL_12_GROUP_START_INDEX: { [key: string]: number } = {
-  해: 9,
-  묘: 9,
-  미: 9,
-  인: 0,
-  오: 0,
-  술: 0,
-  사: 3,
-  유: 3,
-  축: 3,
-  신: 6,
-  자: 6,
-  진: 6,
+  亥: 9,
+  卯: 9,
+  未: 9,
+  寅: 0,
+  午: 0,
+  戌: 0,
+  巳: 3,
+  酉: 3,
+  丑: 3,
+  申: 6,
+  子: 6,
+  辰: 6,
 };
 const JIJI_ORDER_FOR_12SINSAL = [
-  "인",
-  "묘",
-  "진",
-  "사",
-  "오",
-  "미",
-  "신",
-  "유",
-  "술",
-  "해",
-  "자",
-  "축",
+  "寅",
+  "卯",
+  "辰",
+  "巳",
+  "午",
+  "未",
+  "申",
+  "酉",
+  "戌",
+  "亥",
+  "子",
+  "丑",
 ]; */
 
 // -----------------------------------------------------------------------------
-// 2. 신살 계산 엔진 (Sinsal Calculation Engine)
+// 2. 申살 계산 엔辰 (Sinsal Calculation Engine)
 // -----------------------------------------------------------------------------
 
-// [주석] 성별에 따라 달라지는 특수 신살(고신, 과숙)을 계산하는 함수
-function calculateGoshinGwasuk(saju: SajuInfo, result: SinsalResult) {
+// [주석] 성별에 따라 달라지는 특수 申살(고申, 과숙)을 계산하는 함수
+/* function calculateGoshinGwasuk(saju: SajuInfo, result: SinsalResult) {
   const { gender, yearJi, pillars } = saju;
   const GOSHIN_RULE: { [key: string]: string } = {
-    "인,묘,진": "巳",
-    "사,오,미": "申",
-    "신,유,술": "亥",
-    "해,자,축": "寅",
+    "寅,卯,辰": "巳",
+    "巳,午,未": "申",
+    "申,酉,戌": "亥",
+    "亥,子,丑": "寅",
   };
   const GWASUK_RULE: { [key: string]: string } = {
-    "인,묘,진": "丑",
-    "사,오,미": "辰",
-    "신,유,술": "未",
-    "해,자,축": "戌",
+    "寅,卯,辰": "丑",
+    "巳,午,未": "辰",
+    "申,酉,戌": "未",
+    "亥,子,丑": "戌",
   };
 
   const rule = gender === "M" ? GOSHIN_RULE : GWASUK_RULE;
-  const sinsalName = gender === "M" ? "고신" : "과숙";
+  const sinsalName = gender === "M" ? "고申" : "과숙";
 
   for (const [key, targetJi] of Object.entries(rule)) {
     if (key.split(",").includes(yearJi)) {
       pillars.forEach((p) => {
         if (p.ji === targetJi) {
-          // 이름(string) 대신, 근원지 정보를 담은 객체(SinsalHit)를 push 합니다.
+          // 이름(string) 대申, 근원지 정보를 담은 객체(SinsalHit)를 push 합니다.
           result[p.key].push({
             name: sinsalName,
             elements: [
@@ -421,12 +461,12 @@ function calculateGoshinGwasuk(saju: SajuInfo, result: SinsalResult) {
 // [주석] 일주를 기준으로 공망을 계산하는 함수
 function calculateGongmang(saju: SajuInfo, result: SinsalResult) {
   const GONGMANG_MAP: { [key: string]: string[] } = {
-    갑자순: ["戌", "亥"],
-    갑술순: ["申", "酉"],
-    갑신순: ["午", "未"],
-    갑오순: ["辰", "巳"],
-    갑진순: ["寅", "卯"],
-    갑인순: ["子", "丑"],
+    갑子순: ["戌", "亥"],
+    갑戌순: ["申", "酉"],
+    갑申순: ["午", "未"],
+    갑午순: ["辰", "巳"],
+    갑辰순: ["寅", "卯"],
+    갑寅순: ["子", "丑"],
   };
   const cycleStart = ["甲子", "甲戌", "甲申", "甲午", "甲辰", "甲寅"];
   let currentCycle = "";
@@ -444,7 +484,7 @@ function calculateGongmang(saju: SajuInfo, result: SinsalResult) {
   if (gongmangPair) {
     saju.pillars.forEach((p) => {
       if (gongmangPair.includes(p.ji)) {
-        // 이름(string) 대신, 근원지 정보를 담은 객체(SinsalHit)를 push 합니다.
+        // 이름(string) 대申, 근원지 정보를 담은 객체(SinsalHit)를 push 합니다.
         result[p.key].push({
           name: "공망",
           elements: [
@@ -456,10 +496,10 @@ function calculateGongmang(saju: SajuInfo, result: SinsalResult) {
       }
     });
   }
-}
+} */
 
 /**
- * 모든 신살을 계산하여 반환하는 메인 함수
+ * 모든 申살을 계산하여 반환하는 메寅 함수
  */
 export const getAllSinsals = (
   pillars: { year: string; month: string; day: string; hour: string },
@@ -499,13 +539,13 @@ export const getAllSinsals = (
   const result: SinsalResult = { year: [], month: [], day: [], hour: [] };
   if (!saju.dayJi) return result;
 
-  // 1. 12신살 계산 (일지 기준)
+  // 1. 12申살 계산
   const group = getSamhapGroup(saju.yearJi);
   if (group) {
     const ruleSet = SINSAL_12_MAP[group];
     saju.pillars.forEach((p) => {
       const sinsalName = ruleSet[p.ji];
-      if (sinsalName) {
+      if (sinsalName && !result[p.key].some((h) => h.name === sinsalName)) {
         result[p.key].push({
           name: sinsalName,
           elements: [
@@ -517,7 +557,7 @@ export const getAllSinsals = (
     });
   }
 
-  // 2. 기타 신살 계산
+  // 2. 기타 申살 계산
   Object.entries(SINSAL_RULES).forEach(([sinsalName, rule]) => {
     switch (rule.type) {
       case "ganji": {
@@ -558,11 +598,34 @@ export const getAllSinsals = (
       }
       case "criteria": {
         const criteriaBase = saju[rule.base];
+
+        if (sinsalName === "천을귀인") {
+          console.log(`\n--- [디버깅] '천을귀인' 규칙 확인 시작 ---`);
+          console.log(`- 기준 글자 (일간): "${criteriaBase}"`);
+        }
+
         for (const [key, target] of Object.entries(rule.rules)) {
           if (key.split(",").includes(criteriaBase)) {
+            if (sinsalName === "천을귀인") {
+              console.log(
+                `- 일치하는 규칙 발견: key="${key}", target="${target}"`
+              );
+            }
+
             saju.pillars.forEach((p) => {
               const targetValue = rule.target === "gan" ? p.gan : p.ji;
               const targets = Array.isArray(target) ? target : [target];
+
+              if (sinsalName === "천을귀인") {
+                console.log(
+                  `- 기둥 "${
+                    p.key
+                  }" 확인 중... 지지: "${targetValue}". 규칙: [${targets.join(
+                    ","
+                  )}] 포함 여부: ${targets.includes(targetValue)}`
+                );
+              }
+
               if (
                 targets.includes(targetValue) &&
                 !result[p.key].some((h) => h.name === sinsalName)
@@ -594,10 +657,6 @@ export const getAllSinsals = (
       }
     }
   });
-
-  // 3. 특수 로직 신살 계산
-  calculateGoshinGwasuk(saju, result);
-  calculateGongmang(saju, result);
 
   return result;
 };

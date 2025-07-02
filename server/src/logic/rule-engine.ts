@@ -134,14 +134,14 @@ export const interpretSinsal = (
     }
   });
 
-  // --- 🕵️‍♂️ 디버깅 로그 #2 ---
-  console.log("--- [2단계] 핵심 로직 (rule-engine) ---");
-  console.log("sinsal.service에서 넘어온 신살 이름 목록:", [...allSinsalHits]);
-  // --------------------------
-
   const starDataArray: StarData[] = [];
 
   uniqueSinsalMap.forEach((hit) => {
+    console.log(
+      `[디버깅] 이름: "${hit.name}" | 해석 데이터에서 찾기:`,
+      SINSAL_INTERPRETATION[hit.name] ? "✅ 성공" : "❌ 실패"
+    );
+
     const definition = SINSAL_INTERPRETATION[hit.name];
     if (!definition) return;
 
