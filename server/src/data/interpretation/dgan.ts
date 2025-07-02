@@ -1,4 +1,4 @@
-// src/data/interpretation/dgan.ts
+/* // src/data/interpretation/dgan.ts
 // 각 일간의 핵심 기질에 대한 해석 데이터
 
 export const DAY_GAN_INTERPRETATION: { [key: string]: string } = {
@@ -13,3 +13,4 @@ export const DAY_GAN_INTERPRETATION: { [key: string]: string } = {
   壬: "모든 것을 포용하는 바다처럼, 지혜롭고 유연한 사고를 가졌지만 때로는 속을 알 수 없는 면이 있습니다.",
   癸: "만물을 적시는 단비처럼, 총명하고 부드러우며 어떤 환경에서든 잘 적응하는 능력을 가졌습니다.",
 };
+ */
