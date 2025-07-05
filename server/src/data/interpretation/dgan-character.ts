@@ -1,7 +1,57 @@
-// src/data/interpretation/dgan.ts
+// server/src/data/interpretation/dgan-character.ts 에 적용될 새로운 인터페이스
 // 각 일간의 핵심 기질에 대한 해석 데이터
 
-export const DAY_GAN_CHARACTER: { [key: string]: string } = {
+export interface DayGanDefinition {
+  hanja: string; // "甲"
+  hangul: string; // "갑"
+  symbol: string; // 일간의 상징물 (예: "거목(巨木)")
+  keywords: string[]; // 핵심 키워드 배열
+  summary: string; // 한 줄 요약 (기존 내용 활용 및 발전)
+  personality: {
+    // 성격 분석
+    description: string; // 종합적인 성격 설명
+    strengths: string; // 강점
+    weaknesses: string; // 약점/보완점
+  };
+  styles: {
+    // 분야별 스타일
+    work: string; // 업무 스타일
+    love: string; // 연애 스타일
+    wealth: string; // 재물 스타일
+  };
+  advice: string; // 해당 일간을 위한 조언
+}
+
+export const DAY_GAN_CHARACTER: Record<string, DayGanDefinition> = {
+  甲: {
+    hanja: "甲",
+    hangul: "갑",
+    symbol: "거목(巨木)",
+    keywords: ["리더십", "시작", "개척정신", "자존심", "곧음"],
+    summary:
+      "하늘을 향해 뻗어 나가는 거목처럼, 강한 리더십과 개척 정신을 가진 사람입니다.",
+    personality: {
+      description:
+        "갑목(甲木)은 십간의 첫 번째로, 만물이 시작되는 강력한 생명력을 상징합니다. 목표가 정해지면 뒤를 돌아보지 않고 나아가는 추진력과 강한 자존심을 가지고 있으며, 명예와 원칙을 중요시합니다.",
+      strengths:
+        "책임감이 강하고 목표 지향적이라 어떤 집단에서든 리더의 역할을 맡기에 적합합니다. 정직하고 순수한 면이 있어 주변의 신뢰를 얻습니다.",
+      weaknesses:
+        "자존심이 너무 강해 융통성이 부족할 수 있습니다. '꺾일지언정 굽히지 않는다'는 성향 때문에 주변과 마찰을 빚거나 현실과 타협하는 데 어려움을 겪을 수 있습니다.",
+    },
+    styles: {
+      work: "새로운 프로젝트를 시작하거나 조직을 이끄는 역할에 강점을 보입니다. 반복적인 업무보다는 자신의 주관을 가지고 밀어붙일 수 있는 환경에서 능력을 발휘합니다.",
+      love: "좋아하는 상대에게 듬직하고 헌신적인 모습을 보입니다. 다만, 표현이 서투르고 무뚝뚝한 면이 있어 다정다감한 애정 표현에는 약할 수 있습니다.",
+      wealth:
+        "크게 벌고 크게 쓰려는 경향이 있습니다. 안정적인 저축보다는 미래 가치를 보고 장기적으로 투자하는 것에 더 큰 매력을 느낍니다.",
+    },
+    advice:
+      "곧고 강한 것도 좋지만, 때로는 부드럽게 휘어지는 갈대처럼 유연한 지혜를 기르는 것이 중요합니다. 주변의 작은 목소리에도 귀를 기울일 때 더 큰 나무로 성장할 수 있습니다.",
+  },
+
+  // ...이어서 '乙'부터 '癸'까지 나머지 9개 천간의 내용을 위 구조에 맞춰 추가합니다.
+};
+
+/* export const DAY_GAN_CHARACTER: { [key: string]: string } = {
   甲: "하늘을 향해 뻗어 나가는 거목처럼, 당신은 리더십과 개척 정신이 강한 사람입니다.",
   乙: "부드러운 풀잎처럼 유연하고 생활력이 강하지만, 내면에는 꺾이지 않는 고집과 끈기가 있습니다.",
   丙: "세상을 밝게 비추는 태양처럼, 당신은 열정적이고 명랑하며 주변에 긍정적인 에너지를 전파합니다.",
@@ -12,4 +62,4 @@ export const DAY_GAN_CHARACTER: { [key: string]: string } = {
   辛: "날카롭게 빛나는 보석처럼, 예리한 감각과 깔끔한 성품을 지녔으며 자기 주장이 뚜렷합니다.",
   壬: "모든 것을 포용하는 바다처럼, 지혜롭고 유연한 사고를 가졌지만 때로는 속을 알 수 없는 면이 있습니다.",
   癸: "만물을 적시는 단비처럼, 총명하고 부드러우며 어떤 환경에서든 잘 적응하는 능력을 가졌습니다.",
-};
+}; */
