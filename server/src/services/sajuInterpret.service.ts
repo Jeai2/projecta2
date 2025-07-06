@@ -6,6 +6,7 @@ import {
   interpretSipsinPresence,
   interpretSibiwunseong,
   interpretSinsal,
+  interpretPersonality,
   interpretCombinations,
   createLandscapePrompt,
 } from "../logic/rule-engine";
@@ -20,10 +21,11 @@ export const interpretSaju = (sajuData: SajuData): InterpretationResult => {
   const allStarData = interpretSinsal(sajuData.sinsal);
   const gilsinAnalysis = allStarData.filter((star) => star.type === "길신");
   const sinsalAnalysis = allStarData.filter((star) => star.type === "흉살");
+  const personalityAnalysis = interpretPersonality(sajuData);
 
   // --- 🕵️‍♂️ 디버깅 로그 #1 ---
   console.log("--- [1단계] 최종 관문 (sajuInterpret.service) ---");
-  console.log(
+  console.log(  
     "생성된 전체 StarData 배열:",
     JSON.stringify(allStarData, null, 2)
   );
@@ -44,6 +46,7 @@ export const interpretSaju = (sajuData: SajuData): InterpretationResult => {
     hwaEuiPrompt: hwaEuiPrompt,
     sinsalAnalysis: sinsalAnalysis, // 구조화된 흉살 데이터
     gilsinAnalysis: gilsinAnalysis, // 구조화된 길신 데이터
+    personality: personalityAnalysis,
   };
 
   return result;

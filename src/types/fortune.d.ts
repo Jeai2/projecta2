@@ -94,6 +94,31 @@ export interface SajuData {
   daewoonFull: Daewoon[];
 }
 
+export interface Trait {
+  name: string;      // 특징의 이름 (예: "강력한 리더십")
+  source: string;    // 근거가 되는 사주 요소 (예: "일간 甲목")
+  description: string; // 해당 특징에 대한 설명
+}
+
+export interface PersonalityInterpretation {
+  summary: string;           // 성격 종합 요약
+  positiveTraits: Trait[]; // 긍정적 성향 목록
+  negativeTraits: Trait[]; // 보완할 점 목록
+  advice: string;            // 종합 조언
+}
+
+export interface DayPillarInterpretation {
+  title: string;              // 예: "갑자(甲子) 일주"
+  imageUrl: string;           // 일주를 상징하는 이미지 URL
+  summary: string;            // 일주에 대한 한 줄 요약
+  detailedAnalysis: {
+    dayGan: string;         // 일간(甲)의 특징 요약
+    dayJi: string;          // 일지(子)의 특징 요약
+    interaction: string;    // 일간과 일지의 관계(십신, 십이운성 등)로 본 핵심 해석
+  };
+  advice: string;             // 해당 일주를 위한 조언
+}
+
 // 전체 해석 결과
 export interface InterpretationResult {
   dayMasterNature: { base: string; custom: string | null };
@@ -104,6 +129,8 @@ export interface InterpretationResult {
   sinsalAnalysis: StarData[]; // 이 타입도 string일 가능성이 높으므로 함께 수정합니다.
   gilsinAnalysis: StarData[]; // 길신 데이터
   combinationAnalysis: string[];
+  personality: PersonalityInterpretation;
+  dayPillar?: DayPillarInterpretation;
 }
 
 // AI 응답

@@ -1,10 +1,10 @@
 // server/src/logic/rule-engine.ts
-import { DAY_GAN_CHARACTER } from "../data/interpretation/dgan-character"; //✅ 일간 기본 해석 //
-import { SIPSIN_INTERPRETATION } from "../data/interpretation/sipsin"; //✅ 십성 해석 //
+import { DAY_GAN_CHARACTER, DayGanDefinition } from "../data/interpretation/dgan-character"; //✅ 일간 기본 해석 //
+import { SIPSIN_INTERPRETATION, SipsinDefinition } from "../data/interpretation/sipsin"; //✅ 십성 해석 //
 import { CUSTOM_DAY_GAN_INTERPRETATION } from "../data/interpretation/custom"; //✅ 일간 심화 해석 //
-import { SIBIWUNSEONG_INTERPRETATION } from "../data/interpretation/sibiunseong"; //✅ 십이운성 해석 //
+import { SIBIUNSEONG_INTERPRETATION } from "../data/interpretation/sibiunseong"; //✅ 십이운성 해석 //
 import { SINSAL_INTERPRETATION } from "../data/interpretation/sinsal"; //✅ 신살 //
-import type { SajuData, StarData } from "../types/saju.d";
+import type { SajuData, StarData, Trait, PersonalityInterpretation } from "../types/saju.d";
 import { SinsalHit } from "../services/sinsal.service";
 import { COMBINATION_INTERPRETATION } from "../data/interpretation/custom"; // ✅ 1. 조합 해석 데이터 import
 import { NapeumResult } from "../hwa-eui/data/hwa-eui.data";
@@ -16,16 +16,19 @@ import { LANDSCAPE_PHRASES } from "../hwa-eui/data/landscape-phrases.data";
 export const interpretDayGan = (
   dayGan: string
 ): { base: string; custom: string } => {
-  const baseInterpretation =
-    DAY_GAN_CHARACTER[dayGan] ||
-    "해당 일간에 대한 기본 해석을 찾을 수 없습니다.";
-  const customInterpretation =
-    CUSTOM_DAY_GAN_INTERPRETATION[dayGan] ||
-    "해당 일간에 대한 심화 해석이 없습니다.";
+  const dayGanInfo = DAY_GAN_CHARACTER[dayGan] as DayGanDefinition | undefined;
+  const customInfo = CUSTOM_DAY_GAN_INTERPRETATION[dayGan];
+
+  if (!dayGanInfo) {
+    return {
+      base: "해당 일간에 대한 기본 해석을 찾을 수 없습니다.",
+      custom: customInfo || "해당 일간에 대한 심화 해석이 없습니다.",
+    };
+  }
 
   return {
-    base: baseInterpretation,
-    custom: customInterpretation,
+    base: dayGanInfo.summary, // ✅ 객체의 summary 속성을 사용
+    custom: customInfo || dayGanInfo.personality.description, // ✅ 객체의 description 속성을 사용
   };
 };
 
@@ -98,8 +101,8 @@ export const interpretSibiwunseong = (
     const key = pillar as keyof typeof sibiwunseongData;
     const unseongName = sibiwunseongData[key];
 
-    if (unseongName && SIBIWUNSEONG_INTERPRETATION[unseongName]) {
-      const description = `${pillarNames[key]}에서 \`${unseongName}\`의 기운을 보입니다. 이는 ${SIBIWUNSEONG_INTERPRETATION[unseongName]}`;
+    if (unseongName && SIBIUNSEONG_INTERPRETATION[unseongName]) {
+      const description = `${pillarNames[key]}에서 \`${unseongName}\`의 기운을 보입니다. 이는 ${SIBIUNSEONG_INTERPRETATION[unseongName]}`;
       foundSibiwunseong.push(description);
     }
   }
@@ -217,10 +220,91 @@ export const createLandscapePrompt = (napeumData: NapeumResult): string => {
   return basePrompt + combinedPhrases;
 };
 
-// ✅ [추가] '일간 상세 성품'을 해석하는 새로운 함수를 추가합니다.
+// ✅ [추가] '일간 상세 성품'을 해석하는 새로운 함수를 추가합니다. ///중요 추가
 export const interpretDayMasterCharacter = (dayGan: string): string => {
-  return (
-    DAY_GAN_CHARACTER[dayGan] ||
-    "해당 일간에 대한 상세 성품 정보를 찾을 수 없습니다."
-  );
+  const dayGanInfo = DAY_GAN_CHARACTER[dayGan] as DayGanDefinition | undefined;
+  
+  if (!dayGanInfo) {
+    return "해당 일간에 대한 상세 성품 정보를 찾을 수 없습니다.";
+  }
+  
+  return dayGanInfo.personality.description;
+};
+
+/**
+ * 규칙 6: 일간과 십신 분포를 종합하여 개인의 성향을 입체적으로 분석합니다.
+ * @param sajuData 사용자의 전체 사주 데이터
+ * @returns PersonalityInterpretation 객체
+ */
+export const interpretPersonality = (sajuData: SajuData): PersonalityInterpretation => {
+  const dayGan = sajuData.pillars.day.gan;
+  const dayGanInfo = DAY_GAN_CHARACTER[dayGan] as DayGanDefinition | undefined;
+
+  const positiveTraits: Trait[] = [];
+  const negativeTraits: Trait[] = [];
+
+  // 1. 일간을 기반으로 기본 성향을 추가합니다.
+  if (dayGanInfo) {
+    positiveTraits.push({
+      name: "타고난 본성성",
+      source: `일간 ${dayGanInfo.hanja}(${dayGanInfo.symbol})`,
+      description: dayGanInfo.personality.strengths,
+    });
+    negativeTraits.push({
+      name: "주의할 점",
+      source: `일간 ${dayGanInfo.hanja}(${dayGanInfo.symbol})`,
+      description: dayGanInfo.personality.weaknesses,
+    });
+  }
+
+  // 2. 사주 원국의 모든 십신을 카운트합니다.
+  const sipsinCounts: Record<string, number> = {};
+  for (const pillar of Object.values(sajuData.pillars)) {
+    if (pillar.ganSipsin) {
+      sipsinCounts[pillar.ganSipsin] = (sipsinCounts[pillar.ganSipsin] || 0) + 1;
+    }
+    if (pillar.jiSipsin) {
+      sipsinCounts[pillar.jiSipsin] = (sipsinCounts[pillar.jiSipsin] || 0) + 1;
+    }
+  }
+
+  // 3. 십신 태과(太過) 여부를 판단하여 해석을 추가합니다.
+  for (const [sipsinName, count] of Object.entries(sipsinCounts)) {
+    // 비견은 일간 포함 3개 이상일 때, 다른 십신은 2개 이상일 때 태과로 간주 (조정 가능)
+    const isExcessive = (sipsinName === "비견" && count >= 3) || (sipsinName !== "비견" && count >= 2);
+    if (isExcessive) {
+      const sipsinInfo = SIPSIN_INTERPRETATION[sipsinName] as SipsinDefinition | undefined;
+      if (sipsinInfo?.byQuantity?.excessive) {
+        negativeTraits.push({
+          name: `${sipsinName} 태과`,
+          source: `${sipsinName}이(가) ${count}개 존재`,
+          description: sipsinInfo.byQuantity.excessive,
+        });
+      }
+    }
+  }
+  
+  // 4. (예시) 월지 십성을 주요 사회적 성향으로 추가
+  const monthJiSipsin = sajuData.pillars.month.jiSipsin;
+  if (monthJiSipsin) {
+      const sipsinInfo = SIPSIN_INTERPRETATION[monthJiSipsin] as SipsinDefinition | undefined;
+      if (sipsinInfo) {
+          positiveTraits.push({
+              name: "사회적 페르소나",
+              source: `월지 ${monthJiSipsin}`,
+              description: `사회 생활에서 ${sipsinInfo.summary}와 같은 모습이 두드러지게 나타납니다.`
+          });
+      }
+  }
+
+  // 5. 종합 요약 및 조언 생성 (간단한 예시)
+  const summary = `${dayGanInfo?.summary || ''} 사회적으로는 ${monthJiSipsin}의 특징을 보이며, ${positiveTraits.length}개의 강점과 ${negativeTraits.length}개의 보완할 점을 가지고 있습니다.`;
+  const advice = `${dayGanInfo?.advice || ''} 특히 ${negativeTraits[0]?.name}의 특성을 인지하고 발전시켜 나간다면 더 큰 성장을 이룰 수 있습니다.`;
+
+  return {
+    summary,
+    positiveTraits,
+    negativeTraits,
+    advice,
+  };
 };
