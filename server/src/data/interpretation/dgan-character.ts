@@ -265,7 +265,7 @@ export const DAY_GAN_CHARACTER: Record<string, DayGanDefinition> = {
   },
 };
 
-  // ...이어서 '乙'부터 '癸'까지 나머지 9개 천간의 내용을 위 구조에 맞춰 추가합니
+// ...이어서 '乙'부터 '癸'까지 나머지 9개 천간의 내용을 위 구조에 맞춰 추가합니
 
 /* export const DAY_GAN_CHARACTER: { [key: string]: string } = {
   甲: "하늘을 향해 뻗어 나가는 거목처럼, 당신은 리더십과 개척 정신이 강한 사람입니다.",
