@@ -16,9 +16,9 @@ export type CriteriaRule = {
 export type ComplexRule = {
   type: "complex";
   conditions: {
-    hasAny?: string[]; // 하나라도 있으면
-    hasRepeat?: string[]; // 같은 글자 반복
-    hasAll?: string[]; // 모두 있어야 함
+    hasAny?: string[];
+    hasRepeat?: string[];
+    hasAll?: string[];
   };
 };
 export type SinsalRule = GanjiRule | PairRule | CriteriaRule | ComplexRule;
@@ -188,8 +188,27 @@ export const SINSAL_RULES_AUSPICIOUS: { [name: string]: SinsalRule } = {
   천문성: {
     type: "complex",
     conditions: {
-      hasAny: ["卯", "戌", "亥", "未"], // 묘, 술, 해, 미 중 하나라도 지지에 있으면 성립
-      hasRepeat: ["寅", "酉"], // 인인, 유유 등 같은 글자가 두 번 반복되는 경우 성립
+      hasAny: ["卯", "戌", "亥", "未"],
+      hasRepeat: ["寅", "酉"],
+    },
+  },
+  천의성: {
+    type: "criteria",
+    base: "monthJi",
+    target: "ji",
+    rules: {
+      寅: "丑",
+      卯: "寅",
+      辰: "卯",
+      巳: "未",
+      午: "巳",
+      未: "午",
+      申: "未",
+      酉: "申",
+      戌: "酉",
+      亥: "戌",
+      子: "亥",
+      丑: "子",
     },
   },
 };
