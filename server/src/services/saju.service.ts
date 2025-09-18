@@ -4,6 +4,7 @@ import { getSipsin } from "./sipsin.service";
 import { getSibiwunseong } from "./sibiwunseong.service";
 import { getDaewoon } from "./daewoon.service";
 import { getSewoonForYear } from "./sewoon.service";
+import { getAllWoolwoonForYear } from "./woolwoon.service";
 import { getAllSinsals } from "./sinsal.service";
 import {
   getSeasonalDataForYear,
@@ -12,6 +13,7 @@ import {
 import { GAN, JI, GANJI, GAN_OHENG, JI_OHENG } from "../data/saju.data"; // ✅ 오행 데이터 import
 import { interpretSaju } from "./sajuInterpret.service";
 import { getNapeumFromPillars } from "../hwa-eui/data/hwa-eui.data";
+import { JIJANGGAN_DATA } from "../data/jijanggan"; // ✅ 지장간 데이터 import
 import { SajuData, InterpretationResult, FortuneResult } from "../types/saju.d";
 
 type SeasonalData = { [year: number]: { name: string; date: Date }[] };
@@ -160,6 +162,56 @@ export const getSajuDetails = async (
   const sibiwunseong = getSibiwunseong(dayGan, pillars);
   const sinsal = getAllSinsals(pillars, gender);
   const napeum = getNapeumFromPillars(pillars);
+
+  // ✅ 지장간 데이터 계산
+  const getJijangganForPillar = (ji: string): string[] => {
+    // 한자 지지를 한글 키로 변환
+    const jiToKoreanMap: Record<string, string> = {
+      子: "자",
+      丑: "축",
+      寅: "인",
+      卯: "묘",
+      辰: "진",
+      巳: "사",
+      午: "오",
+      未: "미",
+      申: "신",
+      酉: "유",
+      戌: "술",
+      亥: "해",
+    };
+
+    const koreanJi = jiToKoreanMap[ji];
+    if (!koreanJi) return [];
+
+    const jijangganData = JIJANGGAN_DATA[koreanJi];
+    if (!jijangganData) return [];
+
+    const result: string[] = [];
+    if (jijangganData.초기) result.push(jijangganData.초기.gan);
+    if (jijangganData.중기) result.push(jijangganData.중기.gan);
+    if (jijangganData.정기) result.push(jijangganData.정기.gan);
+    return result;
+  };
+
+  const jijanggan = {
+    year: getJijangganForPillar(yearPillar[1]),
+    month: getJijangganForPillar(monthPillar[1]),
+    day: getJijangganForPillar(dayPillar[1]),
+    hour: getJijangganForPillar(hourPillar[1]),
+  };
+
+  // 디버깅: 지장간 데이터 확인
+  console.log("🔍 지장간 계산 결과:", {
+    pillars: {
+      year: yearPillar[1],
+      month: monthPillar[1],
+      day: dayPillar[1],
+      hour: hourPillar[1],
+    },
+    jijanggan,
+  });
+
   const daewoonFull = getDaewoon(
     birthDate,
     gender,
@@ -172,6 +224,10 @@ export const getSajuDetails = async (
       (d) => currentYear >= d.year && currentYear < d.year + 10
     ) || null;
   const currentSewoon = getSewoonForYear(currentYear, dayGan);
+
+  // 월운 데이터 계산 (현재 연도와 다음 연도)
+  const currentWoolwoon = getAllWoolwoonForYear(currentYear, dayGan);
+  const nextYearWoolwoon = getAllWoolwoonForYear(currentYear + 1, dayGan);
 
   // ✅ 3. 최종 sajuData 객체를 조립하는 부분을 오행 정보가 포함되도록 수정합니다.
   const sajuData: SajuData = {
@@ -221,9 +277,12 @@ export const getSajuDetails = async (
     sibiwunseong,
     sinsal,
     napeum,
+    jijanggan, // ✅ 지장간 데이터 추가
     currentDaewoon,
     currentSewoon,
     daewoonFull,
+    currentWoolwoon,
+    nextYearWoolwoon,
   };
 
   const interpretation: InterpretationResult = interpretSaju(sajuData);
@@ -232,4 +291,34 @@ export const getSajuDetails = async (
     sajuData,
     interpretation,
   };
+};
+
+// 대운별 세운 데이터 계산 함수
+export const getSewoonForDaewoon = (
+  daewoonStartYear: number,
+  dayGan: string
+): Array<{
+  year: number;
+  ganji: string;
+  ganSipsin: string;
+  jiSipsin: string;
+  sibiwunseong: string;
+}> => {
+  const sewoonData = [];
+
+  // 10년간의 세운 데이터 계산 (역순으로 표시하기 위해 역순으로 계산)
+  for (let i = 9; i >= 0; i--) {
+    const year = daewoonStartYear + i;
+    const sewoon = getSewoonForYear(year, dayGan);
+
+    sewoonData.push({
+      year: year,
+      ganji: sewoon.ganji,
+      ganSipsin: sewoon.sipsin?.gan || "-",
+      jiSipsin: sewoon.sipsin?.ji || "-",
+      sibiwunseong: sewoon.sibiwunseong || "-",
+    });
+  }
+
+  return sewoonData;
 };

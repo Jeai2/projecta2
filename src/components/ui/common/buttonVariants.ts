@@ -5,21 +5,22 @@ export const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default:
-          "bg-gold text-gold-foreground shadow-[0_4px_14px_0_hsl(var(--gold)/25%)] hover:shadow-[0_0_20px_3px_hsl(var(--accent)/40%)] hover:brightness-110",
-        
+        // ✅ 배경색을 새로운 골드색으로, 텍스트는 어두운 색으로 변경
+        default: "bg-accent-gold text-text-light hover:bg-accent-gold/90",
+
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-        
+          "bg-system-danger text-text-light hover:bg-system-danger/90",
+
+        // ✅ 아웃라인 버튼의 색상을 새로운 테마에 맞게 조정
         outline:
-          "border border-input bg-transparent hover:bg-accent hover:text-accent-foreground",
-        
+          "border border-accent-gold/50 bg-transparent text-text-muted hover:bg-accent-gold/10 hover:text-accent-gold",
+
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        
-        ghost: "hover:bg-accent/10 hover:text-accent",
-        
-        link: "text-primary underline-offset-4 hover:underline",
+          "bg-background-sub text-text-muted hover:bg-background-sub/80",
+
+        ghost: "hover:bg-background-sub/50 text-text-muted",
+
+        link: "text-text-muted underline-offset-4 hover:text-text-light hover:underline",
       },
       size: {
         default: "h-10 px-4 py-2",

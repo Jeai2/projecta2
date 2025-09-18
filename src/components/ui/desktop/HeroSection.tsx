@@ -17,24 +17,19 @@ export const HeroSection = ({
   imageUrl,
 }: HeroSectionProps) => {
   return (
-    // 모바일에서는 높이를 줄이고(h-[320px]), 데스크톱(lg)에서는 높이를 늘린다(lg:h-[400px]).
     <section className="relative w-full h-[320px] lg:h-[400px] rounded-2xl overflow-hidden">
-      {/* 배경 이미지는 그대로 유지 */}
       <img
         src={imageUrl}
         alt="Hero background"
         className="absolute inset-0 w-full h-full object-cover"
       />
       <div className="absolute inset-0 bg-black/40"></div>
-
-      {/* 콘텐츠 영역의 패딩과 텍스트 크기를 화면 크기에 따라 조절한다. */}
       <div className="relative z-10 flex flex-col items-start justify-center h-full p-6 lg:p-12">
         <h1 className="text-3xl lg:text-5xl font-bold text-text-light max-w-lg leading-tight lg:leading-tight [text-shadow:0px_2px_8px_#00000080]">
           {title}
         </h1>
-
-        {/* 버튼도 모바일에서는 기본 사이즈, 데스크톱에서는 크게 만든다. */}
-        <Button size="default" className="mt-6 lg:size-lg">
+        {/* ✅ 버튼의 사이즈를 'lg'로 변경하여 더 크고 눈에 띄게 만듭니다. */}
+        <Button size="lg" className="mt-6">
           {buttonText}
         </Button>
       </div>

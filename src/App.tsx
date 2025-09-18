@@ -11,6 +11,7 @@ function App() {
   const { isResultMode, resetFortuneResult } = useFortuneStore();
 
   const handleNavigate = (page: string) => {
+    console.log("App: 페이지 네비게이션", page);
     setCurrentPage(page);
     if (page !== "jonghap") {
       resetFortuneResult();
