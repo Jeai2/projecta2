@@ -6,27 +6,25 @@ export default {
     extend: {
       // ---------------------------------------------------------
       // 1. 색상 (Colors)
-      // 네가 고른 색상들을 의미론적 구조로 재구성했다.
-      // 이제 너는 마법의 숫자(#0B0F1A)가 아닌, 의미(bg-background-main)를 사용하게 된다.
       // ---------------------------------------------------------
       colors: {
         background: {
-          //main: "#0B0F1A", // deepNavy
-          sub: "#1B1F2A", // charcoalGray
+          main: "#F7F5F2", // 아주 밝은 아이보리 계열
+          sub: "#EAE7E1", // 메인보다 살짝 어두운 베이지색
         },
 
         // 텍스트 색상 (Text Colors)
         text: {
-          light: "#F6F4F1", // ivory (주요 텍스트 색상)
+          light: "#333333", // ivory (주요 텍스트 색상)
           dark: "#222222", // textDark (밝은 배경용)
-          muted: "#BFC1C5", // mistSilver (덜 중요한 텍스트)
-          subtle: "#D8D8D8", // cloudGray (더 덜 중요한 텍스트)
+          muted: "#666666", // mistSilver (덜 중요한 텍스트)
+          subtle: "#999999", // cloudGray (더 덜 중요한 텍스트)
         },
         // 포인트 색상 (Accent Colors)
         accent: {
-          gold: "#D1B681", // subtleGold (주요 포인트 색상)
-          teal: "#88BEB2", // teal (보조 포인트 색상 1)
-          lavender: "#CABCE0", // lavender (보조 포인트 색상 2)
+          gold: "#A98A62", // subtleGold (주요 포인트 색상)
+          teal: "#6F9A8A", // teal (보조 포인트 색상 1)
+          lavender: "#B59EAD", // lavender (보조 포인트 색상 2)
         },
         // 시스템 색상 (System Colors)
         system: {

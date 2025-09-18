@@ -8,8 +8,9 @@ const Card = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
+    // ✅ 그림자 효과를 더 부드럽고 은은하게 변경합니다.
     className={cn(
-      "rounded-lg border border-white/10 bg-background-sub/50 shadow-lg backdrop-blur-md", // 기본 스타일
+      "rounded-2xl border border-border-muted bg-card-sub/50 shadow-lg backdrop-blur-sm",
       className
     )}
     {...props}
@@ -38,7 +39,7 @@ const CardTitle = React.forwardRef<
   <h3
     ref={ref}
     className={cn(
-      "text-2xl font-semibold leading-none tracking-tight",
+      "text-2xl font-semibold leading-none tracking-tight text-text-light",
       className
     )}
     {...props}

@@ -72,6 +72,15 @@ export interface SewoonData {
   sibiwunseong: string | null;
 }
 
+// 월운 데이터
+export interface WoolwoonData {
+  year: number;
+  month: number;
+  ganji: string;
+  sipsin: { gan: string | null; ji: string | null };
+  sibiwunseong: string | null;
+}
+
 // 전체 사주 데이터
 export interface SajuData {
   pillars: {
@@ -89,9 +98,25 @@ export interface SajuData {
   sibiwunseong: SibiwunseongPillars;
   sinsal: SinsalResult;
   napeum: NapeumResult;
+  jijanggan: { year: string[]; month: string[]; day: string[]; hour: string[] }; // ✅ 지장간 데이터 추가
+  relationships?: {
+    // ✅ 지지 간 관계 데이터 추가 (선택적)
+    cheonganhap: string[]; // 천간합 관계
+    cheonganchung: string[]; // 천간충 관계
+    yukhap: string[]; // 육합 관계
+    samhap: string[]; // 삼합 관계
+    amhap: string[]; // 암합 관계
+    banghap: string[]; // 방합 관계
+    yukchung: string[]; // 육충 관계
+    yukhyung: string[]; // 육형 관계
+    yukpa: string[]; // 육파 관계
+    yukae: string[]; // 육해 관계
+  };
   currentDaewoon: Daewoon | null;
   currentSewoon: SewoonData;
   daewoonFull: Daewoon[];
+  currentWoolwoon: WoolwoonData[];
+  nextYearWoolwoon: WoolwoonData[];
 }
 
 // 전체 해석 결과
@@ -114,7 +139,14 @@ export interface AiGeneratedOutput {
 
 // API 성공 시 최종 응답 데이터 전체
 export interface FortuneResponseData {
-  userInfo: { birthDate: string; gender: "M" | "W" };
+  userInfo: {
+    name?: string;
+    birthDate: string;
+    gender: "M" | "W";
+    birthPlace?: string;
+    calendarType: "solar" | "lunar";
+    birthTime?: string;
+  };
   saju: {
     sajuData: SajuData;
     interpretation: InterpretationResult;

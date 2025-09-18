@@ -9,6 +9,7 @@ import JonghapSajuPage from "./pages/JonghapSajuPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import SinnyeonUnsePage from "./pages/SinnyeonUnsePage";
 import TodayFortunePage from "./pages/TodayFortunePage";
+import MansePage from "./pages/MansePage";
 
 const cardItems = [
   {
@@ -52,6 +53,8 @@ interface CurrentPageContentProps {
 export const CurrentPageContent = ({
   currentPage,
 }: CurrentPageContentProps) => {
+  console.log("CurrentPageContent: 현재 페이지", currentPage);
+
   if (currentPage === "jonghap") return <JonghapSajuPage />;
   if (currentPage === "profile") return <ProfilePage />;
   if (currentPage === "couple") return <CoupleGungapPage />;
@@ -59,5 +62,9 @@ export const CurrentPageContent = ({
   if (currentPage === "inquiry") return <InquiryPage />;
   if (currentPage === "storage") return <FortuneArchivePage />;
   if (currentPage === "sinnyeon") return <SinnyeonUnsePage />;
+  if (currentPage === "manse") {
+    console.log("CurrentPageContent: MansePage 렌더링");
+    return <MansePage />;
+  }
   return <HomePageContent />;
 };
