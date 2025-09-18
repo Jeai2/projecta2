@@ -39,10 +39,23 @@ type CriteriaRule = {
   target: "gan" | "ji";
   rules: { [key: string]: string | string[] };
 };
-type SinsalRule = GanjiRule | PairRule | CriteriaRule;
+type ComplexRule = {
+  type: "complex";
+  conditions: {
+    hasAny?: string[];           // 하나라도 있으면
+    hasRepeat?: string[];        // 같은 글자 반복
+    hasAll?: string[];           // 모두 있어야 함
+  };
+};
+type SinsalRule = GanjiRule | PairRule | CriteriaRule | ComplexRule;
 
 // [주석] 규칙 데이터 분리: 길신/흉신/12신살
-import { SINSAL_12_MAP, getSamhapGroup, SINSAL_RULES_AUSPICIOUS, SINSAL_RULES_INAUSPICIOUS } from "../data/sinsal";
+import {
+  SINSAL_12_MAP,
+  getSamhapGroup,
+  SINSAL_RULES_AUSPICIOUS,
+  SINSAL_RULES_INAUSPICIOUS,
+} from "../data/sinsal";
 const SINSAL_RULES: { [sinsalName: string]: SinsalRule } = {
   ...SINSAL_RULES_AUSPICIOUS,
   ...SINSAL_RULES_INAUSPICIOUS,
@@ -329,6 +342,52 @@ export const getAllSinsals = (
               }
             });
           }
+        }
+        break;
+      }
+      case "complex": {
+        const { conditions } = rule;
+        let isMatched = false;
+        
+        // hasAny 조건: 하나라도 있으면 성립
+        if (conditions.hasAny) {
+          const hasAnyMatch = conditions.hasAny.some(char => 
+            saju.pillars.some(p => p.ji === char || p.gan === char)
+          );
+          if (hasAnyMatch) isMatched = true;
+        }
+        
+        // hasRepeat 조건: 같은 글자 반복
+        if (conditions.hasRepeat) {
+          const hasRepeatMatch = conditions.hasRepeat.some(char => {
+            const charCount = saju.pillars.filter(p => p.ji === char || p.gan === char).length;
+            return charCount >= 2;
+          });
+          if (hasRepeatMatch) isMatched = true;
+        }
+        
+        // hasAll 조건: 모두 있어야 함
+        if (conditions.hasAll) {
+          const hasAllMatch = conditions.hasAll.every(char =>
+            saju.pillars.some(p => p.ji === char || p.gan === char)
+          );
+          if (hasAllMatch) isMatched = true;
+        }
+        
+        // 조건이 성립되면 모든 기둥에 신살 추가
+        if (isMatched) {
+          saju.pillars.forEach((p) => {
+            if (!result[p.key].some((h) => h.name === sinsalName)) {
+              result[p.key].push({
+                name: sinsalName,
+                elements: saju.pillars.map(pillar => ({
+                  pillar: pillar.key,
+                  type: "ji" as const,
+                  character: pillar.ji,
+                })),
+              });
+            }
+          });
         }
         break;
       }

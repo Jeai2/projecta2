@@ -13,7 +13,15 @@ export type CriteriaRule = {
   target: "gan" | "ji";
   rules: { [key: string]: string | string[] };
 };
-export type SinsalRule = GanjiRule | PairRule | CriteriaRule;
+export type ComplexRule = {
+  type: "complex";
+  conditions: {
+    hasAny?: string[];           // 하나라도 있으면
+    hasRepeat?: string[];        // 같은 글자 반복
+    hasAll?: string[];           // 모두 있어야 함
+  };
+};
+export type SinsalRule = GanjiRule | PairRule | CriteriaRule | ComplexRule;
 
 export const SINSAL_RULES_INAUSPICIOUS: { [name: string]: SinsalRule } = {
   양인: {

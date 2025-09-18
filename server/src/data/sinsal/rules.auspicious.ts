@@ -13,7 +13,15 @@ export type CriteriaRule = {
   target: "gan" | "ji";
   rules: { [key: string]: string | string[] };
 };
-export type SinsalRule = GanjiRule | PairRule | CriteriaRule;
+export type ComplexRule = {
+  type: "complex";
+  conditions: {
+    hasAny?: string[]; // 하나라도 있으면
+    hasRepeat?: string[]; // 같은 글자 반복
+    hasAll?: string[]; // 모두 있어야 함
+  };
+};
+export type SinsalRule = GanjiRule | PairRule | CriteriaRule | ComplexRule;
 
 export const SINSAL_RULES_AUSPICIOUS: { [name: string]: SinsalRule } = {
   천을귀인: {
@@ -177,6 +185,11 @@ export const SINSAL_RULES_AUSPICIOUS: { [name: string]: SinsalRule } = {
       癸: "酉",
     },
   },
+  천문성: {
+    type: "complex",
+    conditions: {
+      hasAny: ["卯", "戌", "亥", "未"], // 묘, 술, 해, 미 중 하나라도 지지에 있으면 성립
+      hasRepeat: ["寅", "酉"], // 인인, 유유 등 같은 글자가 두 번 반복되는 경우 성립
+    },
+  },
 };
-
-
