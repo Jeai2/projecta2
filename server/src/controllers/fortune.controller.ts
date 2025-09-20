@@ -323,13 +323,14 @@ export const getDaewoonRelationshipsAPI = async (
     // JSON 파싱
     const pillars = JSON.parse(sajuPillars);
 
-    // 대운과 사주팔자 간의 관계 계산
-    const relationships = getDaewoonRelationships(pillars, daewoonGanji);
+    // 대운과 사주팔자 간의 관계 계산 (신살 포함)
+    const result = getDaewoonRelationships(pillars, daewoonGanji, "M"); // gender는 기본값으로 M 사용
 
     return res.status(200).json({
       error: false,
       data: {
-        relationships,
+        relationships: result.relationships,
+        sinsal: result.sinsal,
       },
     });
   } catch (error) {
@@ -364,17 +365,19 @@ export const getSewoonRelationshipsAPI = async (
     // JSON 파싱
     const pillars = JSON.parse(sajuPillars);
 
-    // 세운과 사주팔자+대운 간의 관계 계산
-    const relationships = getSewoonRelationships(
+    // 세운과 사주팔자+대운 간의 관계 계산 (신살 포함)
+    const result = getSewoonRelationships(
       pillars,
       daewoonGanji,
-      sewoonGanji
+      sewoonGanji,
+      "M" // gender는 기본값으로 M 사용
     );
 
     return res.status(200).json({
       error: false,
       data: {
-        relationships,
+        relationships: result.relationships,
+        sinsal: result.sinsal,
       },
     });
   } catch (error) {

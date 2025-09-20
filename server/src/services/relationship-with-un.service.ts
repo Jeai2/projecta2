@@ -3,6 +3,7 @@
 
 import { JIJI_RELATIONSHIPS } from "../data/relationship.data";
 import { RelationshipResult } from "./relationship.service";
+import { getAllSinsals } from "./sinsal.service";
 
 /**
  * 대운과 사주팔자 간의 합형충파해 관계를 계산
@@ -12,8 +13,9 @@ import { RelationshipResult } from "./relationship.service";
  */
 export const getDaewoonRelationships = (
   sajuPillars: { year: string; month: string; day: string; hour: string },
-  daewoonGanji: string
-): RelationshipResult => {
+  daewoonGanji: string,
+  gender: "M" | "W" = "M"
+): { relationships: RelationshipResult; sinsal: any } => {
   const result: RelationshipResult = {
     cheonganhap: [],
     cheonganchung: [],
@@ -91,7 +93,12 @@ export const getDaewoonRelationships = (
     }
   });
 
-  return result;
+  // 대운과 사주팔자 간의 신살 계산
+  const sinsal = getAllSinsals(sajuPillars, gender, [
+    { name: "daewoon", gan: daewoonGanji[0], ji: daewoonGanji[1] }
+  ]);
+
+  return { relationships: result, sinsal };
 };
 
 /**
@@ -104,8 +111,9 @@ export const getDaewoonRelationships = (
 export const getSewoonRelationships = (
   sajuPillars: { year: string; month: string; day: string; hour: string },
   daewoonGanji: string,
-  sewoonGanji: string
-): RelationshipResult => {
+  sewoonGanji: string,
+  gender: "M" | "W" = "M"
+): { relationships: RelationshipResult; sinsal: any } => {
   const result: RelationshipResult = {
     cheonganhap: [],
     cheonganchung: [],
@@ -184,5 +192,11 @@ export const getSewoonRelationships = (
     }
   });
 
-  return result;
+  // 세운과 사주팔자+대운 간의 신살 계산
+  const sinsal = getAllSinsals(sajuPillars, gender, [
+    { name: "daewoon", gan: daewoonGanji[0], ji: daewoonGanji[1] },
+    { name: "sewoon", gan: sewoonGanji[0], ji: sewoonGanji[1] }
+  ]);
+
+  return { relationships: result, sinsal };
 };

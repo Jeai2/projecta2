@@ -188,9 +188,13 @@ export const getSajuDetails = async (
     if (!jijangganData) return [];
 
     const result: string[] = [];
-    if (jijangganData.초기) result.push(jijangganData.초기.gan);
-    if (jijangganData.중기) result.push(jijangganData.중기.gan);
-    if (jijangganData.정기) result.push(jijangganData.정기.gan);
+    const 초기 = jijangganData.find(item => item.role === '초기');
+    const 중기 = jijangganData.find(item => item.role === '중기');
+    const 정기 = jijangganData.find(item => item.role === '정기');
+    
+    if (초기) result.push(초기.gan);
+    if (중기) result.push(중기.gan);
+    if (정기) result.push(정기.gan);
     return result;
   };
 

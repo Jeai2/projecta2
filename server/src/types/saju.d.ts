@@ -13,7 +13,7 @@ export interface PillarData {
 }
 
 export interface StarElement {
-  pillar: "year" | "month" | "day" | "hour";
+  pillar: "year" | "month" | "day" | "hour" | "daewoon" | "sewoon";
   type: "gan" | "ji";
   character: string;
 }
