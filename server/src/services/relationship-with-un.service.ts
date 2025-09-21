@@ -3,7 +3,7 @@
 
 import { JIJI_RELATIONSHIPS } from "../data/relationship.data";
 import { RelationshipResult } from "./relationship.service";
-import { getAllSinsals } from "./sinsal.service";
+import { getAllSinsals } from "./sinsal.service.new";
 
 /**
  * 대운과 사주팔자 간의 합형충파해 관계를 계산

@@ -20,7 +20,7 @@ import type {
   Trait,
   PersonalityInterpretation,
 } from "../types/saju.d";
-import { SinsalHit } from "../services/sinsal.service";
+import { SinsalHit } from "../services/sinsal.service.new";
 import { COMBINATION_INTERPRETATION } from "../data/interpretation/custom"; // ✅ 1. 조합 해석 데이터 import
 import { NapeumResult } from "../hwa-eui/data/hwa-eui.data";
 import { LANDSCAPE_PHRASES } from "../hwa-eui/data/landscape-phrases.data";

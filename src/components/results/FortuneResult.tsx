@@ -29,7 +29,7 @@ export const FortuneResult: React.FC<FortuneResultProps> = ({
   }
 
   // ✅ 전체 데이터에서 필요한 부분을 쉽게 사용할 수 있도록 구조 분해 할당을 합니다.
-  const { saju, aiResponse } = data;
+  const { saju } = data;
   const { sajuData, interpretation } = saju;
   const { pillars } = sajuData;
 
@@ -52,17 +52,17 @@ export const FortuneResult: React.FC<FortuneResultProps> = ({
               </div>
             ))}
 
-            <div className="text-3xl font-bold">{pillars.hour[0]}</div>
+            <div className="text-3xl font-bold">{pillars.hour.gan}</div>
             <div className="text-3xl font-bold text-accent-gold">
-              {pillars.day[0]}
+              {pillars.day.gan}
             </div>
-            <div className="text-3xl font-bold">{pillars.month[0]}</div>
-            <div className="text-3xl font-bold">{pillars.year[0]}</div>
+            <div className="text-3xl font-bold">{pillars.month.gan}</div>
+            <div className="text-3xl font-bold">{pillars.year.gan}</div>
 
-            <div className="text-3xl font-bold">{pillars.hour[1]}</div>
-            <div className="text-3xl font-bold">{pillars.day[1]}</div>
-            <div className="text-3xl font-bold">{pillars.month[1]}</div>
-            <div className="text-3xl font-bold">{pillars.year[1]}</div>
+            <div className="text-3xl font-bold">{pillars.hour.ji}</div>
+            <div className="text-3xl font-bold">{pillars.day.ji}</div>
+            <div className="text-3xl font-bold">{pillars.month.ji}</div>
+            <div className="text-3xl font-bold">{pillars.year.ji}</div>
           </div>
         </CardContent>
       </Card>

@@ -282,7 +282,8 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
   const extractUniqueSinsalNamesFromResult = (
     sinsalResult: Record<string, Array<{ name: string; elements?: Array<{ pillar?: string }> }>>
   ): string[] => {
-    const names = new Set<string>();
+    const names: string[] = [];
+    console.log("🔍 extractUniqueSinsalNamesFromResult 함수 시작 - names 배열 초기화");
     const includeKeysBase = [
       pillarFilters.year ? "year" : null,
       pillarFilters.month ? "month" : null,
@@ -342,7 +343,7 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
               }
               
               if (shouldInclude) {
-                names.add(h.name);
+                names.push(h.name);
                 console.log(`✅ 신살 ${h.name} 추가됨 (기준: ${basePillar})`);
               } else {
                 console.log(`❌ 신살 ${h.name} 제외됨 (기준: ${basePillar}, 선택된: ${includeKeysBase})`);
@@ -361,7 +362,7 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
         if (Array.isArray(arr)) {
           arr.forEach((h) => {
             if (!h.elements || h.elements.length === 0) {
-              names.add(h.name);
+              names.push(h.name);
               return;
             }
             
@@ -369,7 +370,7 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
             const ok = h.elements.some((el) =>
               el && el.pillar ? includeKeys.includes(el.pillar as string) : true
             );
-            if (ok) names.add(h.name);
+            if (ok) names.push(h.name);
           });
         }
       });
@@ -444,19 +445,6 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
       "구인",
       "광음",
       "공망",
-      // 12신살 중 대표적 흉성들
-      "겁살",
-      "재살",
-      "천살",
-      "지살",
-      "연살",
-      "월살",
-      "망신살",
-      "육해살",
-      "역마살",
-      "장성살",
-      "반안살",
-      "화개살",
     ]);
 
     const gilsinNames = names.filter((n) => GILSIN_SET.has(n));
@@ -469,14 +457,14 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
           <div className="mb-2">
             <div className="text-center text-xs text-gray-600 mb-1">신살/흉신</div>
             <div className="flex flex-wrap gap-1 justify-center">
-              {otherNames.map((n) => {
+              {otherNames.map((n, index) => {
                 const isHeungsin = HEUNGSIN_SET.has(n);
                 const cls = isHeungsin
                   ? "bg-rose-100 text-rose-800 border-rose-200"
                   : "bg-gray-100 text-gray-700 border-gray-200";
                 return (
                   <span
-                    key={`sinsal-${n}`}
+                    key={`sinsal-${n}-${index}`}
                     className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold border ${cls}`}
                     title={n}
                   >
@@ -493,9 +481,9 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
           <div>
             <div className="text-center text-xs text-gray-600 mb-1">길신</div>
             <div className="flex flex-wrap gap-1 justify-center">
-              {gilsinNames.map((n) => (
+              {gilsinNames.map((n, index) => (
                 <span
-                  key={`gilsin-${n}`}
+                  key={`gilsin-${n}-${index}`}
                   className="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold border bg-yellow-100 text-yellow-800 border-yellow-200"
                   title={n}
                 >
@@ -774,7 +762,17 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
             {columns.map((col, index) => (
               <div
                 key={`header-${index}`}
-                className="bg-gray-100 p-2 text-center font-semibold text-sm text-gray-700 border border-gray-300"
+                className={`p-2 text-center font-semibold text-sm border border-gray-300 cursor-pointer transition-colors ${
+                  col.type === "pillar" && pillarFilters[col.title.toLowerCase().replace("주", "") as keyof typeof pillarFilters]
+                    ? "bg-blue-100 text-blue-700 border-blue-300"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+                onClick={() => {
+                  if (col.type === "pillar") {
+                    const pillarKey = col.title.toLowerCase().replace("주", "") as keyof typeof pillarFilters;
+                    setPillarFilters((prev) => ({ ...prev, [pillarKey]: !prev[pillarKey] }));
+                  }
+                }}
               >
                 {col.title}
               </div>
@@ -796,9 +794,19 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
             {columns.map((col, index) => (
               <div
                 key={`gan-${index}`}
-                className={`p-2 text-center text-lg font-bold border border-gray-300 ${getOhaengColor(
+                className={`p-2 text-center text-lg font-bold border border-gray-300 cursor-pointer transition-colors hover:bg-gray-50 ${getOhaengColor(
                   col.type === "pillar" ? col.data.gan : col.data.gan
-                )}`}
+                )} ${
+                  col.type === "pillar" && pillarFilters[col.title.toLowerCase().replace("주", "") as keyof typeof pillarFilters]
+                    ? "ring-2 ring-blue-300"
+                    : ""
+                }`}
+                onClick={() => {
+                  if (col.type === "pillar") {
+                    const pillarKey = col.title.toLowerCase().replace("주", "") as keyof typeof pillarFilters;
+                    setPillarFilters((prev) => ({ ...prev, [pillarKey]: !prev[pillarKey] }));
+                  }
+                }}
               >
                 {col.type === "pillar" ? col.data.gan : col.data.gan}
               </div>
@@ -808,9 +816,19 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
             {columns.map((col, index) => (
               <div
                 key={`ji-${index}`}
-                className={`p-2 text-center text-lg font-bold border border-gray-300 ${getOhaengColor(
+                className={`p-2 text-center text-lg font-bold border border-gray-300 cursor-pointer transition-colors hover:bg-gray-50 ${getOhaengColor(
                   col.type === "pillar" ? col.data.ji : col.data.ji
-                )}`}
+                )} ${
+                  col.type === "pillar" && pillarFilters[col.title.toLowerCase().replace("주", "") as keyof typeof pillarFilters]
+                    ? "ring-2 ring-blue-300"
+                    : ""
+                }`}
+                onClick={() => {
+                  if (col.type === "pillar") {
+                    const pillarKey = col.title.toLowerCase().replace("주", "") as keyof typeof pillarFilters;
+                    setPillarFilters((prev) => ({ ...prev, [pillarKey]: !prev[pillarKey] }));
+                  }
+                }}
               >
                 {col.type === "pillar" ? col.data.ji : col.data.ji}
               </div>

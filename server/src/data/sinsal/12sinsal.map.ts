@@ -59,11 +59,11 @@ export const SINSAL_12_MAP: { [key: string]: { [key: string]: string } } = {
   },
 };
 
-export const getSamhapGroup = (yearJi: string) => {
-  if (["寅", "午", "戌"].includes(yearJi)) return "寅午戌";
-  if (["巳", "酉", "丑"].includes(yearJi)) return "巳酉丑";
-  if (["申", "子", "辰"].includes(yearJi)) return "申子辰";
-  if (["亥", "卯", "未"].includes(yearJi)) return "亥卯未";
+export const getSamhapGroup = (ji: string) => {
+  if (["寅", "午", "戌"].includes(ji)) return "寅午戌";
+  if (["巳", "酉", "丑"].includes(ji)) return "巳酉丑";
+  if (["申", "子", "辰"].includes(ji)) return "申子辰";
+  if (["亥", "卯", "未"].includes(ji)) return "亥卯未";
   return null;
 };
 

@@ -5,7 +5,7 @@ import { getSibiwunseong } from "./sibiwunseong.service";
 import { getDaewoon } from "./daewoon.service";
 import { getSewoonForYear } from "./sewoon.service";
 import { getAllWoolwoonForYear } from "./woolwoon.service";
-import { getAllSinsals } from "./sinsal.service";
+import { getAllSinsals } from "./sinsal.service.new";
 import {
   getSeasonalDataForYear,
   getLoadedSeasonalData,
