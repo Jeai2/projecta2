@@ -6,6 +6,7 @@ import type { StarElement } from "../types/saju.d";
 import { SINSAL_12_MAP, getSamhapGroup } from "../data/sinsal/12sinsal.map";
 import { SINSAL_RULES_AUSPICIOUS } from "../data/sinsal/rules.auspicious";
 import { SINSAL_RULES_INAUSPICIOUS } from "../data/sinsal/rules.inauspicious";
+import type { SinsalRule } from "../data/sinsal/types";
 
 // ============================================================================
 // 타입 정의 (Types)
@@ -14,7 +15,11 @@ import { SINSAL_RULES_INAUSPICIOUS } from "../data/sinsal/rules.inauspicious";
 type PillarKey = "year" | "month" | "day" | "hour" | "daewoon" | "sewoon";
 type Pillar = { key: PillarKey; gan: string; ji: string; ganji: string };
 
-export type SinsalHit = { name: string; elements: StarElement[] };
+export type SinsalHit = {
+  name: string;
+  elements: StarElement[];
+  category: "auspicious" | "inauspicious" | "neutral";
+};
 export type SinsalResult = { [key in PillarKey]: SinsalHit[] };
 
 interface SajuInfo {
@@ -50,20 +55,35 @@ function createSajuInfo(
   additionalPillars?: { name: string; gan: string; ji: string }[]
 ): SajuInfo {
   const sajuPillars: Pillar[] = [
-    { key: "year", gan: pillars.year[0], ji: pillars.year[1], ganji: pillars.year },
-    { key: "month", gan: pillars.month[0], ji: pillars.month[1], ganji: pillars.month },
+    {
+      key: "year",
+      gan: pillars.year[0],
+      ji: pillars.year[1],
+      ganji: pillars.year,
+    },
+    {
+      key: "month",
+      gan: pillars.month[0],
+      ji: pillars.month[1],
+      ganji: pillars.month,
+    },
     { key: "day", gan: pillars.day[0], ji: pillars.day[1], ganji: pillars.day },
-    { key: "hour", gan: pillars.hour[0], ji: pillars.hour[1], ganji: pillars.hour }
+    {
+      key: "hour",
+      gan: pillars.hour[0],
+      ji: pillars.hour[1],
+      ganji: pillars.hour,
+    },
   ];
 
   // 추가 기둥 (대운, 세운) 추가
   if (additionalPillars) {
-    additionalPillars.forEach(pillar => {
+    additionalPillars.forEach((pillar) => {
       sajuPillars.push({
         key: pillar.name as PillarKey,
         gan: pillar.gan,
         ji: pillar.ji,
-        ganji: pillar.gan + pillar.ji
+        ganji: pillar.gan + pillar.ji,
       });
     });
   }
@@ -75,7 +95,7 @@ function createSajuInfo(
     monthJi: pillars.month[1],
     yearJi: pillars.year[1],
     dayGanji: pillars.day,
-    gender
+    gender,
   };
 }
 
@@ -90,18 +110,23 @@ function createSajuInfo(
  */
 function calculate12Sinsal(saju: SajuInfo): SinsalResult {
   const allHits: SinsalHit[] = []; // ✅ 모든 신살 결과를 임시 배열에 저장합니다.
-  
+
   const result: SinsalResult = {
-    year: [], month: [], day: [], hour: [], daewoon: [], sewoon: []
+    year: [],
+    month: [],
+    day: [],
+    hour: [],
+    daewoon: [],
+    sewoon: [],
   };
 
-  saju.pillars.forEach(basePillar => {
+  saju.pillars.forEach((basePillar) => {
     const group = getSamhapGroup(basePillar.ji);
     if (!group) return;
 
     const ruleSet = SINSAL_12_MAP[group];
-    
-    saju.pillars.forEach(targetPillar => {
+
+    saju.pillars.forEach((targetPillar) => {
       const sinsalName = ruleSet[targetPillar.ji];
       if (sinsalName) {
         // ✅ 중복 체크 로직을 제거하고 모든 히트를 임시 배열에 추가합니다.
@@ -110,20 +135,25 @@ function calculate12Sinsal(saju: SajuInfo): SinsalResult {
           name: sinsalName,
           elements: [
             { pillar: basePillar.key, type: "ji", character: basePillar.ji },
-            { pillar: targetPillar.key, type: "ji", character: targetPillar.ji }
-          ]
+            {
+              pillar: targetPillar.key,
+              type: "ji",
+              character: targetPillar.ji,
+            },
+          ],
+          category: "neutral", // 12신살은 중립적
         });
       }
     });
   });
 
   // ✅ 기둥별로 결과를 분류
-  saju.pillars.forEach(pillar => {
+  saju.pillars.forEach((pillar) => {
     // 해당 기둥이 타겟 기둥인 신살들만 필터링 (elements의 두 번째 요소가 타겟 기둥)
-    const sinsalsForPillar = allHits.filter(hit =>
-      hit.elements.length >= 2 && hit.elements[1].pillar === pillar.key
+    const sinsalsForPillar = allHits.filter(
+      (hit) => hit.elements.length >= 2 && hit.elements[1].pillar === pillar.key
     );
-    
+
     result[pillar.key].push(...sinsalsForPillar);
   });
 
@@ -141,12 +171,17 @@ function calculate12Sinsal(saju: SajuInfo): SinsalResult {
  */
 function calculateOtherSinsal(saju: SajuInfo): SinsalResult {
   const result: SinsalResult = {
-    year: [], month: [], day: [], hour: [], daewoon: [], sewoon: []
+    year: [],
+    month: [],
+    day: [],
+    hour: [],
+    daewoon: [],
+    sewoon: [],
   };
 
   // 모든 신살 규칙을 하나로 합치기
   const allRules = { ...SINSAL_RULES_AUSPICIOUS, ...SINSAL_RULES_INAUSPICIOUS };
-  
+
   // 흉신/길신 계산 통계
   let totalHits = 0;
   let auspiciousHits = 0;
@@ -157,15 +192,15 @@ function calculateOtherSinsal(saju: SajuInfo): SinsalResult {
     try {
       const hits = calculateSinsalByRule(saju, sinsalName, rule);
       totalHits += hits.length;
-      
+
       // 길신/흉신 분류
       if (SINSAL_RULES_AUSPICIOUS[sinsalName]) {
         auspiciousHits += hits.length;
       } else if (SINSAL_RULES_INAUSPICIOUS[sinsalName]) {
         inauspiciousHits += hits.length;
       }
-      
-      hits.forEach(hit => {
+
+      hits.forEach((hit) => {
         // 해당 기둥에 신살 추가
         const targetPillar = hit.elements[hit.elements.length - 1]?.pillar;
         if (targetPillar && result[targetPillar]) {
@@ -188,17 +223,21 @@ function calculateOtherSinsal(saju: SajuInfo): SinsalResult {
       day: result.day.length,
       hour: result.hour.length,
       daewoon: result.daewoon.length,
-      sewoon: result.sewoon.length
-    }
+      sewoon: result.sewoon.length,
+    },
   });
 
   // 길신/흉신 상세 로그 (계산된 것만)
   if (totalHits > 0) {
     const allSinsalNames = [
-      ...result.year, ...result.month, ...result.day, ...result.hour,
-      ...result.daewoon, ...result.sewoon
-    ].map(h => h.name);
-    
+      ...result.year,
+      ...result.month,
+      ...result.day,
+      ...result.hour,
+      ...result.daewoon,
+      ...result.sewoon,
+    ].map((h) => h.name);
+
     const uniqueSinsalNames = [...new Set(allSinsalNames)];
     console.log("🔍 계산된 신살 목록:", uniqueSinsalNames);
   }
@@ -213,22 +252,34 @@ function calculateOtherSinsal(saju: SajuInfo): SinsalResult {
  * @param rule 신살 규칙
  * @returns 계산된 신살 결과
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function calculateSinsalByRule(saju: SajuInfo, sinsalName: string, rule: any): SinsalHit[] {
+
+function calculateSinsalByRule(
+  saju: SajuInfo,
+  sinsalName: string,
+  rule: SinsalRule
+): SinsalHit[] {
   const hits: SinsalHit[] = [];
+
+  // 신살의 카테고리 결정
+  const category = SINSAL_RULES_AUSPICIOUS[sinsalName]
+    ? "auspicious"
+    : SINSAL_RULES_INAUSPICIOUS[sinsalName]
+    ? "inauspicious"
+    : "neutral";
 
   switch (rule.type) {
     case "ganji":
       // 간지 규칙: 특정 간지 조합이 있으면 해당 기둥에 신살 추가
       rule.values.forEach((ganji: string) => {
-        saju.pillars.forEach(pillar => {
+        saju.pillars.forEach((pillar) => {
           if (pillar.ganji === ganji) {
             hits.push({
               name: sinsalName,
               elements: [
                 { pillar: pillar.key, type: "gan", character: pillar.gan },
-                { pillar: pillar.key, type: "ji", character: pillar.ji }
-              ]
+                { pillar: pillar.key, type: "ji", character: pillar.ji },
+              ],
+              category,
             });
           }
         });
@@ -239,20 +290,25 @@ function calculateSinsalByRule(saju: SajuInfo, sinsalName: string, rule: any): S
       // 기준 규칙: 특정 기준에 따라 신살 계산
       const baseValue = getBaseValue(saju, rule.base);
       if (baseValue && rule.rules[baseValue]) {
-        const targets = Array.isArray(rule.rules[baseValue]) 
-          ? rule.rules[baseValue] 
+        const targets = Array.isArray(rule.rules[baseValue])
+          ? rule.rules[baseValue]
           : [rule.rules[baseValue]];
-        
-        targets.forEach(target => {
-          saju.pillars.forEach(pillar => {
+
+        targets.forEach((target) => {
+          saju.pillars.forEach((pillar) => {
             const checkValue = rule.target === "gan" ? pillar.gan : pillar.ji;
             if (checkValue === target) {
               hits.push({
                 name: sinsalName,
                 elements: [
-                  { pillar: getBasePillar(rule.base), type: rule.base.includes("Gan") ? "gan" : "ji", character: baseValue },
-                  { pillar: pillar.key, type: rule.target, character: target }
-                ]
+                  {
+                    pillar: getBasePillar(rule.base),
+                    type: rule.base.includes("Gan") ? "gan" : "ji",
+                    character: baseValue,
+                  },
+                  { pillar: pillar.key, type: rule.target, character: target },
+                ],
+                category,
               });
             }
           });
@@ -267,22 +323,32 @@ function calculateSinsalByRule(saju: SajuInfo, sinsalName: string, rule: any): S
       if (baseValue2 && rule.rules[baseValue2]) {
         const requiredTargets = rule.rules[baseValue2];
         const foundTargets = saju.pillars
-          .map(pillar => rule.target === "gan" ? pillar.gan : pillar.ji)
-          .filter(target => requiredTargets.includes(target));
-        
+          .map((pillar) => (rule.target === "gan" ? pillar.gan : pillar.ji))
+          .filter((target) => requiredTargets.includes(target));
+
         if (foundTargets.length === requiredTargets.length) {
           // 모든 조건이 만족되면 각 타겟에 대해 신살 추가
-          foundTargets.forEach(target => {
-            const targetPillar = saju.pillars.find(pillar => 
-              (rule.target === "gan" ? pillar.gan : pillar.ji) === target
+          foundTargets.forEach((target) => {
+            const targetPillar = saju.pillars.find(
+              (pillar) =>
+                (rule.target === "gan" ? pillar.gan : pillar.ji) === target
             );
             if (targetPillar) {
               hits.push({
                 name: sinsalName,
                 elements: [
-                  { pillar: getBasePillar(rule.base), type: rule.base.includes("Gan") ? "gan" : "ji", character: baseValue2 },
-                  { pillar: targetPillar.key, type: rule.target, character: target }
-                ]
+                  {
+                    pillar: getBasePillar(rule.base),
+                    type: rule.base.includes("Gan") ? "gan" : "ji",
+                    character: baseValue2,
+                  },
+                  {
+                    pillar: targetPillar.key,
+                    type: rule.target,
+                    character: target,
+                  },
+                ],
+                category,
               });
             }
           });
@@ -296,15 +362,24 @@ function calculateSinsalByRule(saju: SajuInfo, sinsalName: string, rule: any): S
       const baseValue3 = getBaseValue(saju, rule.base);
       if (baseValue3 && rule.pairs[baseValue3]) {
         const target = rule.pairs[baseValue3];
-        saju.pillars.forEach(pillar => {
+        saju.pillars.forEach((pillar) => {
           const checkValue = rule.base.includes("Gan") ? pillar.gan : pillar.ji;
           if (checkValue === target) {
             hits.push({
               name: sinsalName,
               elements: [
-                { pillar: getBasePillar(rule.base), type: rule.base.includes("Gan") ? "gan" : "ji", character: baseValue3 },
-                { pillar: pillar.key, type: rule.base.includes("Gan") ? "gan" : "ji", character: target }
-              ]
+                {
+                  pillar: getBasePillar(rule.base),
+                  type: rule.base.includes("Gan") ? "gan" : "ji",
+                  character: baseValue3,
+                },
+                {
+                  pillar: pillar.key,
+                  type: rule.base.includes("Gan") ? "gan" : "ji",
+                  character: target,
+                },
+              ],
+              category,
             });
           }
         });
@@ -320,24 +395,37 @@ function calculateSinsalByRule(saju: SajuInfo, sinsalName: string, rule: any): S
         const adjacentPairs = [
           { from: "year", to: "month" },
           { from: "month", to: "day" },
-          { from: "day", to: "hour" }
+          { from: "day", to: "hour" },
         ];
-        
-        adjacentPairs.forEach(pair => {
-          const fromPillar = saju.pillars.find(p => p.key === pair.from);
-          const toPillar = saju.pillars.find(p => p.key === pair.to);
-          
+
+        adjacentPairs.forEach((pair) => {
+          const fromPillar = saju.pillars.find((p) => p.key === pair.from);
+          const toPillar = saju.pillars.find((p) => p.key === pair.to);
+
           if (fromPillar && toPillar) {
-            const fromValue = rule.base.includes("Gan") ? fromPillar.gan : fromPillar.ji;
-            const toValue = rule.base.includes("Gan") ? toPillar.gan : toPillar.ji;
-            
+            const fromValue = rule.base.includes("Gan")
+              ? fromPillar.gan
+              : fromPillar.ji;
+            const toValue = rule.base.includes("Gan")
+              ? toPillar.gan
+              : toPillar.ji;
+
             if (fromValue === baseValue4 && toValue === target) {
               hits.push({
                 name: sinsalName,
                 elements: [
-                  { pillar: fromPillar.key, type: rule.base.includes("Gan") ? "gan" : "ji", character: baseValue4 },
-                  { pillar: toPillar.key, type: rule.base.includes("Gan") ? "gan" : "ji", character: target }
-                ]
+                  {
+                    pillar: fromPillar.key,
+                    type: rule.base.includes("Gan") ? "gan" : "ji",
+                    character: baseValue4,
+                  },
+                  {
+                    pillar: toPillar.key,
+                    type: rule.base.includes("Gan") ? "gan" : "ji",
+                    character: target,
+                  },
+                ],
+                category,
               });
             }
           }
@@ -350,14 +438,18 @@ function calculateSinsalByRule(saju: SajuInfo, sinsalName: string, rule: any): S
       // 월지 기준 규칙: 월지에 따라 일지 또는 시지 확인
       if (rule.rules[saju.monthJi]) {
         const target = rule.rules[saju.monthJi];
-        saju.pillars.forEach(pillar => {
-          if ((pillar.key === "day" || pillar.key === "hour") && pillar.ji === target) {
+        saju.pillars.forEach((pillar) => {
+          if (
+            (pillar.key === "day" || pillar.key === "hour") &&
+            pillar.ji === target
+          ) {
             hits.push({
               name: sinsalName,
               elements: [
                 { pillar: "month", type: "ji", character: saju.monthJi },
-                { pillar: pillar.key, type: "ji", character: target }
-              ]
+                { pillar: pillar.key, type: "ji", character: target },
+              ],
+              category,
             });
           }
         });
@@ -367,21 +459,22 @@ function calculateSinsalByRule(saju: SajuInfo, sinsalName: string, rule: any): S
     case "allGan":
       // 모든 천간 기준 규칙: 모든 천간을 확인하여 지지에서 찾기
       Object.entries(rule.rules).forEach(([ganPattern, target]) => {
-        const gans = ganPattern.split(",").map(g => g.trim());
+        const gans = ganPattern.split(",").map((g) => g.trim());
         const targets = Array.isArray(target) ? target : [target];
-        
-        gans.forEach(gan => {
-          saju.pillars.forEach(pillar => {
+
+        gans.forEach((gan) => {
+          saju.pillars.forEach((pillar) => {
             if (pillar.gan === gan) {
-              targets.forEach(t => {
-                saju.pillars.forEach(targetPillar => {
+              targets.forEach((t) => {
+                saju.pillars.forEach((targetPillar) => {
                   if (targetPillar.ji === t) {
                     hits.push({
                       name: sinsalName,
                       elements: [
                         { pillar: pillar.key, type: "gan", character: gan },
-                        { pillar: targetPillar.key, type: "ji", character: t }
-                      ]
+                        { pillar: targetPillar.key, type: "ji", character: t },
+                      ],
+                      category,
                     });
                   }
                 });
@@ -403,18 +496,25 @@ function calculateSinsalByRule(saju: SajuInfo, sinsalName: string, rule: any): S
       // 복합 규칙: 여러 조건을 조합
       if (rule.conditions.hasAny) {
         const hasAny = rule.conditions.hasAny.some((item: string) =>
-          saju.pillars.some(pillar => pillar.gan === item || pillar.ji === item)
+          saju.pillars.some(
+            (pillar) => pillar.gan === item || pillar.ji === item
+          )
         );
         if (hasAny) {
           // hasAny 조건이 만족되면 해당 기둥에 신살 추가
           rule.conditions.hasAny.forEach((item: string) => {
-            saju.pillars.forEach(pillar => {
+            saju.pillars.forEach((pillar) => {
               if (pillar.gan === item || pillar.ji === item) {
                 hits.push({
                   name: sinsalName,
                   elements: [
-                    { pillar: pillar.key, type: pillar.gan === item ? "gan" : "ji", character: item }
-                  ]
+                    {
+                      pillar: pillar.key,
+                      type: pillar.gan === item ? "gan" : "ji",
+                      character: item,
+                    },
+                  ],
+                  category,
                 });
               }
             });
@@ -438,11 +538,16 @@ function calculateSinsalByRule(saju: SajuInfo, sinsalName: string, rule: any): S
  */
 function getBaseValue(saju: SajuInfo, base: string): string | null {
   switch (base) {
-    case "dayGan": return saju.dayGan;
-    case "dayJi": return saju.dayJi;
-    case "monthJi": return saju.monthJi;
-    case "yearJi": return saju.yearJi;
-    default: return null;
+    case "dayGan":
+      return saju.dayGan;
+    case "dayJi":
+      return saju.dayJi;
+    case "monthJi":
+      return saju.monthJi;
+    case "yearJi":
+      return saju.yearJi;
+    default:
+      return null;
   }
 }
 
@@ -454,10 +559,14 @@ function getBaseValue(saju: SajuInfo, base: string): string | null {
 function getBasePillar(base: string): PillarKey {
   switch (base) {
     case "dayGan":
-    case "dayJi": return "day";
-    case "monthJi": return "month";
-    case "yearJi": return "year";
-    default: return "day";
+    case "dayJi":
+      return "day";
+    case "monthJi":
+      return "month";
+    case "yearJi":
+      return "year";
+    default:
+      return "day";
   }
 }
 
@@ -468,52 +577,98 @@ function getBasePillar(base: string): PillarKey {
  */
 function calculateGongmang(saju: SajuInfo): SinsalHit[] {
   const hits: SinsalHit[] = [];
-  
+  const category = SINSAL_RULES_AUSPICIOUS["공망"]
+    ? "auspicious"
+    : SINSAL_RULES_INAUSPICIOUS["공망"]
+    ? "inauspicious"
+    : "neutral";
+
   // 공망 지지 매핑
   const GONGMANG_MAP: { [key: string]: string[] } = {
-    "甲子": ["戌", "亥"], "甲戌": ["申", "酉"], "甲申": ["午", "未"],
-    "甲午": ["辰", "巳"], "甲辰": ["寅", "卯"], "甲寅": ["子", "丑"],
-    "乙丑": ["亥", "子"], "乙亥": ["酉", "戌"], "乙酉": ["未", "申"],
-    "乙未": ["巳", "午"], "乙巳": ["卯", "辰"], "乙卯": ["丑", "寅"],
-    "丙寅": ["子", "丑"], "丙子": ["戌", "亥"], "丙戌": ["申", "酉"],
-    "丙申": ["午", "未"], "丙午": ["辰", "巳"], "丙辰": ["寅", "卯"],
-    "丁卯": ["丑", "寅"], "丁丑": ["亥", "子"], "丁亥": ["酉", "戌"],
-    "丁酉": ["未", "申"], "丁未": ["巳", "午"], "丁巳": ["卯", "辰"],
-    "戊辰": ["寅", "卯"], "戊寅": ["子", "丑"], "戊子": ["戌", "亥"],
-    "戊戌": ["申", "酉"], "戊申": ["午", "未"], "戊午": ["辰", "巳"],
-    "己巳": ["卯", "辰"], "己卯": ["丑", "寅"], "己丑": ["亥", "子"],
-    "己亥": ["酉", "戌"], "己酉": ["未", "申"], "己未": ["巳", "午"],
-    "庚午": ["辰", "巳"], "庚辰": ["寅", "卯"], "庚寅": ["子", "丑"],
-    "庚子": ["戌", "亥"], "庚戌": ["申", "酉"], "庚申": ["午", "未"],
-    "辛未": ["巳", "午"], "辛巳": ["卯", "辰"], "辛卯": ["丑", "寅"],
-    "辛丑": ["亥", "子"], "辛亥": ["酉", "戌"], "辛酉": ["未", "申"],
-    "壬申": ["午", "未"], "壬午": ["辰", "巳"], "壬辰": ["寅", "卯"],
-    "壬寅": ["子", "丑"], "壬子": ["戌", "亥"], "壬戌": ["申", "酉"],
-    "癸酉": ["未", "申"], "癸未": ["巳", "午"], "癸巳": ["卯", "辰"],
-    "癸卯": ["丑", "寅"], "癸丑": ["亥", "子"], "癸亥": ["酉", "戌"]
+    甲子: ["戌", "亥"],
+    甲戌: ["申", "酉"],
+    甲申: ["午", "未"],
+    甲午: ["辰", "巳"],
+    甲辰: ["寅", "卯"],
+    甲寅: ["子", "丑"],
+    乙丑: ["亥", "子"],
+    乙亥: ["酉", "戌"],
+    乙酉: ["未", "申"],
+    乙未: ["巳", "午"],
+    乙巳: ["卯", "辰"],
+    乙卯: ["丑", "寅"],
+    丙寅: ["子", "丑"],
+    丙子: ["戌", "亥"],
+    丙戌: ["申", "酉"],
+    丙申: ["午", "未"],
+    丙午: ["辰", "巳"],
+    丙辰: ["寅", "卯"],
+    丁卯: ["丑", "寅"],
+    丁丑: ["亥", "子"],
+    丁亥: ["酉", "戌"],
+    丁酉: ["未", "申"],
+    丁未: ["巳", "午"],
+    丁巳: ["卯", "辰"],
+    戊辰: ["寅", "卯"],
+    戊寅: ["子", "丑"],
+    戊子: ["戌", "亥"],
+    戊戌: ["申", "酉"],
+    戊申: ["午", "未"],
+    戊午: ["辰", "巳"],
+    己巳: ["卯", "辰"],
+    己卯: ["丑", "寅"],
+    己丑: ["亥", "子"],
+    己亥: ["酉", "戌"],
+    己酉: ["未", "申"],
+    己未: ["巳", "午"],
+    庚午: ["辰", "巳"],
+    庚辰: ["寅", "卯"],
+    庚寅: ["子", "丑"],
+    庚子: ["戌", "亥"],
+    庚戌: ["申", "酉"],
+    庚申: ["午", "未"],
+    辛未: ["巳", "午"],
+    辛巳: ["卯", "辰"],
+    辛卯: ["丑", "寅"],
+    辛丑: ["亥", "子"],
+    辛亥: ["酉", "戌"],
+    辛酉: ["未", "申"],
+    壬申: ["午", "未"],
+    壬午: ["辰", "巳"],
+    壬辰: ["寅", "卯"],
+    壬寅: ["子", "丑"],
+    壬子: ["戌", "亥"],
+    壬戌: ["申", "酉"],
+    癸酉: ["未", "申"],
+    癸未: ["巳", "午"],
+    癸巳: ["卯", "辰"],
+    癸卯: ["丑", "寅"],
+    癸丑: ["亥", "子"],
+    癸亥: ["酉", "戌"],
   };
-  
+
   // 일주 기준으로 공망 지지 찾기
   const dayGanji = saju.dayGanji;
   const gongmangJis = GONGMANG_MAP[dayGanji];
-  
+
   if (gongmangJis) {
-    gongmangJis.forEach(gongmangJi => {
-      saju.pillars.forEach(pillar => {
+    gongmangJis.forEach((gongmangJi) => {
+      saju.pillars.forEach((pillar) => {
         if (pillar.ji === gongmangJi) {
           hits.push({
             name: "공망",
             elements: [
               { pillar: "day", type: "gan", character: saju.dayGan },
               { pillar: "day", type: "ji", character: saju.dayJi },
-              { pillar: pillar.key, type: "ji", character: gongmangJi }
-            ]
+              { pillar: pillar.key, type: "ji", character: gongmangJi },
+            ],
+            category,
           });
         }
       });
     });
   }
-  
+
   return hits;
 }
 
@@ -535,13 +690,13 @@ export const getAllSinsals = (
 ): SinsalResult => {
   // 사주 정보 생성
   const saju = createSajuInfo(pillars, gender, additionalPillars);
-  
+
   // 12신살 계산
   const sinsal12 = calculate12Sinsal(saju);
-  
+
   // 기타 신살 계산 (흉신/길신)
   const sinsalOther = calculateOtherSinsal(saju);
-  
+
   // 결과 병합
   const result: SinsalResult = {
     year: [...sinsal12.year, ...sinsalOther.year],
@@ -549,19 +704,27 @@ export const getAllSinsals = (
     day: [...sinsal12.day, ...sinsalOther.day],
     hour: [...sinsal12.hour, ...sinsalOther.hour],
     daewoon: [...sinsal12.daewoon, ...sinsalOther.daewoon],
-    sewoon: [...sinsal12.sewoon, ...sinsalOther.sewoon]
+    sewoon: [...sinsal12.sewoon, ...sinsalOther.sewoon],
   };
-  
+
   // 최종 요약 로그
-  const total12Sinsal = sinsal12.year.length + sinsal12.month.length + sinsal12.day.length + sinsal12.hour.length;
-  const totalOtherSinsal = sinsalOther.year.length + sinsalOther.month.length + sinsalOther.day.length + sinsalOther.hour.length;
-  
+  const total12Sinsal =
+    sinsal12.year.length +
+    sinsal12.month.length +
+    sinsal12.day.length +
+    sinsal12.hour.length;
+  const totalOtherSinsal =
+    sinsalOther.year.length +
+    sinsalOther.month.length +
+    sinsalOther.day.length +
+    sinsalOther.hour.length;
+
   console.log("🎉 신살 계산 완료:", {
     "12신살": total12Sinsal,
     "흉신/길신": totalOtherSinsal,
-    "총계": total12Sinsal + totalOtherSinsal
+    총계: total12Sinsal + totalOtherSinsal,
   });
-  
+
   return result;
 };
 
@@ -575,24 +738,29 @@ export const getAllSinsals = (
  * @param resultB B 버전 결과
  * @returns 비교 결과
  */
-export function compareSinsalResults(resultA: SinsalResult, resultB: SinsalResult): {
+export function compareSinsalResults(
+  resultA: SinsalResult,
+  resultB: SinsalResult
+): {
   isEqual: boolean;
   differences: string[];
 } {
   const differences: string[] = [];
-  
-  Object.keys(resultA).forEach(key => {
+
+  Object.keys(resultA).forEach((key) => {
     const pillarKey = key as PillarKey;
-    const aNames = resultA[pillarKey].map(hit => hit.name).sort();
-    const bNames = resultB[pillarKey].map(hit => hit.name).sort();
-    
+    const aNames = resultA[pillarKey].map((hit) => hit.name).sort();
+    const bNames = resultB[pillarKey].map((hit) => hit.name).sort();
+
     if (JSON.stringify(aNames) !== JSON.stringify(bNames)) {
-      differences.push(`${pillarKey}: A[${aNames.join(',')}] vs B[${bNames.join(',')}]`);
+      differences.push(
+        `${pillarKey}: A[${aNames.join(",")}] vs B[${bNames.join(",")}]`
+      );
     }
   });
-  
+
   return {
     isEqual: differences.length === 0,
-    differences
+    differences,
   };
 }

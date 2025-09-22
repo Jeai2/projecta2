@@ -17,6 +17,7 @@ import { SINSAL_INTERPRETATION } from "../data/interpretation/sinsal"; //✅ 신
 import type {
   SajuData,
   StarData,
+  StarElement,
   Trait,
   PersonalityInterpretation,
 } from "../types/saju.d";
@@ -138,11 +139,21 @@ export const interpretSibiwunseong = (
 export const interpretSinsal = (
   sinsalObject: SajuData["sinsal"]
 ): StarData[] => {
+  // 기존 서비스의 SinsalHit를 새로운 형식으로 변환 (category 필드 추가)
+  const convertToNewSinsalHit = (oldHit: {
+    name: string;
+    elements: StarElement[];
+  }): SinsalHit => ({
+    name: oldHit.name,
+    elements: oldHit.elements,
+    category: "neutral", // 기본값으로 neutral 설정
+  });
+
   const allSinsalHits: SinsalHit[] = [
-    ...sinsalObject.year,
-    ...sinsalObject.month,
-    ...sinsalObject.day,
-    ...sinsalObject.hour,
+    ...sinsalObject.year.map(convertToNewSinsalHit),
+    ...sinsalObject.month.map(convertToNewSinsalHit),
+    ...sinsalObject.day.map(convertToNewSinsalHit),
+    ...sinsalObject.hour.map(convertToNewSinsalHit),
   ];
 
   const uniqueSinsalMap = new Map<string, SinsalHit>();
