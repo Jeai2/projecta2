@@ -51,6 +51,15 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
     useState<unknown>(null);
   const [sewoonRelationships, setSewoonRelationships] = useState<unknown>(null);
 
+  // 선택된 신살 강조 상태 관리
+  const [selectedSinsalElements, setSelectedSinsalElements] = useState<
+    | {
+        pillar: string;
+        character: string;
+      }[]
+    | null
+  >(null);
+
   // 관계 모드 선택 상태 관리
   const [relationshipMode, setRelationshipMode] = useState<
     "original" | "daewoon" | "sewoon"
@@ -64,6 +73,24 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
     null
   );
 
+  // 운별 신살 원본 결과 저장 (서버 응답 그대로 보관)
+  const [daewoonSinsalResult, setDaewoonSinsalResult] = useState<Record<
+    string,
+    Array<{
+      name: string;
+      elements?: Array<{ pillar?: string }>;
+      category?: string;
+    }>
+  > | null>(null);
+  const [sewoonSinsalResult, setSewoonSinsalResult] = useState<Record<
+    string,
+    Array<{
+      name: string;
+      elements?: Array<{ pillar?: string }>;
+      category?: string;
+    }>
+  > | null>(null);
+
   // 필터 상태: 표기 대상 기둥(년/월/일/시)
   const [pillarFilters, setPillarFilters] = useState({
     year: true,
@@ -71,8 +98,7 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
     day: true,
     hour: true,
   });
-  // 운 전용 표기 토글 (대운/세운 모드에서 해당 운 기둥만)
-  const [unOnly, setUnOnly] = useState(false);
+  // 운 전용 토글 제거: 대운/세운 탭 자체가 운 전용 의미
 
   // 지장간 데이터 (백엔드와 동일하게 한자로 변환)
   const JIJANGGAN_DATA: {
@@ -232,9 +258,11 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
         setDaewoonRelationships(data.data.relationships);
         // 신살 요약 수신 처리 (있을 경우)
         if (data.data.sinsal) {
+          setDaewoonSinsalResult(data.data.sinsal);
           const hits = extractUniqueSinsalHitsFromResult(data.data.sinsal);
           setDaewoonSinsalNames(hits.map((h) => h.name));
         } else {
+          setDaewoonSinsalResult(null);
           setDaewoonSinsalNames(null);
         }
       }
@@ -267,9 +295,11 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
         setSewoonRelationships(data.data.relationships);
         // 신살 요약 수신 처리 (있을 경우)
         if (data.data.sinsal) {
+          setSewoonSinsalResult(data.data.sinsal);
           const hits = extractUniqueSinsalHitsFromResult(data.data.sinsal);
           setSewoonSinsalNames(hits.map((h) => h.name));
         } else {
+          setSewoonSinsalResult(null);
           setSewoonSinsalNames(null);
         }
       }
@@ -284,12 +314,20 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
       string,
       Array<{
         name: string;
-        elements?: Array<{ pillar?: string }>;
+        elements?: Array<{ pillar?: string; character?: string }>;
         category?: string;
       }>
     >
-  ): Array<{ name: string; category: string }> => {
-    const hits: Array<{ name: string; category: string }> = [];
+  ): Array<{
+    name: string;
+    category: string;
+    elements?: Array<{ pillar: string; character: string }>;
+  }> => {
+    const hits: Array<{
+      name: string;
+      category: string;
+      elements?: Array<{ pillar: string; character: string }>;
+    }> = [];
     console.log(
       "🔍 extractUniqueSinsalHitsFromResult 함수 시작 - hits 배열 초기화"
     );
@@ -303,20 +341,46 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
       pillarFilters.hour ? "hour" : null,
     ].filter(Boolean) as string[];
 
-    const includeKeys = (() => {
+    // 포함 여부 판단 함수: 원국/운 모드별로 기준과 대상 조건을 명확히 분리
+    const shouldIncludeHit = (h: {
+      name: string;
+      elements?: Array<{ pillar?: string }>;
+      category?: string;
+    }): boolean => {
+      if (!h.elements || h.elements.length === 0) {
+        // 안전장치: elements 없으면 원국 모드에서만 표시
+        return relationshipMode === "original";
+      }
+
+      const basePillar = h.elements[0]?.pillar as string | undefined;
+      const hasSelectedTarget = h.elements.some((el) =>
+        el && el.pillar ? includeKeysBase.includes(el.pillar as string) : false
+      );
+
+      if (relationshipMode === "original") {
+        // 원국: 기준이 선택된 기둥이면 포함 (대상은 자동 포함)
+        return basePillar ? includeKeysBase.includes(basePillar) : false;
+      }
+
+      // 운 모드:
+      // - 대운: 기준이 'daewoon'이고, 대상에 선택된 기둥이 하나라도 포함되어야 함
+      // - 세운: 기준이 선택된 기둥(year/month/day/hour)이고, 대상에 'sewoon'이 포함되어야 함
       if (relationshipMode === "daewoon") {
-        if (unOnly) return ["daewoon"]; // 운 전용
-        return [...includeKeysBase, "daewoon"]; // 원국+운
+        return basePillar === "daewoon" && hasSelectedTarget;
       }
       if (relationshipMode === "sewoon") {
-        if (unOnly) return ["sewoon"]; // 운 전용
-        return [...includeKeysBase, "daewoon", "sewoon"]; // 원국+운
+        const hasSewoonTarget = h.elements.some(
+          (el) => el?.pillar === "sewoon"
+        );
+        return (
+          (basePillar ? includeKeysBase.includes(basePillar) : false) &&
+          hasSewoonTarget
+        );
       }
-      return includeKeysBase; // original
-    })();
+      return false;
+    };
 
     console.log("🔍 includeKeysBase:", includeKeysBase);
-    console.log("🔍 includeKeys:", includeKeys);
 
     // 12신살 목록 (각 기둥 기준으로 계산되는 신살들)
     const sinsal12Names = [
@@ -359,112 +423,55 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
         fullSinsalResult: sinsalResult,
       });
 
-      // 모든 기둥에서 12신살을 찾아서, 기준 기둥이 선택된 기둥 중 하나인 것만 포함
-      Object.entries(sinsalResult).forEach(([, arr]) => {
+      // 모든 배열을 순회하며 12신살만 조건에 맞게 포함
+      Object.values(sinsalResult).forEach((arr) => {
         if (Array.isArray(arr)) {
           arr.forEach((h) => {
-            if (
-              sinsal12Names.includes(h.name) &&
-              h.elements &&
-              h.elements.length > 0
-            ) {
-              const basePillar = h.elements[0]?.pillar;
-
-              // 12신살 필터링 로직: 선택된 기둥 기준으로 다른 기둥들과의 관계를 표시
-              let shouldInclude = false;
-
-              // 선택된 기둥 중 하나가 기준기둥인 경우 해당 기둥 기준으로 다른 기둥들과의 관계를 표시
-              if (basePillar && includeKeysBase.includes(basePillar)) {
-                shouldInclude = true;
-              }
-
-              if (shouldInclude) {
-                console.log(
-                  `🔍 12신살 특별 처리 - 신살 추가: ${h.name}, category: ${h.category}, basePillar: ${basePillar}`
-                );
-                hits.push({ name: h.name, category: h.category || "neutral" });
-              }
+            if (sinsal12Names.includes(h.name) && shouldIncludeHit(h)) {
+              hits.push({
+                name: h.name,
+                category: h.category || "neutral",
+                elements: h.elements?.map((el) => ({
+                  pillar: el.pillar || "",
+                  character: el.character || "",
+                })),
+              });
             }
           });
         }
       });
 
-      // 12신살이 아닌 다른 신살들(길신, 흉신)도 처리
-      console.log("🔍 12신살이 아닌 다른 신살들 처리 시작");
-      Object.entries(sinsalResult).forEach(([, arr]) => {
+      // 12신살 외 길신/흉신도 동일한 포함 규칙 적용
+      Object.values(sinsalResult).forEach((arr) => {
         if (Array.isArray(arr)) {
           arr.forEach((h) => {
-            if (!sinsal12Names.includes(h.name)) {
-              console.log(
-                `🔍 12신살이 아닌 신살 발견: ${h.name}, category: ${h.category}`
-              );
-              // 12신살이 아닌 경우 기존 로직 사용
-              if (!h.elements || h.elements.length === 0) {
-                hits.push({ name: h.name, category: h.category || "neutral" });
-                console.log(
-                  `🔍 12신살이 아닌 신살 추가 (elements 없음): ${
-                    h.name
-                  }, category: ${h.category || "neutral"}`
-                );
-                return;
-              }
-
-              // elements에 선택된 기둥이 포함되는지 추가 확인
-              const ok = h.elements.some((el) =>
-                el && el.pillar
-                  ? includeKeys.includes(el.pillar as string)
-                  : true
-              );
-              if (ok) {
-                hits.push({ name: h.name, category: h.category || "neutral" });
-                console.log(
-                  `🔍 12신살이 아닌 신살 추가 (elements 있음): ${
-                    h.name
-                  }, category: ${h.category || "neutral"}`
-                );
-              }
+            if (!sinsal12Names.includes(h.name) && shouldIncludeHit(h)) {
+              hits.push({
+                name: h.name,
+                category: h.category || "neutral",
+                elements: h.elements?.map((el) => ({
+                  pillar: el.pillar || "",
+                  character: el.character || "",
+                })),
+              });
             }
           });
         }
       });
     } else {
-      // 12신살이 아닌 경우 기존 로직 사용
-      console.log("🔍 12신살이 아닌 경우 - 기존 로직 사용");
-      includeKeys.forEach((key) => {
-        const pillarKey = key as keyof typeof sinsalResult;
-        const arr = sinsalResult[pillarKey] as
-          | Array<{
-              name: string;
-              elements?: Array<{ pillar?: string }>;
-              category?: string;
-            }>
-          | undefined;
+      // 12신살이 감지되지 않았더라도 동일 규칙으로 전체 순회
+      Object.values(sinsalResult).forEach((arr) => {
         if (Array.isArray(arr)) {
           arr.forEach((h) => {
-            console.log(
-              `🔍 처리 중인 신살: ${h.name}, category: ${h.category}, pillar: ${pillarKey}`
-            );
-            if (!h.elements || h.elements.length === 0) {
-              hits.push({ name: h.name, category: h.category || "neutral" });
-              console.log(
-                `🔍 elements 없는 신살 추가: ${h.name}, category: ${
-                  h.category || "neutral"
-                }`
-              );
-              return;
-            }
-
-            // elements에 선택된 기둥이 포함되는지 추가 확인 (안전장치)
-            const ok = h.elements.some((el) =>
-              el && el.pillar ? includeKeys.includes(el.pillar as string) : true
-            );
-            if (ok) {
-              hits.push({ name: h.name, category: h.category || "neutral" });
-              console.log(
-                `🔍 elements 있는 신살 추가: ${h.name}, category: ${
-                  h.category || "neutral"
-                }`
-              );
+            if (shouldIncludeHit(h)) {
+              hits.push({
+                name: h.name,
+                category: h.category || "neutral",
+                elements: h.elements?.map((el) => ({
+                  pillar: el.pillar || "",
+                  character: el.character || "",
+                })),
+              });
             }
           });
         }
@@ -478,11 +485,16 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
   const getOriginalSinsalHits = (): Array<{
     name: string;
     category: string;
+    elements?: Array<{ pillar: string; character: string }>;
   }> => {
     try {
       const result = sajuData?.sinsal as unknown as Record<
         string,
-        Array<{ name: string; category?: string }>
+        Array<{
+          name: string;
+          category?: string;
+          elements?: Array<{ pillar?: string; character?: string }>;
+        }>
       >;
       console.log("🔍 서버에서 받은 원본 sinsal 데이터:", result);
       if (!result) return [];
@@ -495,17 +507,131 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
     }
   };
 
+  // 사주원국표 글자 강조 여부 확인 함수
+  const isCharacterHighlighted = (pillar: string, character: string) => {
+    if (!selectedSinsalElements) return false;
+
+    // pillar 매핑: 한국어 → 영어
+    const pillarMapping: { [key: string]: string } = {
+      년: "year",
+      월: "month",
+      일: "day",
+      시: "hour",
+    };
+
+    const mappedPillar = pillarMapping[pillar] || pillar;
+
+    console.log("🔍 강조 체크:", {
+      pillar,
+      mappedPillar,
+      character,
+      selectedSinsalElements,
+      match: selectedSinsalElements.some(
+        (element) =>
+          element.pillar === mappedPillar && element.character === character
+      ),
+    });
+
+    return selectedSinsalElements.some(
+      (element) =>
+        element.pillar === mappedPillar && element.character === character
+    );
+  };
+
+  // 신살의 기준 기둥에 따른 강조 색상 클래스 반환 함수
+  const getSinsalHighlightClass = () => {
+    if (!selectedSinsalElements || selectedSinsalElements.length === 0) {
+      return "ring-4 ring-yellow-400 bg-yellow-100";
+    }
+
+    // 신살의 기준 기둥 (첫 번째 element의 pillar)
+    const basePillar = selectedSinsalElements[0]?.pillar;
+
+    // 영어 pillar를 한국어로 변환
+    const pillarMapping: { [key: string]: string } = {
+      year: "년",
+      month: "월",
+      day: "일",
+      hour: "시",
+    };
+
+    const koreanPillar = pillarMapping[basePillar] || basePillar;
+
+    const pillarColorMapping: { [key: string]: string } = {
+      년: "ring-4 ring-red-400 bg-red-100", // 년주 기준 - 빨간색
+      월: "ring-4 ring-blue-400 bg-blue-100", // 월주 기준 - 파란색
+      일: "ring-4 ring-green-400 bg-green-100", // 일주 기준 - 초록색
+      시: "ring-4 ring-purple-400 bg-purple-100", // 시주 기준 - 보라색
+    };
+
+    console.log("🔍 신살 기준 기둥:", {
+      basePillar,
+      koreanPillar,
+      colorClass: pillarColorMapping[koreanPillar],
+    });
+
+    return (
+      pillarColorMapping[koreanPillar] || "ring-4 ring-yellow-400 bg-yellow-100"
+    );
+  };
+
+  // 신살 배지 클릭 핸들러
+  const handleSinsalClick = (hit: {
+    name: string;
+    category: string;
+    elements?: Array<{ pillar: string; character: string }>;
+  }) => {
+    console.log("🔍 신살 배지 클릭됨:", hit);
+    console.log("🔍 hit.elements:", hit.elements);
+    console.log("🔍 hit.elements?.length:", hit.elements?.length);
+
+    // 현재 선택된 신살과 같은 신살인지 확인 (토글 기능)
+    const isCurrentlySelected =
+      selectedSinsalElements &&
+      hit.elements &&
+      selectedSinsalElements.length === hit.elements.length &&
+      selectedSinsalElements.every((selectedEl, index) => {
+        const hitEl = hit.elements![index];
+        return (
+          selectedEl.pillar === hitEl.pillar &&
+          selectedEl.character === hitEl.character
+        );
+      });
+
+    if (isCurrentlySelected) {
+      // 같은 신살을 다시 클릭하면 강조 해제
+      setSelectedSinsalElements(null);
+      console.log("🔍 신살 클릭 - 강조 해제 (토글):", hit.name);
+    } else if (hit.elements && hit.elements.length > 0) {
+      // 다른 신살을 클릭하면 새로운 강조 설정
+      setSelectedSinsalElements(hit.elements);
+      console.log(
+        "🔍 신살 클릭 - 강조 설정:",
+        hit.name,
+        "관련 글자들:",
+        hit.elements
+      );
+    } else {
+      setSelectedSinsalElements(null);
+      console.log("🔍 신살 클릭 - 강조 해제:", hit.name);
+    }
+  };
+
   // 신살 배지 렌더러
   const renderSinsalBadges = () => {
-    let hits: Array<{ name: string; category: string }> = [];
+    let hits: Array<{
+      name: string;
+      category: string;
+      elements?: Array<{ pillar: string; character: string }>;
+    }> = [];
     if (relationshipMode === "original") {
       hits = getOriginalSinsalHits();
-    } else if (relationshipMode === "daewoon" && daewoonSinsalNames) {
-      // 대운 모드: 일단 모든 신살을 포함 (필터링은 추후 구현)
-      hits = daewoonSinsalNames.map((name) => ({ name, category: "neutral" }));
-    } else if (relationshipMode === "sewoon" && sewoonSinsalNames) {
-      // 세운 모드: 일단 모든 신살을 포함 (필터링은 추후 구현)
-      hits = sewoonSinsalNames.map((name) => ({ name, category: "neutral" }));
+    } else if (relationshipMode === "daewoon") {
+      const source = daewoonSinsalResult;
+      if (source) hits = extractUniqueSinsalHitsFromResult(source);
+    } else if (relationshipMode === "sewoon") {
+      const source = sewoonSinsalResult;
+      if (source) hits = extractUniqueSinsalHitsFromResult(source);
     }
 
     console.log("🔍 신살 배지 렌더러 디버깅:", {
@@ -566,8 +692,9 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
               {sinsalHits.map((hit, index) => (
                 <span
                   key={`sinsal-${hit.name}-${index}`}
-                  className="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold border bg-gray-100 text-gray-700 border-gray-200"
+                  className="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold border bg-gray-100 text-gray-700 border-gray-200 cursor-pointer hover:bg-gray-200 transition-colors"
                   title={hit.name}
+                  onClick={() => handleSinsalClick(hit)}
                 >
                   {hit.name.length > 2 ? hit.name.slice(0, 2) : hit.name}
                 </span>
@@ -584,8 +711,9 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
               {heungsinHits.map((hit, index) => (
                 <span
                   key={`heungsin-${hit.name}-${index}`}
-                  className="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold border bg-rose-100 text-rose-800 border-rose-200"
+                  className="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold border bg-rose-100 text-rose-800 border-rose-200 cursor-pointer hover:bg-rose-200 transition-colors"
                   title={hit.name}
+                  onClick={() => handleSinsalClick(hit)}
                 >
                   {hit.name.length > 2 ? hit.name.slice(0, 2) : hit.name}
                 </span>
@@ -602,8 +730,9 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
               {gilsinHits.map((hit, index) => (
                 <span
                   key={`gilsin-${hit.name}-${index}`}
-                  className="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold border bg-yellow-100 text-yellow-800 border-yellow-200"
+                  className="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold border bg-yellow-100 text-yellow-800 border-yellow-200 cursor-pointer hover:bg-yellow-200 transition-colors"
                   title={hit.name}
+                  onClick={() => handleSinsalClick(hit)}
                 >
                   {hit.name.length > 2 ? hit.name.slice(0, 2) : hit.name}
                 </span>
@@ -880,7 +1009,7 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
             {columns.map((col, index) => (
               <div
                 key={`header-${index}`}
-                className={`p-2 text-center font-semibold text-sm border border-gray-300 cursor-pointer transition-colors ${
+                className={`p-2 text-center font-semibold text-sm border border-gray-300 transition-colors ${
                   col.type === "pillar" &&
                   pillarFilters[
                     col.title
@@ -888,19 +1017,8 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
                       .replace("주", "") as keyof typeof pillarFilters
                   ]
                     ? "bg-blue-100 text-blue-700 border-blue-300"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    : "bg-gray-100 text-gray-700"
                 }`}
-                onClick={() => {
-                  if (col.type === "pillar") {
-                    const pillarKey = col.title
-                      .toLowerCase()
-                      .replace("주", "") as keyof typeof pillarFilters;
-                    setPillarFilters((prev) => ({
-                      ...prev,
-                      [pillarKey]: !prev[pillarKey],
-                    }));
-                  }
-                }}
               >
                 {col.title}
               </div>
@@ -922,7 +1040,7 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
             {columns.map((col, index) => (
               <div
                 key={`gan-${index}`}
-                className={`p-2 text-center text-lg font-bold border border-gray-300 cursor-pointer transition-colors hover:bg-gray-50 ${getOhaengColor(
+                className={`p-2 text-center text-lg font-bold border border-gray-300 transition-all duration-300 ${getOhaengColor(
                   col.type === "pillar" ? col.data.gan : col.data.gan
                 )} ${
                   col.type === "pillar" &&
@@ -933,18 +1051,15 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
                   ]
                     ? "ring-2 ring-blue-300"
                     : ""
+                } ${
+                  col.type === "pillar" &&
+                  isCharacterHighlighted(
+                    col.title.toLowerCase().replace("주", ""),
+                    col.data.gan
+                  )
+                    ? `${getSinsalHighlightClass()} scale-110 shadow-lg`
+                    : ""
                 }`}
-                onClick={() => {
-                  if (col.type === "pillar") {
-                    const pillarKey = col.title
-                      .toLowerCase()
-                      .replace("주", "") as keyof typeof pillarFilters;
-                    setPillarFilters((prev) => ({
-                      ...prev,
-                      [pillarKey]: !prev[pillarKey],
-                    }));
-                  }
-                }}
               >
                 {col.type === "pillar" ? col.data.gan : col.data.gan}
               </div>
@@ -954,7 +1069,7 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
             {columns.map((col, index) => (
               <div
                 key={`ji-${index}`}
-                className={`p-2 text-center text-lg font-bold border border-gray-300 cursor-pointer transition-colors hover:bg-gray-50 ${getOhaengColor(
+                className={`p-2 text-center text-lg font-bold border border-gray-300 transition-all duration-300 ${getOhaengColor(
                   col.type === "pillar" ? col.data.ji : col.data.ji
                 )} ${
                   col.type === "pillar" &&
@@ -965,18 +1080,15 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
                   ]
                     ? "ring-2 ring-blue-300"
                     : ""
+                } ${
+                  col.type === "pillar" &&
+                  isCharacterHighlighted(
+                    col.title.toLowerCase().replace("주", ""),
+                    col.data.ji
+                  )
+                    ? `${getSinsalHighlightClass()} scale-110 shadow-lg`
+                    : ""
                 }`}
-                onClick={() => {
-                  if (col.type === "pillar") {
-                    const pillarKey = col.title
-                      .toLowerCase()
-                      .replace("주", "") as keyof typeof pillarFilters;
-                    setPillarFilters((prev) => ({
-                      ...prev,
-                      [pillarKey]: !prev[pillarKey],
-                    }));
-                  }
-                }}
               >
                 {col.type === "pillar" ? col.data.ji : col.data.ji}
               </div>
@@ -1124,7 +1236,9 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
       <div className="flex justify-center mb-4">
         <div className="inline-flex rounded-lg border border-gray-300 bg-white p-1">
           <button
-            onClick={() => setRelationshipMode("original")}
+            onClick={() => {
+              setRelationshipMode("original");
+            }}
             className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
               relationshipMode === "original"
                 ? "bg-blue-100 text-blue-700 border border-blue-200"
@@ -1134,7 +1248,9 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
             원국
           </button>
           <button
-            onClick={() => setRelationshipMode("daewoon")}
+            onClick={() => {
+              setRelationshipMode("daewoon");
+            }}
             className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
               relationshipMode === "daewoon"
                 ? "bg-blue-100 text-blue-700 border border-blue-200"
@@ -1147,7 +1263,9 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
             대운
           </button>
           <button
-            onClick={() => setRelationshipMode("sewoon")}
+            onClick={() => {
+              setRelationshipMode("sewoon");
+            }}
             className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
               relationshipMode === "sewoon"
                 ? "bg-blue-100 text-blue-700 border border-blue-200"
@@ -1407,19 +1525,7 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
               <span>시주</span>
             </label>
           </div>
-          {(relationshipMode === "daewoon" ||
-            relationshipMode === "sewoon") && (
-            <label className="flex items-center gap-1 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={unOnly}
-                onChange={(e) => setUnOnly(e.target.checked)}
-              />
-              <span>
-                {relationshipMode === "daewoon" ? "대운만" : "세운만"}
-              </span>
-            </label>
-          )}
+          {/* 운 전용 토글 제거: 탭 자체가 운 전용 의미 */}
         </div>
         <div className="flex flex-wrap gap-1 justify-center">{badges}</div>
         {renderSinsalBadges()}

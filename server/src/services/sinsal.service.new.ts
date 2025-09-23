@@ -392,6 +392,7 @@ function calculateSinsalByRule(
       const baseValue4 = getBaseValue(saju, rule.base);
       if (baseValue4 && rule.pairs[baseValue4]) {
         const target = rule.pairs[baseValue4];
+        const basePillarKey = getBasePillar(rule.base); // "year" | "month" | "day" | "hour" | "daewoon" | "sewoon"
         const adjacentPairs = [
           { from: "year", to: "month" },
           { from: "month", to: "day" },
@@ -410,17 +411,26 @@ function calculateSinsalByRule(
               ? toPillar.gan
               : toPillar.ji;
 
-            if (fromValue === baseValue4 && toValue === target) {
+            // 기준 기둥이 왼쪽(from)인지 오른쪽(to)인지에 따라 비교 방향 결정
+            const isBaseOnFrom = basePillarKey === pair.from;
+            const isBaseOnTo = basePillarKey === pair.to;
+
+            const matchesWhenBaseOnFrom =
+              isBaseOnFrom && fromValue === baseValue4 && toValue === target;
+            const matchesWhenBaseOnTo =
+              isBaseOnTo && toValue === baseValue4 && fromValue === target;
+
+            if (matchesWhenBaseOnFrom || matchesWhenBaseOnTo) {
               hits.push({
                 name: sinsalName,
                 elements: [
                   {
-                    pillar: fromPillar.key,
+                    pillar: isBaseOnFrom ? fromPillar.key : toPillar.key,
                     type: rule.base.includes("Gan") ? "gan" : "ji",
                     character: baseValue4,
                   },
                   {
-                    pillar: toPillar.key,
+                    pillar: isBaseOnFrom ? toPillar.key : fromPillar.key,
                     type: rule.base.includes("Gan") ? "gan" : "ji",
                     character: target,
                   },

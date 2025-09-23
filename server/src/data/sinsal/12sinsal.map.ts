@@ -66,5 +66,3 @@ export const getSamhapGroup = (ji: string) => {
   if (["亥", "卯", "未"].includes(ji)) return "亥卯未";
   return null;
 };
-
-
