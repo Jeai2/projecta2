@@ -196,6 +196,7 @@ export interface FortuneResponseData {
     birthPlace?: string;
     calendarType: "solar" | "lunar";
     birthTime?: string;
+    timeUnknown?: boolean;
   };
   saju: {
     sajuData: SajuData;

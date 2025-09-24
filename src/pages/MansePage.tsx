@@ -15,8 +15,8 @@ const MansePage = () => {
   return (
     <FortunePageLayout
       imageUrl="https://placehold.co/1200x400/A98A62/333333?text=Manseoryeok"
-      title="만세력 서비스"
-      description="사주팔자 원국을 직접 확인해 보세요."
+      title="和義 만세력 1.0"
+      description=""
     >
       {fortuneResult ? (
         <ManseServiceBox

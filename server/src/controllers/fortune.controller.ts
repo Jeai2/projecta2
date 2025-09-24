@@ -33,6 +33,7 @@ interface SuccessResponseBody {
     birthPlace?: string;
     calendarType: "solar" | "lunar";
     birthTime?: string;
+    timeUnknown?: boolean;
   };
   saju: SajuResult;
   aiResponse: AiGeneratedOutput | null; // ✅ 2. aiResponse 타입을 응답에 포함시킵니다.
@@ -96,6 +97,7 @@ export const getTodaysFortune = async (
         birthPlace,
         calendarType,
         birthTime,
+        timeUnknown: !birthTime || birthTime.trim() === "",
       },
       saju: sajuResult,
       aiResponse: aiResponse,
@@ -184,6 +186,7 @@ export const getManseFortune = async (
         birthPlace: birthPlace ?? "미입력",
         calendarType,
         birthTime: birthTime ?? "12:00",
+        timeUnknown: !birthTime || birthTime.trim() === "",
       },
       saju: sajuResultWithRelationships,
       aiResponse: null, // 만세력은 AI 해석 없음

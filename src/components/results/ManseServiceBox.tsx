@@ -13,6 +13,7 @@ interface ManseServiceBoxProps {
     birthPlace?: string;
     calendarType: "solar" | "lunar";
     birthTime?: string;
+    timeUnknown?: boolean;
   };
   onReset: () => void;
 }
@@ -23,6 +24,13 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
   onReset,
 }) => {
   console.log("🔍 ManseServiceBox에서 받은 userInfo:", userInfo);
+
+  // 시간 입력 여부(시주 표시/필터 반영 용도)
+  const hasHour: boolean = Boolean(
+    userInfo.timeUnknown === undefined
+      ? userInfo.birthTime && userInfo.birthTime.trim() !== ""
+      : !userInfo.timeUnknown
+  );
 
   // 대운 선택 상태 관리
   const [selectedDaewoonIndex, setSelectedDaewoonIndex] = useState<
@@ -96,7 +104,7 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
     year: true,
     month: true,
     day: true,
-    hour: true,
+    hour: Boolean(userInfo.birthTime && userInfo.birthTime.trim() !== ""),
   });
   // 운 전용 토글 제거: 대운/세운 탭 자체가 운 전용 의미
 
@@ -988,13 +996,81 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
       });
     }
 
-    // 기본 사주 컬럼들
-    columns.push(
-      { type: "pillar", title: "시주", data: pillars.hour },
-      { type: "pillar", title: "일주", data: pillars.day },
-      { type: "pillar", title: "월주", data: pillars.month },
-      { type: "pillar", title: "년주", data: pillars.year }
+    // 기본 사주 컬럼들 (시간 미입력 시 시주 제외)
+    type Column =
+      | {
+          type: "pillar";
+          title: string;
+          data: {
+            gan: string;
+            ji: string;
+            ganSipsin?: string;
+            jiSipsin?: string;
+            sibiwunseong?: string;
+          };
+        }
+      | {
+          type: "daewoon" | "sewoon";
+          title: string;
+          data: {
+            gan: string;
+            ji: string;
+            ganSipsin?: string;
+            jiSipsin?: string;
+            sibiwunseong?: string;
+          };
+        };
+
+    const baseColumns: Column[] = [];
+    if (hasHour) {
+      baseColumns.push({
+        type: "pillar",
+        title: "시주",
+        data: {
+          gan: pillars.hour.gan,
+          ji: pillars.hour.ji,
+          ganSipsin: pillars.hour.ganSipsin || undefined,
+          jiSipsin: pillars.hour.jiSipsin || undefined,
+          sibiwunseong: pillars.hour.sibiwunseong || undefined,
+        },
+      });
+    }
+    baseColumns.push(
+      {
+        type: "pillar",
+        title: "일주",
+        data: {
+          gan: pillars.day.gan,
+          ji: pillars.day.ji,
+          ganSipsin: pillars.day.ganSipsin || undefined,
+          jiSipsin: pillars.day.jiSipsin || undefined,
+          sibiwunseong: pillars.day.sibiwunseong || undefined,
+        },
+      },
+      {
+        type: "pillar",
+        title: "월주",
+        data: {
+          gan: pillars.month.gan,
+          ji: pillars.month.ji,
+          ganSipsin: pillars.month.ganSipsin || undefined,
+          jiSipsin: pillars.month.jiSipsin || undefined,
+          sibiwunseong: pillars.month.sibiwunseong || undefined,
+        },
+      },
+      {
+        type: "pillar",
+        title: "년주",
+        data: {
+          gan: pillars.year.gan,
+          ji: pillars.year.ji,
+          ganSipsin: pillars.year.ganSipsin || undefined,
+          jiSipsin: pillars.year.jiSipsin || undefined,
+          sibiwunseong: pillars.year.sibiwunseong || undefined,
+        },
+      }
     );
+    columns.push(...baseColumns);
 
     return (
       <div className="bg-white p-6 rounded-lg shadow-md mb-6">
@@ -1511,14 +1587,22 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
               />
               <span>일주</span>
             </label>
-            <label className="flex items-center gap-1 cursor-pointer">
+            <label
+              className={`flex items-center gap-1 ${
+                hasHour ? "cursor-pointer" : "cursor-not-allowed opacity-50"
+              }`}
+              title={
+                hasHour ? "" : "시간 미입력 시 시주 토글은 사용할 수 없습니다"
+              }
+            >
               <input
                 type="checkbox"
                 checked={pillarFilters.hour}
+                disabled={!hasHour}
                 onChange={(e) =>
                   setPillarFilters((prev) => ({
                     ...prev,
-                    hour: e.target.checked,
+                    hour: hasHour ? e.target.checked : false,
                   }))
                 }
               />
@@ -1692,12 +1776,22 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
     <div className="max-w-4xl mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">만세력 결과</h1>
-        <button
-          onClick={onReset}
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-        >
-          다시 입력
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              console.log("저장하기 클릭");
+            }}
+            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+          >
+            저장하기
+          </button>
+          <button
+            onClick={onReset}
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          >
+            다시 입력
+          </button>
+        </div>
       </div>
 
       {displayBasicInfo()}

@@ -7,7 +7,7 @@ import { Button } from "../ui/common/Button";
 import { Label } from "../ui/common/Label";
 import { Input } from "../ui/common/Input";
 import { RadioGroup, RadioGroupItem } from "../ui/common/RadioGroup";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/common/Card";
+import { Card, CardContent } from "../ui/common/Card";
 import type { FortuneResponseData } from "../../types/fortune";
 import { useFortuneStore } from "@/store/fortuneStore";
 
@@ -50,8 +50,11 @@ export const ManseForm = () => {
   const handleFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (birthDateTime.length !== 12) {
-      setApiError("생년월일시를 12자리로 입력해주세요. (예: 199111070400)");
+    // 8자리(YYYYMMDD) 또는 12자리(YYYYMMDDHHMM)만 허용
+    if (birthDateTime.length !== 8 && birthDateTime.length !== 12) {
+      setApiError(
+        "8자리 또는 12자리로만 입력해주세요. (예: 20250101 또는 202501011200)"
+      );
       return;
     }
 
@@ -62,10 +65,14 @@ export const ManseForm = () => {
     const birthYear = birthDateTime.slice(0, 4);
     const birthMonth = birthDateTime.slice(4, 6);
     const birthDay = birthDateTime.slice(6, 8);
-    const birthTime = birthDateTime.slice(8, 12);
+    const birthTime =
+      birthDateTime.length === 12 ? birthDateTime.slice(8, 12) : "";
 
     // 시간 형식 변환 (HHMM → HH:MM)
-    const formattedTime = `${birthTime.slice(0, 2)}:${birthTime.slice(2, 4)}`;
+    const formattedTime =
+      birthTime && birthTime.length === 4
+        ? `${birthTime.slice(0, 2)}:${birthTime.slice(2, 4)}`
+        : "";
 
     const requestBody = {
       name: name.trim() || "", // 빈 문자열로 전송
@@ -98,14 +105,6 @@ export const ManseForm = () => {
 
   return (
     <Card className="max-w-2xl mx-auto border-none bg-transparent shadow-none backdrop-blur-none">
-      <CardHeader className="text-center">
-        <CardTitle className="text-2xl font-bold text-accent-gold">
-          和義 만세력 v1.0
-        </CardTitle>
-        <p className="text-text-muted">
-          정확한 사주팔자 원국을 확인하기 위해 출생 정보를 입력해주세요
-        </p>
-      </CardHeader>
       <CardContent>
         <form onSubmit={handleFormSubmit} className="space-y-6">
           {/* 1. 이름 작성칸 */}
@@ -172,18 +171,17 @@ export const ManseForm = () => {
             <Label className="text-text-light font-semibold">생년월일시</Label>
             <Input
               type="text"
-              placeholder=" YYYYMMDDHHMM"
+              placeholder=" YYYYMMDD 또는 YYYYMMDDHHMM"
               value={formatBirthDateTime(birthDateTime)}
               onChange={(e) => handleBirthDateTimeChange(e.target.value)}
               className="bg-background-main border-border-muted text-center font-mono text-lg tracking-wider"
               maxLength={15} // 띄어쓰기 포함해서 15자리
             />
             <p className="text-xs text-text-muted">
-              💡 12자리 숫자로 입력하세요. (예: 2025년 10월 1일 10시 0분 → 2025
-              10 01 1000)
+              💡 8자리 또는 12자리로 입력하세요.
             </p>
             <div className="text-xs text-accent-gold">
-              📝 형식: YYYYMMDDHHMM (년월일시분)
+              📝 형식: YYYYMMDD / YYYYMMDDHHMM (시간 선택 입력)
             </div>
           </div>
 
@@ -221,6 +219,20 @@ export const ManseForm = () => {
                 "만세력 보러가기"
               )}
             </Button>
+            {/* 저장된 만세력 보기 버튼 */}
+            <div className="mt-3">
+              <Button
+                type="button"
+                className="w-full bg-accent-gold hover:bg-accent-gold/80 text-white font-semibold py-3"
+                size="lg"
+                onClick={() => {
+                  // TODO: 저장소/보관함 페이지로 이동 또는 모달 열기
+                  console.log("만세력 불러오기 클릭");
+                }}
+              >
+                만세력 불러오기
+              </Button>
+            </div>
           </div>
 
           {/* 오류 메시지 */}
