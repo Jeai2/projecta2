@@ -90,6 +90,15 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
       category?: string;
     }>
   > | null>(null);
+
+  // 분석 드롭박스 섹션 상태 관리
+  const [expandedSections, setExpandedSections] = useState<{
+    wangse: boolean;
+    yongsin: boolean;
+  }>({
+    wangse: false,
+    yongsin: false,
+  });
   const [sewoonSinsalResult, setSewoonSinsalResult] = useState<Record<
     string,
     Array<{
@@ -951,6 +960,175 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
     return ohaengColors[ohaeng] || "text-gray-600";
   };
 
+  // 드롭박스 섹션 토글 함수
+  const toggleSection = (section: "wangse" | "yongsin") => {
+    setExpandedSections((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
+  };
+
+  // 왕쇠강약 분석 드롭박스 렌더러
+  const renderAnalysisDropbox = () => {
+    const wangseData = sajuData?.wangseStrength;
+
+    return (
+      <div className="bg-white rounded-lg shadow-md mb-4 border border-gray-200 overflow-hidden">
+        <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-4 py-3 border-b border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-800 text-center">
+            사주 심화 분석
+          </h3>
+        </div>
+
+        {/* 왕쇠강약 섹션 */}
+        <div className="border-b border-gray-200 last:border-b-0">
+          <button
+            onClick={() => toggleSection("wangse")}
+            className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors focus:outline-none focus:bg-gray-50"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="flex-shrink-0">
+                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                    <span className="text-blue-600 font-semibold text-sm">
+                      왕
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-medium text-gray-900">왕쇠강약 분석</h4>
+                  <p className="text-sm text-gray-500">
+                    일간의 강약 상태와 세력 분석
+                    {wangseData && (
+                      <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        {wangseData.levelDetail} (
+                        {wangseData.finalScore.toFixed(1)}/10)
+                      </span>
+                    )}
+                  </p>
+                </div>
+              </div>
+              <div className="flex-shrink-0">
+                <svg
+                  className={`w-5 h-5 text-gray-400 transition-transform ${
+                    expandedSections.wangse ? "rotate-180" : ""
+                  }`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </div>
+            </div>
+          </button>
+
+          {expandedSections.wangse && (
+            <div className="px-4 pb-4">
+              {wangseData ? (
+                <div className="space-y-4">
+                  {/* 기본 정보 */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <div className="text-sm font-medium text-gray-700 mb-1">
+                        본원
+                      </div>
+                      <div className="text-lg font-semibold text-gray-900">
+                        {wangseData.ganType}
+                      </div>
+                    </div>
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <div className="text-sm font-medium text-gray-700 mb-1">
+                        상태
+                      </div>
+                      <div className="text-lg font-semibold text-blue-600">
+                        {wangseData.levelDetail}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 점수 정보 */}
+                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-gray-700">
+                        수치
+                      </span>
+                      <span className="text-2xl font-bold text-blue-600">
+                        {wangseData.finalScore.toFixed(2)} / 10
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                        style={{
+                          width: `${(wangseData.finalScore / 10) * 100}%`,
+                        }}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <svg
+                    className="w-12 h-12 mx-auto mb-4 text-gray-300"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  <p>왕쇠강약 데이터를 불러오는 중...</p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* 용희기구한 섹션 (추후 구현) */}
+        <div className="border-b border-gray-200 last:border-b-0">
+          <button
+            onClick={() => toggleSection("yongsin")}
+            className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors focus:outline-none focus:bg-gray-50 opacity-50 cursor-not-allowed"
+            disabled
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="flex-shrink-0">
+                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                    <span className="text-green-600 font-semibold text-sm">
+                      용
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-medium text-gray-900">용희기구한 분석</h4>
+                  <p className="text-sm text-gray-500">
+                    용신, 희신, 기신, 구신, 한신 분석 (추후 구현 예정)
+                  </p>
+                </div>
+              </div>
+              <div className="flex-shrink-0">
+                <span className="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded-full">
+                  준비중
+                </span>
+              </div>
+            </div>
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   // 사주팔자 원국표 표시 함수
   const displaySajuTable = () => {
     if (!sajuData?.pillars) return null;
@@ -1796,6 +1974,7 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
 
       {displayBasicInfo()}
       {displaySajuTable()}
+      {renderAnalysisDropbox()}
       {displayDaewoonTable()}
       {displaySewoonTable()}
       {displayWoolwoonTable()}

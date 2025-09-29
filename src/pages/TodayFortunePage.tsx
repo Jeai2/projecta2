@@ -1,19 +1,19 @@
-// src/pages/TodaysFortunePage.tsx
+// src/pages/TodayFortunePage.tsx
 
 import { useState } from "react";
 import { FortunePageLayout } from "@/components/layout/FortunePageLayout";
-import { UserInfoForm } from "@/components/forms/UserInfoForm";
-import { FortuneResult } from "@/components/results/FortuneResult";
-// ✅ 1. API 전체 응답 타입을 import 합니다.
-import type { FortuneResponseData } from "@/types/fortune";
+import { TodayFortuneForm } from "@/components/forms/TodayFortuneForm";
+import { TodayFortuneResult } from "@/components/results/TodayFortuneResult";
+// ✅ 1. 오늘의 운세 전용 API 응답 타입을 import 합니다.
+import type { TodayFortuneResponse } from "@/types/today-fortune";
 
 const TodayFortunePage = () => {
   // 화면 전환 및 데이터 저장을 위한 상태
   const [fortuneResult, setFortuneResult] =
-    useState<FortuneResponseData | null>(null);
+    useState<TodayFortuneResponse | null>(null);
 
-  // ✅ 3. UserInfoForm으로부터 성공적인 API 결과를 전달받을 함수입니다.
-  const handleSuccess = (data: FortuneResponseData) => {
+  // ✅ 3. TodayFortuneForm으로부터 성공적인 API 결과를 전달받을 함수입니다.
+  const handleSuccess = (data: TodayFortuneResponse) => {
     console.log("오늘의 운세 페이지가 받은 데이터:", data);
     setFortuneResult(data);
   };
@@ -23,15 +23,35 @@ const TodayFortunePage = () => {
     setFortuneResult(null);
   };
 
+  // 오늘 날짜 포맷팅 함수
+  const getTodayDate = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+    const weekdays = [
+      "일요일",
+      "월요일",
+      "화요일",
+      "수요일",
+      "목요일",
+      "금요일",
+      "토요일",
+    ];
+    const weekday = weekdays[today.getDay()];
+
+    return `${year}.${month}.${day} ${weekday}`;
+  };
+
   return (
     <FortunePageLayout
       imageUrl="https://placehold.co/1200x400/16a34a/ffffff?text=Today"
-      title="AI 오늘의 운세"
+      title="오늘의 운세"
       description={
         <>
-          대륙의 제왕들도 매일 보았던
-          <br />
-          명리학에 기반한 오늘의 운세
+          <span className="text-accent-gold font-semibold">
+            {getTodayDate()}
+          </span>
         </>
       }
     >
@@ -40,13 +60,9 @@ const TodayFortunePage = () => {
         데이터가 있으면 결과 컴포넌트를 보여줍니다.
       */}
       {fortuneResult ? (
-        <FortuneResult data={fortuneResult} onReset={handleReset} />
+        <TodayFortuneResult data={fortuneResult} onReset={handleReset} />
       ) : (
-        <UserInfoForm
-          title="사주 정보 입력"
-          buttonText="오늘의 운세 보기"
-          onSuccess={handleSuccess} // ✅ 6. prop 이름을 onSuccess로 변경하고, 정의한 함수를 전달합니다.
-        />
+        <TodayFortuneForm onSuccess={handleSuccess} />
       )}
     </FortunePageLayout>
   );

@@ -72,6 +72,7 @@ export interface SajuData {
   napeum: NapeumResult;
   jijanggan: { year: string[]; month: string[]; day: string[]; hour: string[] }; // ✅ 지장간 데이터 추가
   relationships?: RelationshipResult; // ✅ 지지 간 관계 데이터 추가 (선택적)
+  wangseStrength?: import("../services/wangse-strength.service").WangseResult; // ✅ 왕쇠강약 분석 추가 (선택적)
   currentDaewoon: Daewoon | null;
   currentSewoon: SewoonData;
   daewoonFull: Daewoon[];

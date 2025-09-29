@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   getTodaysFortune,
+  getTodayFortuneAPI,
   getManseFortune,
   getSewoonForDaewoonAPI,
   getWoolwoonForYearAPI,
@@ -10,7 +11,7 @@ import {
 
 const router = Router();
 
-router.post("/today", getTodaysFortune);
+router.post("/today", getTodayFortuneAPI);
 router.post("/manse", getManseFortune);
 router.get("/sewoon", getSewoonForDaewoonAPI);
 router.get("/woolwoon", getWoolwoonForYearAPI);

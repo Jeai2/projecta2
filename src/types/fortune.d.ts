@@ -82,6 +82,30 @@ export interface WoolwoonData {
 }
 
 // 전체 사주 데이터
+// 왕쇠강약 결과 타입 (백엔드와 동일)
+export interface WangseResult {
+  ganType: "양간" | "음간";
+  rawScore: number;
+  finalScore: number;
+  level: string;
+  levelDetail: string;
+  breakdown: {
+    pillarScores: Array<{
+      pillar: string;
+      sipsinName: string | null;
+      baseScore: number;
+      weight: number;
+      weightedScore: number;
+    }>;
+    bonuses: number;
+    penalties: number;
+    weightedTotal: number;
+    baseScore?: number;
+    ganyjidongBonus?: number;
+  };
+  analysis: string;
+}
+
 export interface SajuData {
   pillars: {
     year: PillarData;
@@ -112,6 +136,7 @@ export interface SajuData {
     yukpa: string[]; // 육파 관계
     yukae: string[]; // 육해 관계
   };
+  wangseStrength?: WangseResult; // ✅ 왕쇠강약 분석 추가 (선택적)
   currentDaewoon: Daewoon | null;
   currentSewoon: SewoonData;
   daewoonFull: Daewoon[];

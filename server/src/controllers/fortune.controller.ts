@@ -11,6 +11,8 @@ import {
 import { ParamsDictionary } from "express-serve-static-core";
 // ✅ 1. 주석을 해제하고 AI 관련 모듈을 정식으로 import 합니다.
 import { getAiGeneratedResponse, AiGeneratedOutput } from "../ai/ai.service";
+// ✅ 오늘의 운세 서비스 import
+import { getTodayFortune } from "../services/today-fortune.service";
 
 // 요청(Request)으로 들어올 데이터의 형태
 interface FortuneRequestBody {
@@ -385,6 +387,50 @@ export const getSewoonRelationshipsAPI = async (
     });
   } catch (error) {
     console.error("세운 관계 조회 오류:", error);
+    return res.status(500).json({
+      error: true,
+      message: "서버 내부 오류",
+    });
+  }
+};
+
+// ✅ 오늘의 운세 API 엔드포인트 (일진 기반)
+export const getTodayFortuneAPI = async (
+  req: Request<ParamsDictionary, any, FortuneRequestBody>,
+  res: Response
+) => {
+  try {
+    const { name, birthDate, gender, calendarType, birthTime, birthPlace } =
+      req.body;
+
+    // 필수 필드 검증
+    if (!birthDate || !gender || !calendarType) {
+      return res.status(400).json({
+        error: true,
+        message: "필수 필드가 누락되었습니다.",
+      });
+    }
+
+    console.log("📤 오늘의 운세 요청 데이터:", req.body);
+
+    // 오늘의 운세 데이터 생성
+    const result = await getTodayFortune({
+      name: name || "",
+      birthDate,
+      gender,
+      calendarType,
+      birthTime: birthTime || "",
+      birthPlace: birthPlace || "",
+    });
+
+    console.log("📥 오늘의 운세 응답 데이터:", result);
+
+    return res.status(200).json({
+      error: false,
+      data: result,
+    });
+  } catch (error) {
+    console.error("오늘의 운세 조회 오류:", error);
     return res.status(500).json({
       error: true,
       message: "서버 내부 오류",

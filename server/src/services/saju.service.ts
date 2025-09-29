@@ -6,6 +6,7 @@ import { getDaewoon } from "./daewoon.service";
 import { getSewoonForYear } from "./sewoon.service";
 import { getAllWoolwoonForYear } from "./woolwoon.service";
 import { getAllSinsals } from "./sinsal.service.new";
+import { calculateWangseStrength } from "./wangse-strength.service";
 import {
   getSeasonalDataForYear,
   getLoadedSeasonalData,
@@ -83,7 +84,7 @@ const getJulianDay = (y: number, m: number, d: number): number => {
 };
 
 // 일주 계산 함수 (선생님께서 찾아주신 정확한 기준점이 적용된 최종 버전)
-const getDayGanji = (date: Date): string => {
+export const getDayGanji = (date: Date): string => {
   // 기준점: 1982년 8월 9일 (월요일)은 '갑자일'
   // 해당 날짜 자정(0시)의 율리우스력(JD)은 2445190.5 입니다.
   const BASE_JD = 2445190.5;
@@ -188,10 +189,10 @@ export const getSajuDetails = async (
     if (!jijangganData) return [];
 
     const result: string[] = [];
-    const 초기 = jijangganData.find(item => item.role === '초기');
-    const 중기 = jijangganData.find(item => item.role === '중기');
-    const 정기 = jijangganData.find(item => item.role === '정기');
-    
+    const 초기 = jijangganData.find((item) => item.role === "초기");
+    const 중기 = jijangganData.find((item) => item.role === "중기");
+    const 정기 = jijangganData.find((item) => item.role === "정기");
+
     if (초기) result.push(초기.gan);
     if (중기) result.push(중기.gan);
     if (정기) result.push(정기.gan);
@@ -232,6 +233,13 @@ export const getSajuDetails = async (
   // 월운 데이터 계산 (현재 연도와 다음 연도)
   const currentWoolwoon = getAllWoolwoonForYear(currentYear, dayGan);
   const nextYearWoolwoon = getAllWoolwoonForYear(currentYear + 1, dayGan);
+
+  // ✅ 왕쇠강약 계산
+  const wangseStrength = calculateWangseStrength(
+    pillars,
+    dayGan,
+    birthDate.getMonth() + 1
+  );
 
   // ✅ 3. 최종 sajuData 객체를 조립하는 부분을 오행 정보가 포함되도록 수정합니다.
   const sajuData: SajuData = {
@@ -282,6 +290,7 @@ export const getSajuDetails = async (
     sinsal,
     napeum,
     jijanggan, // ✅ 지장간 데이터 추가
+    wangseStrength, // ✅ 왕쇠강약 분석 추가
     currentDaewoon,
     currentSewoon,
     daewoonFull,
