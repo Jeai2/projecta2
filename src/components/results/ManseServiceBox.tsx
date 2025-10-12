@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import type {
   FortuneResponseData,
   WoolwoonData,
+  SajuData,
 } from "../../types/fortune.d.ts";
 
 interface ManseServiceBoxProps {
@@ -95,9 +96,11 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
   const [expandedSections, setExpandedSections] = useState<{
     wangse: boolean;
     yongsin: boolean;
+    gyeokguk: boolean;
   }>({
     wangse: false,
     yongsin: false,
+    gyeokguk: false,
   });
   const [sewoonSinsalResult, setSewoonSinsalResult] = useState<Record<
     string,
@@ -961,7 +964,7 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
   };
 
   // 드롭박스 섹션 토글 함수
-  const toggleSection = (section: "wangse" | "yongsin") => {
+  const toggleSection = (section: "wangse" | "yongsin" | "gyeokguk") => {
     setExpandedSections((prev) => ({
       ...prev,
       [section]: !prev[section],
@@ -976,7 +979,7 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
       <div className="bg-white rounded-lg shadow-md mb-4 border border-gray-200 overflow-hidden">
         <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-4 py-3 border-b border-gray-200">
           <h3 className="text-lg font-semibold text-gray-800 text-center">
-            사주 심화 분석
+            분석
           </h3>
         </div>
 
@@ -995,17 +998,14 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
                     </span>
                   </div>
                 </div>
-                <div>
-                  <h4 className="font-medium text-gray-900">왕쇠강약 분석</h4>
-                  <p className="text-sm text-gray-500">
-                    일간의 강약 상태와 세력 분석
-                    {wangseData && (
-                      <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        {wangseData.levelDetail} (
-                        {wangseData.finalScore.toFixed(1)}/10)
-                      </span>
-                    )}
-                  </p>
+                <div className="flex items-center justify-between gap-4">
+                  <h4 className="font-medium text-gray-900">신강신약 분석</h4>
+                  {wangseData && (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      {wangseData.levelDetail}{" "}
+                      {wangseData.finalScore.toFixed(1)}점
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="flex-shrink-0">
@@ -1054,21 +1054,74 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
 
                   {/* 점수 정보 */}
                   <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center justify-between mb-3">
                       <span className="text-sm font-medium text-gray-700">
                         수치
                       </span>
                       <span className="text-2xl font-bold text-blue-600">
-                        {wangseData.finalScore.toFixed(2)} / 10
+                        {wangseData.finalScore.toFixed(1)}점
                       </span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                        style={{
-                          width: `${(wangseData.finalScore / 10) * 100}%`,
-                        }}
-                      ></div>
+
+                    {/* 새로운 35점 체계 시각화 */}
+                    <div className="space-y-3">
+                      <div className="w-full bg-gray-200 rounded-full h-3">
+                        <div
+                          className={`h-3 rounded-full transition-all duration-300 ${
+                            wangseData.finalScore < 7
+                              ? "bg-red-400"
+                              : wangseData.finalScore < 14
+                              ? "bg-orange-400"
+                              : wangseData.finalScore < 21
+                              ? "bg-green-500"
+                              : wangseData.finalScore < 28
+                              ? "bg-blue-500"
+                              : wangseData.finalScore <= 35
+                              ? "bg-purple-500"
+                              : "bg-purple-600"
+                          }`}
+                          style={{
+                            width: `${Math.min(
+                              Math.max((wangseData.finalScore / 35) * 100, 0),
+                              100
+                            )}%`,
+                          }}
+                        ></div>
+                      </div>
+
+                      {/* 점수 구간 표시 */}
+                      <div className="grid grid-cols-6 gap-1 text-xs text-gray-500 text-center">
+                        <span className="text-red-400">
+                          태약
+                          <br />
+                          (0-7)
+                        </span>
+                        <span className="text-orange-400">
+                          신약
+                          <br />
+                          (7-14)
+                        </span>
+                        <span className="text-green-500">
+                          중화
+                          <br />
+                          (14-21)
+                        </span>
+                        <span className="text-blue-500">
+                          신강
+                          <br />
+                          (21-28)
+                        </span>
+                        <span className="text-purple-500">
+                          태강
+                          <br />
+                          (28-35)
+                        </span>
+                        <span className="text-purple-600">
+                          극왕
+                          <br />
+                          (35+)
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1112,9 +1165,6 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
                 </div>
                 <div>
                   <h4 className="font-medium text-gray-900">용희기구한 분석</h4>
-                  <p className="text-sm text-gray-500">
-                    용신, 희신, 기신, 구신, 한신 분석 (추후 구현 예정)
-                  </p>
                 </div>
               </div>
               <div className="flex-shrink-0">
@@ -1124,6 +1174,240 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
               </div>
             </div>
           </button>
+        </div>
+
+        {/* 격국 분석 섹션 */}
+        <div className="border-b border-gray-200 last:border-b-0">
+          <button
+            onClick={() => toggleSection("gyeokguk")}
+            className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors focus:outline-none focus:bg-gray-50"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="flex-shrink-0">
+                  <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                    <span className="text-purple-600 font-semibold text-sm">
+                      격
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-medium text-gray-900">격국 분석</h4>
+                </div>
+              </div>
+              <div className="flex-shrink-0">
+                <svg
+                  className={`w-5 h-5 text-gray-400 transition-transform ${
+                    expandedSections.gyeokguk ? "rotate-180" : ""
+                  }`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </div>
+            </div>
+          </button>
+
+          {expandedSections.gyeokguk && (
+            <div className="px-4 pb-4">
+              <div className="space-y-4">
+                {/* 격국 분석 카드 - 버전2 */}
+                <div className="bg-gradient-to-br from-slate-50 to-blue-50 rounded-2xl p-8 border border-slate-200 shadow-lg">
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+                    {/* 격이름 */}
+                    <div className="group">
+                      <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-5 border-2 border-red-200 hover:border-red-300 transition-all duration-200 hover:shadow-md">
+                        <div className="flex flex-col items-center space-y-3">
+                          <div className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center">
+                            <span className="text-white font-bold text-sm">
+                              格
+                            </span>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-xs font-semibold text-red-600 mb-1">
+                              격이름
+                            </div>
+                            <div className="text-base font-bold text-gray-800">
+                              {(sajuData as SajuData)?.gyeokguk?.gyeokguk
+                                ?.name || "분석중"}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {(sajuData as SajuData)?.gyeokguk?.gyeokguk
+                                ?.name === "정관격" && "正官格"}
+                              {(sajuData as SajuData)?.gyeokguk?.gyeokguk
+                                ?.name === "정인격" && "正印格"}
+                              {(sajuData as SajuData)?.gyeokguk?.gyeokguk
+                                ?.name === "정재격" && "正財格"}
+                              {(sajuData as SajuData)?.gyeokguk?.gyeokguk
+                                ?.name === "편관격" && "偏官格"}
+                              {(sajuData as SajuData)?.gyeokguk?.gyeokguk
+                                ?.name === "편인격" && "偏印格"}
+                              {(sajuData as SajuData)?.gyeokguk?.gyeokguk
+                                ?.name === "편재격" && "偏財格"}
+                              {(sajuData as SajuData)?.gyeokguk?.gyeokguk
+                                ?.name === "식신격" && "食神格"}
+                              {(sajuData as SajuData)?.gyeokguk?.gyeokguk
+                                ?.name === "상관격" && "傷官格"}
+                              {!(sajuData as SajuData)?.gyeokguk?.gyeokguk
+                                ?.name && "分析中"}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 월령 */}
+                    <div className="group">
+                      <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-5 border-2 border-orange-200 hover:border-orange-300 transition-all duration-200 hover:shadow-md">
+                        <div className="flex flex-col items-center space-y-3">
+                          <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
+                            <span className="text-white font-bold text-sm">
+                              令
+                            </span>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-xs font-semibold text-orange-600 mb-1">
+                              월령
+                            </div>
+                            <div className="text-base font-bold text-gray-800">
+                              득령
+                            </div>
+                            <div className="text-xs text-gray-500">得令</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 사령 */}
+                    <div className="group">
+                      <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl p-5 border-2 border-yellow-200 hover:border-yellow-300 transition-all duration-200 hover:shadow-md">
+                        <div className="flex flex-col items-center space-y-3">
+                          <div className="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center">
+                            <span className="text-white font-bold text-sm">
+                              司
+                            </span>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-xs font-semibold text-yellow-600 mb-1">
+                              사령
+                            </div>
+                            <div className="text-base font-bold text-gray-800">
+                              투간
+                            </div>
+                            <div className="text-xs text-gray-500">透干</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 진신 */}
+                    <div className="group">
+                      <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-5 border-2 border-green-200 hover:border-green-300 transition-all duration-200 hover:shadow-md">
+                        <div className="flex flex-col items-center space-y-3">
+                          <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                            <span className="text-white font-bold text-sm">
+                              眞
+                            </span>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-xs font-semibold text-green-600 mb-1">
+                              진신
+                            </div>
+                            <div className="text-base font-bold text-gray-800">
+                              유근
+                            </div>
+                            <div className="text-xs text-gray-500">有根</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 가신 */}
+                    <div className="group">
+                      <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-5 border-2 border-blue-200 hover:border-blue-300 transition-all duration-200 hover:shadow-md">
+                        <div className="flex flex-col items-center space-y-3">
+                          <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                            <span className="text-white font-bold text-sm">
+                              假
+                            </span>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-xs font-semibold text-blue-600 mb-1">
+                              가신
+                            </div>
+                            <div className="text-base font-bold text-gray-800">
+                              재성
+                            </div>
+                            <div className="text-xs text-gray-500">財星</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 상신 */}
+                    <div className="group">
+                      <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-5 border-2 border-purple-200 hover:border-purple-300 transition-all duration-200 hover:shadow-md">
+                        <div className="flex flex-col items-center space-y-3">
+                          <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center">
+                            <span className="text-white font-bold text-sm">
+                              相
+                            </span>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-xs font-semibold text-purple-600 mb-1">
+                              상신
+                            </div>
+                            <div className="text-base font-bold text-gray-800">
+                              인성
+                            </div>
+                            <div className="text-xs text-gray-500">印星</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 버전 정보 */}
+                  <div className="mt-6 flex items-center justify-center space-x-4">
+                    <div className="flex items-center space-x-2 bg-slate-100 text-slate-600 px-3 py-1 rounded-full">
+                      <span className="text-xs font-medium">버전2 디자인</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      {(sajuData as SajuData)?.gyeokguk ? (
+                        <div className="flex items-center space-x-1 text-green-600">
+                          <svg
+                            className="w-3 h-3"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                          <span className="text-xs font-medium">
+                            백엔드 연동됨
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="text-xs text-gray-500">
+                          * 백엔드 연동 중...
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );

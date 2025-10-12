@@ -10,7 +10,7 @@ export interface TierAnalysis {
   tier: number; // 1~6
   name: string; // "전왕용신", "조후용신" 등
   isDominant: boolean; // 이 Tier가 주체가 될 수 있는가?
-  yongsin: string[]; // 결정된 용신 오행들
+  yongsin: string; // 결정된 용신 천간 (단일)
   confidence: number; // 확신도 (0-100)
   reason: string; // 선정 이유
   details?: Record<string, unknown>; // 추가 분석 데이터
@@ -18,7 +18,7 @@ export interface TierAnalysis {
 
 // 최종 용신 결과
 export interface YongsinResult {
-  primaryYongsin: string[]; // 최종 선정된 용신 오행들
+  primaryYongsin: string; // 최종 선정된 용신 천간 (단일)
   selectedTier: TierAnalysis | null; // 선정된 Tier 분석 결과
   allAnalyses: TierAnalysis[]; // 전체 Tier 분석 결과
   confidence: number; // 최종 확신도
@@ -138,17 +138,33 @@ export const JOHU_CRITERIA = {
 
 // Tier 3: 병약용신 (病藥) 기준
 export const BYEONGYAK_CRITERIA = {
-  // 고립 기준 (특정 오행이 0개)
-  ISOLATION_COUNT: 0,
+  // 고립 기준 (특정 천간/지지가 적군에게 포위된 상태)
+  ISOLATION: {
+    MIN_ENEMY_DIRECTIONS: 2, // 최소 2방향 이상에서 적군
+    CHECK_POSITIONS: ["prev", "next", "same"], // 앞기둥, 뒤기둥, 같은기둥지지
+  },
 
-  // 과다 기준 (특정 오행이 과도하게 많음)
-  EXCESS_COUNT: 5, // 8개 중 5개 이상
-  EXCESS_RATIO: 0.625, // 62.5% 이상
+  // 과다 기준 (특정 오행이 과도하게 많음) - 우선순위별
+  EXCESS: {
+    // 우선순위 1: 3개 + 간여지동 + 연속배치
+    PRIORITY_1: {
+      MIN_COUNT: 3,
+      REQUIRES_GANYJIDONG: true,
+      REQUIRES_CONSECUTIVE: true, // 붙어있는 같은 오행
+    },
 
-  // 긴급도 가중치
-  URGENCY_WEIGHT: {
-    ISOLATION: 100, // 고립이 가장 긴급
-    EXCESS: 80, // 과다가 그 다음
+    // 우선순위 2: 우선순위1 + 생해주는 오행 1개 이하
+    PRIORITY_2: {
+      MIN_COUNT: 3,
+      REQUIRES_GANYJIDONG: true,
+      REQUIRES_CONSECUTIVE: true,
+      MAX_SUPPORTING_OHAENG: 1, // 생해주는 오행 1개 이하
+    },
+
+    // 우선순위 3: 단순 개수
+    PRIORITY_3: {
+      MIN_COUNT: 4,
+    },
   },
 };
 
@@ -170,9 +186,9 @@ export const TONGGWAN_CRITERIA = {
 
 // Tier 5: 억부용신 (抑扶) 기준 (디폴트)
 export const EOKBU_CRITERIA = {
-  // 왕쇠강약 점수 기준 (wangse-strength.service.ts 연동)
-  WEAK_THRESHOLD: 4.0, // 4.0 미만 = 약함 → 扶 (도움 필요)
-  STRONG_THRESHOLD: 6.0, // 6.0 초과 = 강함 → 抑 (억제 필요)
+  // 신강신약 점수 기준 (새 35점 체계)
+  WEAK_THRESHOLD: 14.0, // 14.0 미만 = 약함 (태약+신약) → 扶 (도움 필요)
+  STRONG_THRESHOLD: 21.0, // 21.0 초과 = 강함 (신강+태강+극왕) → 抑 (억제 필요)
 
   // 부조 오행 (도움을 주는 오행)
   SUPPORT_RELATIONS: {
@@ -313,7 +329,50 @@ export function isOhaengIsolated(
 }
 
 /**
- * 특정 오행이 과다한지 확인합니다
+ * 특정 오행의 위치들이 연속적으로 붙어있는지 확인
+ */
+export function isOhaengConsecutive(positions: number[]): boolean {
+  if (positions.length < 2) return true; // 1개 이하는 항상 연속
+
+  const sorted = [...positions].sort((a, b) => a - b);
+
+  // 1) 천간끼리 연속인지 확인 (0,2,4,6)
+  const ganPositions = sorted.filter((p) => p % 2 === 0);
+  if (ganPositions.length >= 2) {
+    let ganConsecutive = true;
+    for (let i = 1; i < ganPositions.length; i++) {
+      if (ganPositions[i] - ganPositions[i - 1] !== 2) {
+        ganConsecutive = false;
+        break;
+      }
+    }
+    if (ganConsecutive && ganPositions.length === positions.length) return true;
+  }
+
+  // 2) 지지끼리 연속인지 확인 (1,3,5,7)
+  const jiPositions = sorted.filter((p) => p % 2 === 1);
+  if (jiPositions.length >= 2) {
+    let jiConsecutive = true;
+    for (let i = 1; i < jiPositions.length; i++) {
+      if (jiPositions[i] - jiPositions[i - 1] !== 2) {
+        jiConsecutive = false;
+        break;
+      }
+    }
+    if (jiConsecutive && jiPositions.length === positions.length) return true;
+  }
+
+  // 3) 위치상 연속인지 확인 (혼합)
+  for (let i = 1; i < sorted.length; i++) {
+    if (sorted[i] - sorted[i - 1] !== 1) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/**
+ * 특정 오행이 과다한지 확인합니다 (기존 단순 버전)
  */
 export function isOhaengExcess(
   ohaengCount: OhaengCount,
@@ -322,8 +381,7 @@ export function isOhaengExcess(
   const count = ohaengCount[targetOhaeng];
   const ratio = count / ohaengCount.total;
   return (
-    count >= BYEONGYAK_CRITERIA.EXCESS_COUNT ||
-    ratio >= BYEONGYAK_CRITERIA.EXCESS_RATIO
+    count >= BYEONGYAK_CRITERIA.EXCESS.PRIORITY_3.MIN_COUNT || ratio >= 0.5 // 50% 이상
   );
 }
 
@@ -334,4 +392,106 @@ export function isConflictingOhaeng(ohaeng1: string, ohaeng2: string): boolean {
   return (
     OHAENG_SANGGEUK[ohaeng1] === ohaeng2 || OHAENG_SANGGEUK[ohaeng2] === ohaeng1
   );
+}
+
+/**
+ * 타겟 오행이 다른 오행에게 극당하는지 확인 (적군 판단)
+ */
+export function isEnemyToTarget(
+  targetOhaeng: string,
+  otherOhaeng: string
+): boolean {
+  // 나를 극하는 오행인지 확인
+  return OHAENG_SANGGEUK[otherOhaeng] === targetOhaeng;
+}
+
+/**
+ * 타겟 오행과 같거나 생해주는 오행인지 확인 (아군 판단)
+ */
+export function isFriendToTarget(
+  targetOhaeng: string,
+  otherOhaeng: string
+): boolean {
+  // 같은 오행이거나 나를 생해주는 오행
+  if (targetOhaeng === otherOhaeng) return true;
+
+  // 생생 관계 확인
+  return OHAENG_SAENGSAENG[otherOhaeng] === targetOhaeng;
+}
+
+/**
+ * 특정 오행이 간여지동 보너스를 받는 위치들을 확인
+ */
+export function getGanyjidongPositions(
+  targetOhaeng: string,
+  pillars: Array<{ gan: string; ji: string }>
+): number[] {
+  const ganyjidongPositions: number[] = [];
+
+  // GAN_OHENG, JI_OHENG를 import해서 사용해야 하지만,
+  // 순환 참조를 피하기 위해 여기서는 직접 매핑 사용
+  const GAN_TO_OHAENG: Record<string, string> = {
+    甲: "木",
+    乙: "木",
+    丙: "火",
+    丁: "火",
+    戊: "土",
+    己: "土",
+    庚: "金",
+    辛: "金",
+    壬: "水",
+    癸: "水",
+  };
+
+  const JI_TO_OHAENG: Record<string, string> = {
+    子: "水",
+    丑: "土",
+    寅: "木",
+    卯: "木",
+    辰: "土",
+    巳: "火",
+    午: "火",
+    未: "土",
+    申: "金",
+    酉: "金",
+    戌: "土",
+    亥: "水",
+  };
+
+  pillars.forEach((pillar, index) => {
+    const ganOhaeng = GAN_TO_OHAENG[pillar.gan];
+    const jiOhaeng = JI_TO_OHAENG[pillar.ji];
+
+    // 천간과 지지가 모두 타겟 오행과 같으면 간여지동
+    if (ganOhaeng === targetOhaeng && jiOhaeng === targetOhaeng) {
+      ganyjidongPositions.push(index * 2); // 천간 위치
+      ganyjidongPositions.push(index * 2 + 1); // 지지 위치
+    }
+  });
+
+  return ganyjidongPositions;
+}
+
+/**
+ * 특정 오행을 생해주는 오행들의 개수를 확인
+ */
+export function countSupportingOhaengs(
+  targetOhaeng: string,
+  ohaengCount: { counts: Record<string, number>; total: number }
+): number {
+  let supportCount = 0;
+
+  // 생생 관계에서 타겟을 생해주는 오행들 찾기
+  Object.entries(OHAENG_SAENGSAENG).forEach(
+    ([supportingOhaeng, resultOhaeng]) => {
+      if (
+        resultOhaeng === targetOhaeng &&
+        ohaengCount.counts[supportingOhaeng] > 0
+      ) {
+        supportCount += ohaengCount.counts[supportingOhaeng];
+      }
+    }
+  );
+
+  return supportCount;
 }

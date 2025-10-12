@@ -6,6 +6,13 @@ import {
   TierAnalysis,
   JEONWANG_CRITERIA,
   JOHU_CRITERIA,
+  BYEONGYAK_CRITERIA,
+  TONGGWAN_CRITERIA,
+  EOKBU_CRITERIA,
+  isEnemyToTarget,
+  isOhaengConsecutive,
+  getGanyjidongPositions,
+  countSupportingOhaengs,
 } from "../data/yongsin.data";
 import {
   CHEONGANHAPHWA,
@@ -22,6 +29,85 @@ import type { SajuData, PillarData } from "../types/saju.d";
 // =================================================================
 // 유틸리티 함수들
 // =================================================================
+
+/**
+ * 오행별 천간 매핑
+ */
+const OHAENG_TO_GAN_MAP = {
+  木: { yang: "甲", eum: "乙" },
+  火: { yang: "丙", eum: "丁" },
+  土: { yang: "戊", eum: "己" },
+  金: { yang: "庚", eum: "辛" },
+  水: { yang: "壬", eum: "癸" },
+};
+
+/**
+ * 사주 원국에서 실제 용신 천간을 찾습니다
+ * @param requiredOhaeng 필요한 오행 ("木", "火" 등)
+ * @param pillars 사주 원국 천간지
+ * @returns 실제 용신 천간
+ */
+function findActualYongsin(
+  requiredOhaeng: string,
+  pillars: {
+    year: { gan: string; ji: string };
+    month: { gan: string; ji: string };
+    day: { gan: string; ji: string };
+    hour: { gan: string; ji: string };
+  }
+): string {
+  const ganMap =
+    OHAENG_TO_GAN_MAP[requiredOhaeng as keyof typeof OHAENG_TO_GAN_MAP];
+  if (!ganMap) {
+    throw new Error(`Unknown ohaeng: ${requiredOhaeng}`);
+  }
+
+  // 원국 천간들 수집
+  const gansInSaju = [
+    pillars.year.gan,
+    pillars.month.gan,
+    pillars.day.gan,
+    pillars.hour.gan,
+  ];
+
+  const hasYang = gansInSaju.includes(ganMap.yang);
+  const hasEum = gansInSaju.includes(ganMap.eum);
+
+  // 1차: 둘 다 있으면 양간 우선
+  if (hasYang && hasEum) {
+    return ganMap.yang;
+  }
+
+  // 2차: 양간만 있으면 양간
+  if (hasYang) {
+    return ganMap.yang;
+  }
+
+  // 3차: 음간만 있으면 음간
+  if (hasEum) {
+    return ganMap.eum;
+  }
+
+  // 4차: 둘 다 없으면 양간 기본값
+  return ganMap.yang;
+}
+
+/**
+ * 지배적 오행을 억제하는 오행을 찾습니다 (오행 상극 관계)
+ * @param dominantOhaeng 지배적 오행
+ * @returns 억제하는 오행
+ */
+function getSuppressingOhaeng(dominantOhaeng: string): string {
+  const suppressingMap: Record<string, string> = {
+    木: "金", // 금극목
+    火: "水", // 수극화
+    土: "木", // 목극토
+    金: "火", // 화극금
+    水: "土", // 토극수
+  };
+
+  return suppressingMap[dominantOhaeng] || dominantOhaeng;
+}
 
 /**
  * 사주 데이터에서 오행 개수를 계산합니다
@@ -330,11 +416,19 @@ export function analyzeTier1_JeonWang(
     conditionMet = "변수조건2";
   }
 
+  // 용신 천간 결정
+  let actualYongsin = "";
+  if (isDominant && dominantOhaeng) {
+    // 지배적 오행을 억제하는 오행을 찾아서 천간으로 변환
+    const suppressingOhaeng = getSuppressingOhaeng(dominantOhaeng);
+    actualYongsin = findActualYongsin(suppressingOhaeng, sajuData.pillars);
+  }
+
   return {
     tier: 1,
     name: "전왕용신",
     isDominant,
-    yongsin: dominantOhaeng ? [dominantOhaeng] : [],
+    yongsin: actualYongsin,
     confidence: isDominant
       ? basicResult.isValid
         ? 95
@@ -345,13 +439,18 @@ export function analyzeTier1_JeonWang(
     reason: isDominant
       ? `${conditionMet} 만족: 점수 ${score.toFixed(
           1
-        )}, 지배오행 ${dominantOhaeng}`
+        )}, 지배오행 ${dominantOhaeng} → ${actualYongsin} 용신`
       : `전왕용신 조건 불만족: 점수 ${score.toFixed(1)}`,
     details: {
       score,
       ohaengDistribution: ohaengCount.counts,
       haphwaBonus,
       conditionMet: isDominant ? conditionMet : null,
+      dominantOhaeng,
+      suppressingOhaeng:
+        isDominant && dominantOhaeng
+          ? getSuppressingOhaeng(dominantOhaeng)
+          : null,
     },
   };
 }
@@ -475,16 +574,21 @@ export function analyzeTier2_Johu(sajuData: SajuData): TierAnalysis {
   const imbalanceAnalysis = analyzeClimateImbalance(normalizedScores);
 
   // 3. 용신 결정
-  let yongsinList: string[] = [];
+  let actualYongsin = "";
   let confidence = 0;
   let reason = "";
 
   if (imbalanceAnalysis.isDominant && imbalanceAnalysis.dominantClimate) {
-    const recommendedYongsin =
+    const recommendedOhaengList =
       JOHU_CRITERIA.CLIMATE_YONGSIN_MAP[
         imbalanceAnalysis.dominantClimate as keyof typeof JOHU_CRITERIA.CLIMATE_YONGSIN_MAP
       ] || [];
-    yongsinList = recommendedYongsin;
+
+    // 첫 번째 권장 오행을 선택해서 천간으로 변환
+    if (recommendedOhaengList.length > 0) {
+      const primaryOhaeng = recommendedOhaengList[0];
+      actualYongsin = findActualYongsin(primaryOhaeng, sajuData.pillars);
+    }
 
     // 확신도 계산 (불균형이 클수록 높음)
     if (imbalanceAnalysis.dominantPercentage >= 60) confidence = 90;
@@ -496,7 +600,7 @@ export function analyzeTier2_Johu(sajuData: SajuData): TierAnalysis {
       imbalanceAnalysis.dominantClimate
     } 과다 (${imbalanceAnalysis.dominantPercentage.toFixed(
       1
-    )}%) → ${yongsinList.join(", ")} 용신`;
+    )}%) → ${actualYongsin} 용신`;
   } else {
     reason = `기후 균형 상태 (최고 ${imbalanceAnalysis.dominantPercentage.toFixed(
       1
@@ -507,7 +611,7 @@ export function analyzeTier2_Johu(sajuData: SajuData): TierAnalysis {
     tier: 2,
     name: "조후용신",
     isDominant: imbalanceAnalysis.isDominant,
-    yongsin: yongsinList,
+    yongsin: actualYongsin,
     confidence,
     reason,
     details: {
@@ -516,46 +620,420 @@ export function analyzeTier2_Johu(sajuData: SajuData): TierAnalysis {
       dominantClimate: imbalanceAnalysis.dominantClimate,
       dominantPercentage: imbalanceAnalysis.dominantPercentage,
       difference: imbalanceAnalysis.difference,
+      recommendedOhaengList: imbalanceAnalysis.isDominant
+        ? JOHU_CRITERIA.CLIMATE_YONGSIN_MAP[
+            imbalanceAnalysis.dominantClimate as keyof typeof JOHU_CRITERIA.CLIMATE_YONGSIN_MAP
+          ]
+        : [],
     },
   };
 }
 
-export function analyzeTier3_Byeongyak(): TierAnalysis {
-  // TODO: 병약용신 구현
+/**
+ * 특정 천간이 적군에게 포위되어 고립되었는지 확인
+ */
+function isGanIsolated(
+  targetGan: string,
+  position: number,
+  pillars: Array<{ gan: string; ji: string }>
+): boolean {
+  const targetOhaeng = GAN_OHENG[targetGan as keyof typeof GAN_OHENG];
+  if (!targetOhaeng) return false;
+
+  let enemyCount = 0;
+
+  // 1) 앞 기둥 천간 확인 (있다면)
+  if (position > 0) {
+    const prevGan = pillars[position - 1].gan;
+    const prevOhaeng = GAN_OHENG[prevGan as keyof typeof GAN_OHENG];
+    if (prevOhaeng && isEnemyToTarget(targetOhaeng, prevOhaeng)) {
+      enemyCount++;
+    }
+  }
+
+  // 2) 뒤 기둥 천간 확인 (있다면)
+  if (position < pillars.length - 1) {
+    const nextGan = pillars[position + 1].gan;
+    const nextOhaeng = GAN_OHENG[nextGan as keyof typeof GAN_OHENG];
+    if (nextOhaeng && isEnemyToTarget(targetOhaeng, nextOhaeng)) {
+      enemyCount++;
+    }
+  }
+
+  // 3) 같은 기둥 지지 확인
+  const sameJi = pillars[position].ji;
+  const sameOhaeng = JI_OHENG[sameJi as keyof typeof JI_OHENG];
+  if (sameOhaeng && isEnemyToTarget(targetOhaeng, sameOhaeng)) {
+    enemyCount++;
+  }
+
+  // 포위 조건: 2방향 이상에서 적군
+  return enemyCount >= BYEONGYAK_CRITERIA.ISOLATION.MIN_ENEMY_DIRECTIONS;
+}
+
+/**
+ * 사주에서 고립된 천간들을 찾기
+ */
+function findIsolatedElements(
+  pillars: Array<{ gan: string; ji: string }>
+): Array<{ element: string; position: number; type: "cheongan" }> {
+  const isolated: Array<{
+    element: string;
+    position: number;
+    type: "cheongan";
+  }> = [];
+
+  // 각 기둥의 천간 검사
+  pillars.forEach((pillar, index) => {
+    if (isGanIsolated(pillar.gan, index, pillars)) {
+      isolated.push({
+        element: pillar.gan,
+        position: index,
+        type: "cheongan",
+      });
+    }
+  });
+
+  return isolated;
+}
+
+/**
+ * 과다 오행 분석 (우선순위별)
+ */
+function analyzeExcessOhaengs(
+  pillars: Array<{ gan: string; ji: string }>,
+  ohaengCount: { counts: Record<string, number>; total: number }
+) {
+  const results: Array<{
+    ohaeng: string;
+    priority: number;
+    count: number;
+    hasGanyjidong: boolean;
+    isConsecutive: boolean;
+    supportingCount: number;
+    reason: string;
+  }> = [];
+
+  // 각 오행별로 과다 조건 확인
+  Object.entries(ohaengCount.counts).forEach(([ohaeng, count]) => {
+    if (count < BYEONGYAK_CRITERIA.EXCESS.PRIORITY_1.MIN_COUNT) return;
+
+    // 해당 오행의 모든 위치 수집
+    const ohaengPositions: number[] = [];
+    pillars.forEach((pillar, pillarIndex) => {
+      const ganOhaeng = GAN_OHENG[pillar.gan as keyof typeof GAN_OHENG];
+      const jiOhaeng = JI_OHENG[pillar.ji as keyof typeof JI_OHENG];
+
+      if (ganOhaeng === ohaeng) ohaengPositions.push(pillarIndex * 2);
+      if (jiOhaeng === ohaeng) ohaengPositions.push(pillarIndex * 2 + 1);
+    });
+
+    // 간여지동 확인
+    const ganyjidongPositions = getGanyjidongPositions(ohaeng, pillars);
+    const hasGanyjidong = ganyjidongPositions.length > 0;
+
+    // 연속성 확인
+    const isConsecutive = isOhaengConsecutive(ohaengPositions);
+
+    // 생해주는 오행 개수 확인
+    const supportingCount = countSupportingOhaengs(ohaeng, {
+      counts: ohaengCount.counts,
+      total: ohaengCount.total,
+    });
+
+    // 우선순위 판단
+    let priority = 0;
+    let reason = "";
+
+    // 우선순위 1: 3개 + 간여지동 + 연속
+    if (
+      count >= BYEONGYAK_CRITERIA.EXCESS.PRIORITY_1.MIN_COUNT &&
+      hasGanyjidong &&
+      isConsecutive
+    ) {
+      priority = 1;
+      reason = `${ohaeng} ${count}개 + 간여지동 + 연속배치`;
+    }
+    // 우선순위 2: 우선순위1 + 생해주는 오행 1개 이하
+    else if (
+      count >= BYEONGYAK_CRITERIA.EXCESS.PRIORITY_2.MIN_COUNT &&
+      hasGanyjidong &&
+      isConsecutive &&
+      supportingCount <=
+        BYEONGYAK_CRITERIA.EXCESS.PRIORITY_2.MAX_SUPPORTING_OHAENG
+    ) {
+      priority = 2;
+      reason = `${ohaeng} ${count}개 + 간여지동 + 연속 + 생해주는 오행 ${supportingCount}개`;
+    }
+    // 우선순위 3: 단순 개수
+    else if (count >= BYEONGYAK_CRITERIA.EXCESS.PRIORITY_3.MIN_COUNT) {
+      priority = 3;
+      reason = `${ohaeng} ${count}개 과다`;
+    }
+
+    if (priority > 0) {
+      results.push({
+        ohaeng,
+        priority,
+        count,
+        hasGanyjidong,
+        isConsecutive,
+        supportingCount,
+        reason,
+      });
+    }
+  });
+
+  // 우선순위 순으로 정렬 (낮은 숫자가 높은 우선순위)
+  results.sort((a, b) => a.priority - b.priority);
+
+  return results;
+}
+
+/**
+ * Tier 3: 병약용신 분석
+ * 특정 오행이 고립되거나 과다할 때 적용
+ */
+export function analyzeTier3_Byeongyak(sajuData: SajuData): TierAnalysis {
+  const ohaengCount = countOhaengInSaju(sajuData.pillars);
+
+  // 새로운 고립 로직: 포위된 천간 찾기
+  const pillarsArray = [
+    sajuData.pillars.year,
+    sajuData.pillars.month,
+    sajuData.pillars.day,
+    sajuData.pillars.hour,
+  ];
+  const isolatedElements = findIsolatedElements(pillarsArray);
+
+  // 새로운 과다 오행 분석 (우선순위별)
+  const excessAnalysis = analyzeExcessOhaengs(pillarsArray, ohaengCount);
+
+  let actualYongsin = "";
+  let confidence = 0;
+  let reason = "";
+  let isDominant = false;
+
+  // 1순위: 고립된 천간 보강 (가장 긴급)
+  if (isolatedElements.length > 0) {
+    const isolatedElement = isolatedElements[0]; // 첫 번째 고립 천간
+    const targetOhaeng =
+      GAN_OHENG[isolatedElement.element as keyof typeof GAN_OHENG];
+    actualYongsin = findActualYongsin(targetOhaeng, sajuData.pillars);
+    confidence = 90;
+    reason = `${isolatedElement.element}(${targetOhaeng}) 포위 고립 → ${actualYongsin} 보강 용신`;
+    isDominant = true;
+  }
+  // 2순위: 과다한 오행 억제 (새로운 우선순위 기준)
+  else if (excessAnalysis.length > 0) {
+    const topExcess = excessAnalysis[0]; // 최고 우선순위 과다 오행
+    const suppressingOhaeng = getSuppressingOhaeng(topExcess.ohaeng);
+    actualYongsin = findActualYongsin(suppressingOhaeng, sajuData.pillars);
+
+    // 우선순위별 신뢰도 차등
+    const confidenceMap = { 1: 85, 2: 80, 3: 70 };
+    confidence =
+      confidenceMap[topExcess.priority as keyof typeof confidenceMap] || 70;
+
+    reason = `${topExcess.reason} → ${actualYongsin} 억제 용신`;
+    isDominant = true;
+  } else {
+    reason = "병약용신 조건 불만족 (포위 고립/과다 오행 없음)";
+  }
+
   return {
     tier: 3,
     name: "병약용신",
-    isDominant: false,
-    yongsin: [],
-    confidence: 0,
-    reason: "병약용신 분석 미구현",
-    details: {},
+    isDominant,
+    yongsin: actualYongsin,
+    confidence,
+    reason,
+    details: {
+      ohaengDistribution: ohaengCount.counts,
+      isolatedElements: isolatedElements.map((el) => ({
+        element: el.element,
+        position: el.position,
+        ohaeng: GAN_OHENG[el.element as keyof typeof GAN_OHENG],
+      })),
+      excessAnalysis: excessAnalysis.map((excess) => ({
+        ohaeng: excess.ohaeng,
+        priority: excess.priority,
+        count: excess.count,
+        reason: excess.reason,
+        hasGanyjidong: excess.hasGanyjidong,
+        isConsecutive: excess.isConsecutive,
+        supportingCount: excess.supportingCount,
+      })),
+      total: ohaengCount.total,
+    },
   };
 }
 
-export function analyzeTier4_Tonggwan(): TierAnalysis {
-  // TODO: 통관용신 구현
+export function analyzeTier4_Tonggwan(sajuData: SajuData): TierAnalysis {
+  const ohaengCount = countOhaengInSaju(sajuData.pillars);
+
+  // 모든 극하는 관계 조합 확인
+  const conflictAnalysis = [];
+
+  for (const [key, relation] of Object.entries(
+    TONGGWAN_CRITERIA.CONFLICT_RELATIONS
+  )) {
+    const [ohaeng1, ohaeng2] = relation.conflicting;
+    const count1 = ohaengCount.counts[ohaeng1] || 0;
+    const count2 = ohaengCount.counts[ohaeng2] || 0;
+
+    // 각 세력이 최소 기준 이상이고, 팽팽한 대치인지 확인
+    if (
+      count1 >= TONGGWAN_CRITERIA.CONFLICT_MIN_COUNT &&
+      count2 >= TONGGWAN_CRITERIA.CONFLICT_MIN_COUNT
+    ) {
+      const difference = Math.abs(count1 - count2);
+      if (difference <= TONGGWAN_CRITERIA.BALANCE_TOLERANCE) {
+        conflictAnalysis.push({
+          relation: key,
+          ohaeng1,
+          ohaeng2,
+          count1,
+          count2,
+          difference,
+          mediator: relation.mediator,
+          intensity: count1 + count2, // 총 세력 크기
+        });
+      }
+    }
+  }
+
+  let actualYongsin = "";
+  let confidence = 0;
+  let reason = "";
+  let isDominant = false;
+
+  if (conflictAnalysis.length > 0) {
+    // 가장 강한 대치 상황 선택 (총 세력이 큰 것)
+    const strongestConflict = conflictAnalysis.reduce((prev, current) =>
+      current.intensity > prev.intensity ? current : prev
+    );
+
+    // 통관용신 결정
+    const mediatorOhaeng = strongestConflict.mediator;
+    actualYongsin = findActualYongsin(mediatorOhaeng, sajuData.pillars);
+
+    // 신뢰도 계산 (대치가 팽팽할수록, 세력이 클수록 높음)
+    const balanceScore = 100 - strongestConflict.difference * 10; // 차이가 적을수록 높음
+    const intensityScore = Math.min(strongestConflict.intensity * 5, 50); // 세력이 클수록 높음
+    confidence = Math.min(balanceScore + intensityScore, 95);
+
+    reason = `${strongestConflict.ohaeng1}(${strongestConflict.count1})剋${strongestConflict.ohaeng2}(${strongestConflict.count2}) 대치 → ${actualYongsin} 통관 용신`;
+    isDominant = true;
+  } else {
+    reason = "통관용신 조건 불만족 (팽팽한 극하는 대치 없음)";
+  }
+
   return {
     tier: 4,
     name: "통관용신",
-    isDominant: false,
-    yongsin: [],
-    confidence: 0,
-    reason: "통관용신 분석 미구현",
-    details: {},
+    isDominant,
+    yongsin: actualYongsin,
+    confidence,
+    reason,
+    details: {
+      conflictAnalysis: conflictAnalysis.map((conflict) => ({
+        relation: conflict.relation,
+        ohaeng1: conflict.ohaeng1,
+        ohaeng2: conflict.ohaeng2,
+        count1: conflict.count1,
+        count2: conflict.count2,
+        mediator: conflict.mediator,
+        intensity: conflict.intensity,
+      })),
+    },
   };
 }
 
-export function analyzeTier5_Eokbu(): TierAnalysis {
-  // TODO: 억부용신 구현
+export function analyzeTier5_Eokbu(sajuData: SajuData): TierAnalysis {
+  // 신강신약 점수 확인 (새 35점 체계)
+  const wangseScore = sajuData.wangseStrength?.finalScore || 17.5; // 기본값 17.5 (중간)
+  const dayMasterGan = sajuData.pillars.day.gan;
+  const dayMasterOhaeng = GAN_OHENG[dayMasterGan as keyof typeof GAN_OHENG];
+
+  let actualYongsin = "";
+  let confidence = 0;
+  let reason = "";
+  let isDominant = false;
+  let yongsinType = "";
+
+  // 1. 약함 → 부조용신 (扶)
+  if (wangseScore < EOKBU_CRITERIA.WEAK_THRESHOLD) {
+    const supportOhaengs =
+      EOKBU_CRITERIA.SUPPORT_RELATIONS[
+        dayMasterOhaeng as keyof typeof EOKBU_CRITERIA.SUPPORT_RELATIONS
+      ];
+
+    // 가장 적절한 부조 오행 선택 (생해주는 오행 우선)
+    let selectedOhaeng = "";
+    if (supportOhaengs.includes(dayMasterOhaeng)) {
+      // 비견(같은 오행)이 있으면 우선 선택
+      selectedOhaeng = dayMasterOhaeng;
+    } else {
+      // 생해주는 오행 선택 (첫 번째가 생해주는 오행)
+      selectedOhaeng = supportOhaengs[0];
+    }
+
+    actualYongsin = findActualYongsin(selectedOhaeng, sajuData.pillars);
+    yongsinType = "부조용신";
+
+    // 신뢰도: 점수가 낮을수록 높음 (35점 체계)
+    confidence = Math.max(90 - Math.floor(wangseScore * 2), 60);
+    reason = `일간 ${dayMasterGan}(${dayMasterOhaeng}) 약함(${wangseScore.toFixed(
+      1
+    )}) → ${actualYongsin} ${yongsinType}`;
+    isDominant = true;
+  }
+  // 2. 강함 → 억제용신 (抑)
+  else if (wangseScore > EOKBU_CRITERIA.STRONG_THRESHOLD) {
+    const suppressOhaengs =
+      EOKBU_CRITERIA.SUPPRESS_RELATIONS[
+        dayMasterOhaeng as keyof typeof EOKBU_CRITERIA.SUPPRESS_RELATIONS
+      ];
+
+    // 가장 적절한 억제 오행 선택 (극하는 오행 우선)
+    const selectedOhaeng = suppressOhaengs[0]; // 첫 번째가 극하는 오행
+
+    actualYongsin = findActualYongsin(selectedOhaeng, sajuData.pillars);
+    yongsinType = "억제용신";
+
+    // 신뢰도: 점수가 높을수록 높음 (35점 체계)
+    confidence = Math.min(Math.floor((wangseScore - 21) * 5) + 70, 95);
+    reason = `일간 ${dayMasterGan}(${dayMasterOhaeng}) 강함(${wangseScore.toFixed(
+      1
+    )}) → ${actualYongsin} ${yongsinType}`;
+    isDominant = true;
+  }
+  // 3. 중간 → 균형 상태 (용신 불필요)
+  else {
+    reason = `일간 ${dayMasterGan}(${dayMasterOhaeng}) 균형(${wangseScore.toFixed(
+      1
+    )}) → 억부용신 불필요`;
+    confidence = 50;
+  }
+
   return {
     tier: 5,
     name: "억부용신",
-    isDominant: false,
-    yongsin: [],
-    confidence: 0,
-    reason: "억부용신 분석 미구현",
-    details: {},
+    isDominant,
+    yongsin: actualYongsin,
+    confidence,
+    reason,
+    details: {
+      wangseScore,
+      dayMasterGan,
+      dayMasterOhaeng,
+      yongsinType,
+      threshold: {
+        weak: EOKBU_CRITERIA.WEAK_THRESHOLD,
+        strong: EOKBU_CRITERIA.STRONG_THRESHOLD,
+      },
+    },
   };
 }
 
@@ -565,7 +1043,7 @@ export function analyzeTier6_Gyeokguk(): TierAnalysis {
     tier: 6,
     name: "격국용신",
     isDominant: false,
-    yongsin: [],
+    yongsin: "",
     confidence: 0,
     reason: "격국용신 분석 미구현",
     details: {},
@@ -583,9 +1061,9 @@ export function analyzeYongsin(
   const analyses = [
     analyzeTier1_JeonWang(sajuData, currentDaewoon),
     analyzeTier2_Johu(sajuData),
-    analyzeTier3_Byeongyak(),
-    analyzeTier4_Tonggwan(),
-    analyzeTier5_Eokbu(),
+    analyzeTier3_Byeongyak(sajuData),
+    analyzeTier4_Tonggwan(sajuData),
+    analyzeTier5_Eokbu(sajuData),
     analyzeTier6_Gyeokguk(),
   ];
 
@@ -598,18 +1076,17 @@ export function analyzeYongsin(
       selectedTier: dominantAnalysis,
       allAnalyses: analyses,
       confidence: dominantAnalysis.confidence,
-      summary: `${dominantAnalysis.name} 적용: ${dominantAnalysis.yongsin.join(
-        ", "
-      )}`,
+      summary: `${dominantAnalysis.name} 적용: ${dominantAnalysis.yongsin}`,
     };
   }
 
-  // 모든 조건 불만족시 기본값
+  // 모든 조건 불만족시 기본값 (토 용신을 천간으로 변환)
+  const defaultYongsin = findActualYongsin("土", sajuData.pillars);
   return {
-    primaryYongsin: ["土"], // 기본 용신
+    primaryYongsin: defaultYongsin,
     selectedTier: null,
     allAnalyses: analyses,
     confidence: 30,
-    summary: "특정 용신 조건 불만족, 기본 용신 적용",
+    summary: `특정 용신 조건 불만족, 기본 용신 적용: ${defaultYongsin}`,
   };
 }

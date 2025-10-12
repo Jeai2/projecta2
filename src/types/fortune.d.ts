@@ -137,6 +137,7 @@ export interface SajuData {
     yukae: string[]; // 육해 관계
   };
   wangseStrength?: WangseResult; // ✅ 왕쇠강약 분석 추가 (선택적)
+  gyeokguk?: GyeokgukAnalysis; // ✅ 격국 분석 추가 (선택적)
   currentDaewoon: Daewoon | null;
   currentSewoon: SewoonData;
   daewoonFull: Daewoon[];
@@ -244,4 +245,37 @@ export interface StarData {
   details: string; // 상세 정의
   elements: StarElement[]; // 구성 요소 (예: ["巳", "戌"])
   illustration: string; // 일러스트 이미지 경로
+}
+
+// 격국 분석 관련 타입
+export interface GyeokgukType {
+  name: string; // 격국명 (예: "정관격")
+  code: string; // 격국 코드 (예: "JEONGGWAN")
+  category: "정격" | "외격"; // 격국 분류
+  baseSipsin: string; // 기준 십성 (월지 십성)
+  description: string; // 격국 설명
+  success: {
+    required: string[]; // 필수 조건
+    beneficial: string[]; // 유리한 조건
+    avoid: string[]; // 피해야 할 조건
+  };
+  破격: {
+    factors: string[]; // 파격 요인들
+    severity: "경미" | "중간" | "심각"; // 파격 정도
+  };
+  yongsin: {
+    success: string[]; // 성격 시 용신 (오행)
+    failure: string[]; // 파격 시 구제용신 (오행)
+    priority: number; // 우선순위 (1이 가장 높음)
+  };
+}
+
+export interface GyeokgukAnalysis {
+  gyeokguk: GyeokgukType | null; // 확정된 격국
+  monthJiSipsin: string; // 월지 십성
+  isSuccess: boolean; // 성격 여부
+  breakFactors: string[]; // 파격 요인들
+  yongsinType: string; // 용신 유형 ("印", "財", "官" 등)
+  confidence: number; // 신뢰도 (0-100)
+  reason: string; // 판단 근거
 }

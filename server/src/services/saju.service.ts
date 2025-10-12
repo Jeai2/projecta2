@@ -6,7 +6,8 @@ import { getDaewoon } from "./daewoon.service";
 import { getSewoonForYear } from "./sewoon.service";
 import { getAllWoolwoonForYear } from "./woolwoon.service";
 import { getAllSinsals } from "./sinsal.service.new";
-import { calculateWangseStrength } from "./wangse-strength.service";
+import { calculateNewWangseStrength } from "./wangse-strength.service";
+import { analyzeGyeokguk } from "./gyeokguk.service";
 import {
   getSeasonalDataForYear,
   getLoadedSeasonalData,
@@ -235,11 +236,19 @@ export const getSajuDetails = async (
   const nextYearWoolwoon = getAllWoolwoonForYear(currentYear + 1, dayGan);
 
   // ✅ 왕쇠강약 계산
-  const wangseStrength = calculateWangseStrength(
-    pillars,
-    dayGan,
-    birthDate.getMonth() + 1
-  );
+  const wangseStrength = calculateNewWangseStrength(pillars, dayGan);
+
+  // ✅ 격국 분석 (임시 sajuData로 먼저 생성 후 분석)
+  const tempSajuData = {
+    pillars: {
+      year: { gan: yearPillar[0], ji: yearPillar[1] },
+      month: { gan: monthPillar[0], ji: monthPillar[1] },
+      day: { gan: dayPillar[0], ji: dayPillar[1] },
+      hour: { gan: hourPillar[0], ji: hourPillar[1] },
+    },
+    sipsin,
+  };
+  const gyeokgukAnalysis = await analyzeGyeokguk(tempSajuData as SajuData);
 
   // ✅ 3. 최종 sajuData 객체를 조립하는 부분을 오행 정보가 포함되도록 수정합니다.
   const sajuData: SajuData = {
@@ -291,6 +300,7 @@ export const getSajuDetails = async (
     napeum,
     jijanggan, // ✅ 지장간 데이터 추가
     wangseStrength, // ✅ 왕쇠강약 분석 추가
+    gyeokguk: gyeokgukAnalysis, // ✅ 격국 분석 추가
     currentDaewoon,
     currentSewoon,
     daewoonFull,
