@@ -1,5 +1,9 @@
 // server/src/types/saju.d.ts (신규 생성)
 
+import type { NapeumResult } from "../hwa-eui/data/hwa-eui.data";
+import type { Daewoon } from "../services/daewoon.service";
+import type { SewoonData } from "../services/sewoon.service";
+
 // --- 데이터 타입 정의 ---
 export interface PillarData {
   gan: string;
@@ -73,6 +77,8 @@ export interface SajuData {
   jijanggan: { year: string[]; month: string[]; day: string[]; hour: string[] }; // ✅ 지장간 데이터 추가
   relationships?: RelationshipResult; // ✅ 지지 간 관계 데이터 추가 (선택적)
   wangseStrength?: import("../services/wangse-strength.service").WangseResult; // ✅ 왕쇠강약 분석 추가 (선택적)
+  dangnyeong?: import("../services/dangnyeong.service").DangnyeongResult; // ✅ 당령 분석 추가 (선택적)
+  saryeong?: import("../services/saryeong.service").SaryeongResult; // ✅ 사령 분석 추가 (선택적)
   gyeokguk?: import("../services/gyeokguk.service").GyeokgukAnalysis; // ✅ 격국 분석 추가 (선택적)
   currentDaewoon: Daewoon | null;
   currentSewoon: SewoonData;

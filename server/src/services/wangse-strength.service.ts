@@ -18,6 +18,7 @@ export interface WangseResult {
   finalScore: number; // 최종 점수 (0-10)
   level: string; // "극왕", "왕", "중", "쇠", "극쇠" 등
   levelDetail: string; // "극왕", "태왕", "왕", "중화(왕)" 등
+  deukryeongGan?: string; // 득령한 천간 (지장간 중)
   breakdown: {
     pillarScores: PillarScore[]; // 각 기둥별 점수
     bonuses: number; // 월령 보너스
@@ -122,13 +123,37 @@ function isSupportingOhaeng(
 }
 
 /**
- * 득령 계산: 월지가 일간을 도와주는 오행인지 확인 (7점)
+ * 득령 계산: 월지 지장간 중 일간과 같은 오행 찾기 (7점)
  */
-function calculateDeukryeong(dayGan: string, monthJi: string): number {
+function calculateDeukryeong(
+  dayGan: string,
+  monthJi: string
+): { score: number; gan: string | null } {
   const dayGanOhaeng = GAN_TO_OHAENG[dayGan];
-  const monthJiOhaeng = JI_TO_OHAENG[monthJi];
 
-  return isSupportingOhaeng(dayGanOhaeng, monthJiOhaeng) ? 7 : 0;
+  // 월지 지장간 확인
+  const jijangganElements = JIJANGGAN_DATA[monthJi];
+  if (!jijangganElements) {
+    return { score: 0, gan: null };
+  }
+
+  // 지장간 중에서 일간과 같은 오행을 찾음 (초기 → 중기 → 정기 순)
+  for (const element of jijangganElements) {
+    const elementOhaeng = GAN_TO_OHAENG[element.gan];
+    if (elementOhaeng === dayGanOhaeng) {
+      return { score: 7, gan: element.gan }; // 득령 천간 반환
+    }
+  }
+
+  // 없으면 오행 지원 확인 (수생목 등)
+  for (const element of jijangganElements) {
+    const elementOhaeng = GAN_TO_OHAENG[element.gan];
+    if (isSupportingOhaeng(dayGanOhaeng, elementOhaeng)) {
+      return { score: 7, gan: element.gan }; // 생해주는 천간 반환
+    }
+  }
+
+  return { score: 0, gan: null };
 }
 
 /**
@@ -178,7 +203,7 @@ function calculateTonggeun(
 }
 
 /**
- * 득세 계산: 나머지 글자들 (천간 2점, 지지 1점)
+ * 득세 계산: 나머지 글자들 (천간 2점, 지지 3점)
  * 천간: 년간, 월간, 시간 중 일간 도움 오행
  * 지지: 년지, 시지만 (월지/일지는 득령/득지에서 처리됨)
  */
@@ -203,7 +228,7 @@ function calculateDeukse(
     }
   }
 
-  // 지지 체크 (년지, 시지만) - 각 1점
+  // 지지 체크 (년지, 시지만) - 각 3점
   const jiPositions = [
     pillars.year[1], // 년지
     pillars.hour[1], // 시지
@@ -212,7 +237,7 @@ function calculateDeukse(
   for (const ji of jiPositions) {
     const jiOhaeng = JI_TO_OHAENG[ji];
     if (isSupportingOhaeng(dayGanOhaeng, jiOhaeng)) {
-      totalScore += 1;
+      totalScore += 3;
     }
   }
 
@@ -649,11 +674,28 @@ export function calculateNewWangseStrength(
   // 0. 양간/음간 판별 (UI 호환성을 위해 유지)
   const isYanggan = YANGGAN_LIST.includes(dayGan);
   const ganType: "양간" | "음간" = isYanggan ? "양간" : "음간";
+
+  console.log("🔍 [왕쇠강약] pillars:", pillars);
+  console.log("🔍 [왕쇠강약] dayGan:", dayGan);
+
   // 1. 기본 가중치 4대 요소 계산
-  const deukryeong = calculateDeukryeong(dayGan, pillars.month[1]); // 득령 7점
+  const deukryeongResult = calculateDeukryeong(dayGan, pillars.month[1]); // 득령 7점
+  const deukryeong = deukryeongResult.score;
+  const deukryeongGan = deukryeongResult.gan; // 득령 천간 저장
   const deukji = calculateDeukji(dayGan, pillars.day[1]); // 득지 4점
   const tonggeun = calculateTonggeun(dayGan, pillars); // 통근 2-3점
   const deukse = calculateDeukse(dayGan, pillars); // 득세 1-2점
+
+  console.log(
+    "🔍 [왕쇠강약] 득령:",
+    deukryeong,
+    "득지:",
+    deukji,
+    "통근:",
+    tonggeun,
+    "득세:",
+    deukse
+  );
 
   // 2. 보너스 계산
   const ganyjidongBonus = calculateNewGanyjidongBonus(dayGan, pillars); // 간여지동 ±4점
@@ -669,11 +711,11 @@ export function calculateNewWangseStrength(
   // 5. 보너스 합산 (삭감 적용 전)
   const totalBonus = ganyjidongBonus + jijiHapBonus;
 
-  // 6. 삭감 적용 (50% 삭감)
+  // 6. 삭감 적용 (득령 25%, 득지 50%)
   // 지지 삭감: 득령, 득지, 통근, 득세 중 해당 지지 점수
   let jiReduction = 0;
-  if (affectedJi.includes(pillars.month[1])) jiReduction += deukryeong * 0.5; // 득령 삭감
-  if (affectedJi.includes(pillars.day[1])) jiReduction += deukji * 0.5; // 득지 삭감
+  if (affectedJi.includes(pillars.month[1])) jiReduction += deukryeong * 0.25; // 득령 삭감 25%
+  if (affectedJi.includes(pillars.day[1])) jiReduction += deukji * 0.5; // 득지 삭감 50%
   // 통근, 득세 지지 부분도 삭감 (복잡하므로 간소화)
 
   // 천간 삭감: 득세 천간 부분, 간여지동 천간 부분
@@ -699,6 +741,7 @@ export function calculateNewWangseStrength(
     finalScore,
     level,
     levelDetail,
+    deukryeongGan: deukryeongGan || undefined, // 득령 천간
     breakdown: {
       pillarScores: [], // 간소화
       bonuses: totalBonus,

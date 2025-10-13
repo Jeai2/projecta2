@@ -8,6 +8,8 @@ import { getAllWoolwoonForYear } from "./woolwoon.service";
 import { getAllSinsals } from "./sinsal.service.new";
 import { calculateNewWangseStrength } from "./wangse-strength.service";
 import { analyzeGyeokguk } from "./gyeokguk.service";
+import { analyzeDangnyeong } from "./dangnyeong.service"; // ✅ 당령 분석 import
+import { analyzeSaryeong } from "./saryeong.service"; // ✅ 사령 분석 import
 import {
   getSeasonalDataForYear,
   getLoadedSeasonalData,
@@ -167,26 +169,7 @@ export const getSajuDetails = async (
 
   // ✅ 지장간 데이터 계산
   const getJijangganForPillar = (ji: string): string[] => {
-    // 한자 지지를 한글 키로 변환
-    const jiToKoreanMap: Record<string, string> = {
-      子: "자",
-      丑: "축",
-      寅: "인",
-      卯: "묘",
-      辰: "진",
-      巳: "사",
-      午: "오",
-      未: "미",
-      申: "신",
-      酉: "유",
-      戌: "술",
-      亥: "해",
-    };
-
-    const koreanJi = jiToKoreanMap[ji];
-    if (!koreanJi) return [];
-
-    const jijangganData = JIJANGGAN_DATA[koreanJi];
+    const jijangganData = JIJANGGAN_DATA[ji];
     if (!jijangganData) return [];
 
     const result: string[] = [];
@@ -238,6 +221,12 @@ export const getSajuDetails = async (
   // ✅ 왕쇠강약 계산
   const wangseStrength = calculateNewWangseStrength(pillars, dayGan);
 
+  // ✅ 당령 분석 (절기별 사령 천간)
+  const dangnyeongResult = analyzeDangnyeong(birthDate);
+
+  // ✅ 사령 분석 (월지 지장간 기준 사령 천간)
+  const saryeongResult = analyzeSaryeong(birthDate, monthPillar[1]);
+
   // ✅ 격국 분석 (임시 sajuData로 먼저 생성 후 분석)
   const tempSajuData = {
     pillars: {
@@ -248,7 +237,10 @@ export const getSajuDetails = async (
     },
     sipsin,
   };
-  const gyeokgukAnalysis = await analyzeGyeokguk(tempSajuData as SajuData);
+  const gyeokgukAnalysis = await analyzeGyeokguk(
+    tempSajuData as SajuData,
+    birthDate
+  );
 
   // ✅ 3. 최종 sajuData 객체를 조립하는 부분을 오행 정보가 포함되도록 수정합니다.
   const sajuData: SajuData = {
@@ -300,6 +292,8 @@ export const getSajuDetails = async (
     napeum,
     jijanggan, // ✅ 지장간 데이터 추가
     wangseStrength, // ✅ 왕쇠강약 분석 추가
+    dangnyeong: dangnyeongResult, // ✅ 당령 분석 추가
+    saryeong: saryeongResult, // ✅ 사령 분석 추가
     gyeokguk: gyeokgukAnalysis, // ✅ 격국 분석 추가
     currentDaewoon,
     currentSewoon,

@@ -18,6 +18,7 @@ import { SajuData } from "../types/saju.d";
 export interface GyeokgukAnalysis {
   gyeokguk: GyeokgukType | null; // 확정된 격국
   monthJiSipsin: string; // 월지 십성
+  saRyeongGan: string | null; // 사령 천간 (격국을 이루는 지장간 천간)
   isSuccess: boolean; // 성격 여부
   breakFactors: string[]; // 파격 요인들
   yongsinType: string; // 용신 유형 ("印", "財", "官" 등)
@@ -26,11 +27,11 @@ export interface GyeokgukAnalysis {
 }
 
 /**
- * 월지 유형 분류
+ * 월지 유형 분류 (한자 기준)
  */
-const WANGJI = ["자", "오", "묘", "유"]; // 왕지 (旺地)
-const SAENGJI = ["인", "신", "사", "해"]; // 생지 (生地)
-const GOJI = ["진", "술", "축", "미"]; // 고지 (庫地)
+const WANGJI = ["子", "午", "卯", "酉"]; // 왕지 (旺地)
+const SAENGJI = ["寅", "申", "巳", "亥"]; // 생지 (生地)
+const GOJI = ["辰", "戌", "丑", "未"]; // 고지 (庫地)
 
 /**
  * 투출/투간 확인 함수
@@ -48,10 +49,11 @@ function checkTouchul(
   tougan: { role: string; gan: string }[]; // 투간 (천간 같음)
 } {
   const jijangganElements = JIJANGGAN_DATA[monthJi] || [];
+  // ⚠️ 일간(day.gan)은 제외! 년간, 월간, 시간만 확인
   const allGans = [
     pillars.year.gan,
     pillars.month.gan,
-    pillars.day.gan,
+    // pillars.day.gan, // 일간 제외!
     pillars.hour.gan,
   ];
 
@@ -249,9 +251,11 @@ async function getJijangganByDate(
  * 격국 판단 메인 함수
  */
 export async function analyzeGyeokguk(
-  sajuData: SajuData
+  sajuData: SajuData,
+  birthDate?: Date // 생년월일 추가 (선택적)
 ): Promise<GyeokgukAnalysis> {
   const monthJi = sajuData.pillars.month.ji;
+
   // ✅ sipsin.month.ji는 string | null 타입 (예: "정인", "편재")
   const monthJiSipsin = sajuData.sipsin?.month?.ji || "";
 
@@ -268,6 +272,7 @@ export async function analyzeGyeokguk(
     return {
       gyeokguk: null,
       monthJiSipsin,
+      saRyeongGan: null,
       isSuccess: false,
       breakFactors: [],
       yongsinType: "",
@@ -282,6 +287,7 @@ export async function analyzeGyeokguk(
     return {
       gyeokguk: null,
       monthJiSipsin,
+      saRyeongGan: null,
       isSuccess: false,
       breakFactors: [],
       yongsinType: "",
@@ -361,21 +367,30 @@ export async function analyzeGyeokguk(
       }
     } else {
       // 2. 삼합 없음 → 절기 기준으로 여기/정기 선택
-      // birthDate를 생성 (임시로 현재 날짜 사용, 실제로는 sajuData에서 가져와야 함)
-      const birthDate = new Date(); // TODO: sajuData에서 실제 생년월일 가져오기
-      const dateBasedElement = await getJijangganByDate(monthJi, birthDate);
-
-      if (dateBasedElement) {
-        selectedElement = dateBasedElement;
-        reason = `고지(${monthJi}) - 삼합 없음, 절기 기준 ${dateBasedElement.role}(${dateBasedElement.gan}) 채택`;
-      } else {
-        // 절기 판단 실패 시 정기 기본 채택
+      // birthDate가 없으면 정기를 기본으로 채택
+      if (!birthDate) {
         const jeongiElement = JIJANGGAN_DATA[monthJi]?.find(
           (e) => e.role === "정기"
         );
         if (jeongiElement) {
           selectedElement = { role: "정기", gan: jeongiElement.gan };
-          reason = `고지(${monthJi}) - 삼합 없음, 절기 판단 실패로 정기 기본 채택`;
+          reason = `고지(${monthJi}) - 삼합 없음, 생년월일 없어 정기 기본 채택`;
+        }
+      } else {
+        const dateBasedElement = await getJijangganByDate(monthJi, birthDate);
+
+        if (dateBasedElement) {
+          selectedElement = dateBasedElement;
+          reason = `고지(${monthJi}) - 삼합 없음, 절기 기준 ${dateBasedElement.role}(${dateBasedElement.gan}) 채택`;
+        } else {
+          // 절기 판단 실패 시 정기 기본 채택
+          const jeongiElement = JIJANGGAN_DATA[monthJi]?.find(
+            (e) => e.role === "정기"
+          );
+          if (jeongiElement) {
+            selectedElement = { role: "정기", gan: jeongiElement.gan };
+            reason = `고지(${monthJi}) - 삼합 없음, 절기 판단 실패로 정기 기본 채택`;
+          }
         }
       }
     }
@@ -393,6 +408,7 @@ export async function analyzeGyeokguk(
   return {
     gyeokguk,
     monthJiSipsin,
+    saRyeongGan: selectedElement?.gan || null, // 사령 천간 (격국 기준 천간)
     isSuccess,
     breakFactors: [],
     yongsinType,
