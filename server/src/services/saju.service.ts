@@ -10,6 +10,7 @@ import { calculateNewWangseStrength } from "./wangse-strength.service";
 import { analyzeGyeokguk } from "./gyeokguk.service";
 import { analyzeDangnyeong } from "./dangnyeong.service"; // ✅ 당령 분석 import
 import { analyzeSaryeong } from "./saryeong.service"; // ✅ 사령 분석 import
+import { calculateJinsin } from "./jinsin.service"; // ✅ 진신 분석 import
 import {
   getSeasonalDataForYear,
   getLoadedSeasonalData,
@@ -227,6 +228,9 @@ export const getSajuDetails = async (
   // ✅ 사령 분석 (월지 지장간 기준 사령 천간)
   const saryeongResult = analyzeSaryeong(birthDate, monthPillar[1]);
 
+  // ✅ 진신 분석 (가장 강한 십성)
+  const jinsinResult = calculateJinsin(pillars);
+
   // ✅ 격국 분석 (임시 sajuData로 먼저 생성 후 분석)
   const tempSajuData = {
     pillars: {
@@ -294,6 +298,7 @@ export const getSajuDetails = async (
     wangseStrength, // ✅ 왕쇠강약 분석 추가
     dangnyeong: dangnyeongResult, // ✅ 당령 분석 추가
     saryeong: saryeongResult, // ✅ 사령 분석 추가
+    jinsin: jinsinResult, // ✅ 진신 분석 추가
     gyeokguk: gyeokgukAnalysis, // ✅ 격국 분석 추가
     currentDaewoon,
     currentSewoon,

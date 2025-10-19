@@ -3,13 +3,6 @@
 
 import { getSipsinWithScores } from "./sipsin.service";
 import { WANGSE_WEIGHTS, YANGGAN_LIST } from "../data/saju.data";
-import { JIJANGGAN_DATA } from "../data/jijanggan";
-import {
-  CHEONGANHAPHWA,
-  YUKHAPHWA,
-  SAMHAPHWA,
-  BANGHAPHWA,
-} from "../data/relationship.data";
 
 // 왕쇠강약 결과 인터페이스
 export interface WangseResult {
@@ -123,477 +116,6 @@ function isSupportingOhaeng(
 }
 
 /**
- * 득령 계산: 월지 지장간 중 일간과 같은 오행 찾기 (7점)
- */
-function calculateDeukryeong(
-  dayGan: string,
-  monthJi: string
-): { score: number; gan: string | null } {
-  const dayGanOhaeng = GAN_TO_OHAENG[dayGan];
-
-  // 월지 지장간 확인
-  const jijangganElements = JIJANGGAN_DATA[monthJi];
-  if (!jijangganElements) {
-    return { score: 0, gan: null };
-  }
-
-  // 지장간 중에서 일간과 같은 오행을 찾음 (초기 → 중기 → 정기 순)
-  for (const element of jijangganElements) {
-    const elementOhaeng = GAN_TO_OHAENG[element.gan];
-    if (elementOhaeng === dayGanOhaeng) {
-      return { score: 7, gan: element.gan }; // 득령 천간 반환
-    }
-  }
-
-  // 없으면 오행 지원 확인 (수생목 등)
-  for (const element of jijangganElements) {
-    const elementOhaeng = GAN_TO_OHAENG[element.gan];
-    if (isSupportingOhaeng(dayGanOhaeng, elementOhaeng)) {
-      return { score: 7, gan: element.gan }; // 생해주는 천간 반환
-    }
-  }
-
-  return { score: 0, gan: null };
-}
-
-/**
- * 득지 계산: 일지가 일간을 도와주는 오행인지 확인 (4점)
- */
-function calculateDeukji(dayGan: string, dayJi: string): number {
-  const dayGanOhaeng = GAN_TO_OHAENG[dayGan];
-  const dayJiOhaeng = JI_TO_OHAENG[dayJi];
-
-  return isSupportingOhaeng(dayGanOhaeng, dayJiOhaeng) ? 4 : 0;
-}
-
-/**
- * 통근 계산: 각 지지의 지장간에 일간과 같은 오행이 있는지 확인
- * 일지/월지: 3점, 시지: 3점, 년지: 2점
- */
-function calculateTonggeun(
-  dayGan: string,
-  pillars: { year: string; month: string; day: string; hour: string }
-): number {
-  const dayGanOhaeng = GAN_TO_OHAENG[dayGan];
-  let totalScore = 0;
-
-  const jiPositions = [
-    { ji: pillars.year[1], score: 2, name: "년지" }, // 년지: 2점
-    { ji: pillars.month[1], score: 3, name: "월지" }, // 월지: 3점
-    { ji: pillars.day[1], score: 3, name: "일지" }, // 일지: 3점
-    { ji: pillars.hour[1], score: 3, name: "시지" }, // 시지: 3점
-  ];
-
-  for (const position of jiPositions) {
-    const jijangganElements = JIJANGGAN_DATA[position.ji];
-    if (jijangganElements) {
-      // 지장간에 일간과 같은 오행이 있는지 확인
-      const hasRootGan = jijangganElements.some((element) => {
-        const elementOhaeng = GAN_TO_OHAENG[element.gan];
-        return elementOhaeng === dayGanOhaeng;
-      });
-
-      if (hasRootGan) {
-        totalScore += position.score;
-      }
-    }
-  }
-
-  return totalScore;
-}
-
-/**
- * 득세 계산: 나머지 글자들 (천간 2점, 지지 3점)
- * 천간: 년간, 월간, 시간 중 일간 도움 오행
- * 지지: 년지, 시지만 (월지/일지는 득령/득지에서 처리됨)
- */
-function calculateDeukse(
-  dayGan: string,
-  pillars: { year: string; month: string; day: string; hour: string }
-): number {
-  const dayGanOhaeng = GAN_TO_OHAENG[dayGan];
-  let totalScore = 0;
-
-  // 천간 체크 (년간, 월간, 시간) - 각 2점
-  const ganPositions = [
-    pillars.year[0], // 년간
-    pillars.month[0], // 월간
-    pillars.hour[0], // 시간 (일간은 제외)
-  ];
-
-  for (const gan of ganPositions) {
-    const ganOhaeng = GAN_TO_OHAENG[gan];
-    if (isSupportingOhaeng(dayGanOhaeng, ganOhaeng)) {
-      totalScore += 2;
-    }
-  }
-
-  // 지지 체크 (년지, 시지만) - 각 3점
-  const jiPositions = [
-    pillars.year[1], // 년지
-    pillars.hour[1], // 시지
-  ];
-
-  for (const ji of jiPositions) {
-    const jiOhaeng = JI_TO_OHAENG[ji];
-    if (isSupportingOhaeng(dayGanOhaeng, jiOhaeng)) {
-      totalScore += 3;
-    }
-  }
-
-  return totalScore;
-}
-
-/**
- * 간여지동 보너스 계산: 같은 기둥에서 천간과 지지가 같은 오행일 때
- * - 일간과 같은 오행 OR 일간을 도와주는 오행: +4점
- * - 이외 오행: -4점
- */
-function calculateNewGanyjidongBonus(
-  dayGan: string,
-  pillars: { year: string; month: string; day: string; hour: string }
-): number {
-  const dayGanOhaeng = GAN_TO_OHAENG[dayGan];
-  let totalBonus = 0;
-
-  const pillarPositions = [
-    { gan: pillars.year[0], ji: pillars.year[1], name: "년주" },
-    { gan: pillars.month[0], ji: pillars.month[1], name: "월주" },
-    { gan: pillars.day[0], ji: pillars.day[1], name: "일주" },
-    { gan: pillars.hour[0], ji: pillars.hour[1], name: "시주" },
-  ];
-
-  for (const pillar of pillarPositions) {
-    const ganOhaeng = GAN_TO_OHAENG[pillar.gan];
-    const jiOhaeng = JI_TO_OHAENG[pillar.ji];
-
-    // 간여지동 확인: 천간과 지지가 같은 오행인가?
-    if (ganOhaeng === jiOhaeng) {
-      // 일간과 같은 오행이거나 일간을 도와주는 오행인지 확인
-      const isSupporting = isSupportingOhaeng(dayGanOhaeng, ganOhaeng);
-
-      if (isSupporting) {
-        totalBonus += 4; // 도움이 되는 간여지동: +4점
-      } else {
-        totalBonus -= 4; // 도움이 안 되는 간여지동: -4점
-      }
-    }
-  }
-
-  return totalBonus;
-}
-
-/**
- * 지지합 보너스 계산: 지지끼리 합화했을 때 결과가 일간을 도와주는 오행일 때 (5점)
- * 조건: 육합, 삼합, 방합 모두 해당, 붙어있어야 함
- */
-function calculateJijiHapBonus(
-  dayGan: string,
-  pillars: { year: string; month: string; day: string; hour: string }
-): number {
-  const dayGanOhaeng = GAN_TO_OHAENG[dayGan];
-  let totalBonus = 0;
-
-  const jiArray = [
-    pillars.year[1],
-    pillars.month[1],
-    pillars.day[1],
-    pillars.hour[1],
-  ];
-
-  // 육합 체크 (붙어있는 지지끼리)
-  for (let i = 0; i < jiArray.length - 1; i++) {
-    const ji1 = jiArray[i];
-    const ji2 = jiArray[i + 1];
-
-    // 육합 확인
-    const yukhap = YUKHAPHWA[ji1];
-    if (yukhap && yukhap.partner === ji2) {
-      const resultOhaeng = yukhap.result;
-      if (isSupportingOhaeng(dayGanOhaeng, resultOhaeng)) {
-        totalBonus += 5;
-      }
-    }
-  }
-
-  // 삼합 체크 (3개가 연속으로 붙어있을 때)
-  for (let i = 0; i < jiArray.length - 2; i++) {
-    const ji1 = jiArray[i];
-    const ji2 = jiArray[i + 1];
-    const ji3 = jiArray[i + 2];
-
-    // 삼합 확인
-    const samhap = SAMHAPHWA[ji1];
-    if (
-      samhap &&
-      samhap.partners.includes(ji2) &&
-      samhap.partners.includes(ji3)
-    ) {
-      const resultOhaeng = samhap.result;
-      if (isSupportingOhaeng(dayGanOhaeng, resultOhaeng)) {
-        totalBonus += 5;
-      }
-    }
-  }
-
-  // 방합 체크 (3개가 연속으로 붙어있을 때)
-  for (let i = 0; i < jiArray.length - 2; i++) {
-    const ji1 = jiArray[i];
-    const ji2 = jiArray[i + 1];
-    const ji3 = jiArray[i + 2];
-
-    // 방합 확인
-    const banghap = BANGHAPHWA[ji1];
-    if (
-      banghap &&
-      banghap.partners.includes(ji2) &&
-      banghap.partners.includes(ji3)
-    ) {
-      const resultOhaeng = banghap.result;
-      if (isSupportingOhaeng(dayGanOhaeng, resultOhaeng)) {
-        totalBonus += 5;
-      }
-    }
-  }
-
-  return totalBonus;
-}
-
-/**
- * 충/형/해/파 관계 데이터
- */
-const CHUNG_RELATIONS = [
-  ["자", "오"],
-  ["축", "미"],
-  ["인", "신"],
-  ["묘", "유"],
-  ["진", "술"],
-  ["사", "해"],
-];
-
-const HYEONG_RELATIONS = [
-  ["자", "묘"],
-  ["묘", "자"], // 자묘형
-  ["축", "술"],
-  ["술", "축"], // 축술형
-  ["인", "사"],
-  ["사", "신"],
-  ["신", "인"], // 인사신 삼형
-  ["진", "진"],
-  ["오", "오"],
-  ["유", "유"],
-  ["해", "해"], // 자형
-];
-
-const HAE_RELATIONS = [
-  ["자", "미"],
-  ["미", "자"], // 자미해
-  ["축", "오"],
-  ["오", "축"], // 축오해
-  ["인", "사"],
-  ["사", "인"], // 인사해
-  ["묘", "진"],
-  ["진", "묘"], // 묘진해
-  ["술", "해"],
-  ["해", "술"], // 술해해
-  ["유", "신"],
-  ["신", "유"], // 유신해
-];
-
-const PA_RELATIONS = [
-  ["자", "유"],
-  ["유", "자"], // 자유파
-  ["오", "묘"],
-  ["묘", "오"], // 오묘파
-  ["축", "진"],
-  ["진", "축"], // 축진파
-  ["미", "술"],
-  ["술", "미"], // 미술파
-];
-
-/**
- * 지지 충/형/해/파 삭감 계산 (50% 삭감)
- */
-function calculateJijiReductionPenalty(pillars: {
-  year: string;
-  month: string;
-  day: string;
-  hour: string;
-}): string[] {
-  const jiArray = [
-    pillars.year[1],
-    pillars.month[1],
-    pillars.day[1],
-    pillars.hour[1],
-  ];
-  const affectedJi: string[] = [];
-
-  // 충 관계 확인
-  for (const [ji1, ji2] of CHUNG_RELATIONS) {
-    if (jiArray.includes(ji1) && jiArray.includes(ji2)) {
-      if (!affectedJi.includes(ji1)) affectedJi.push(ji1);
-      if (!affectedJi.includes(ji2)) affectedJi.push(ji2);
-    }
-  }
-
-  // 형 관계 확인
-  for (const [ji1, ji2] of HYEONG_RELATIONS) {
-    if (jiArray.includes(ji1) && jiArray.includes(ji2)) {
-      if (!affectedJi.includes(ji1)) affectedJi.push(ji1);
-      if (!affectedJi.includes(ji2)) affectedJi.push(ji2);
-    }
-  }
-
-  // 해 관계 확인
-  for (const [ji1, ji2] of HAE_RELATIONS) {
-    if (jiArray.includes(ji1) && jiArray.includes(ji2)) {
-      if (!affectedJi.includes(ji1)) affectedJi.push(ji1);
-      if (!affectedJi.includes(ji2)) affectedJi.push(ji2);
-    }
-  }
-
-  // 파 관계 확인
-  for (const [ji1, ji2] of PA_RELATIONS) {
-    if (jiArray.includes(ji1) && jiArray.includes(ji2)) {
-      if (!affectedJi.includes(ji1)) affectedJi.push(ji1);
-      if (!affectedJi.includes(ji2)) affectedJi.push(ji2);
-    }
-  }
-
-  return affectedJi;
-}
-
-/**
- * 천간합 삭감 계산 (50% 삭감)
- */
-function calculateCheonganHapPenalty(pillars: {
-  year: string;
-  month: string;
-  day: string;
-  hour: string;
-}): string[] {
-  const ganArray = [
-    pillars.year[0],
-    pillars.month[0],
-    pillars.day[0],
-    pillars.hour[0],
-  ];
-  const affectedGan: string[] = [];
-
-  // 천간합 관계 확인
-  for (const gan of ganArray) {
-    const hapPartner = CHEONGANHAPHWA[gan];
-    if (hapPartner && ganArray.includes(hapPartner.partner)) {
-      if (!affectedGan.includes(gan)) affectedGan.push(gan);
-      if (!affectedGan.includes(hapPartner.partner))
-        affectedGan.push(hapPartner.partner);
-    }
-  }
-
-  return affectedGan;
-}
-
-/**
- * 십성별 간여지동 보너스 점수
- */
-const GANYJIDONG_BONUS: Record<string, number> = {
-  비견: 1.0,
-  겁재: 1.0,
-  정인: 1.5,
-  편인: 1.5,
-  식신: -0.5,
-  상관: -0.5,
-  정재: -1.0,
-  편재: -1.0,
-  정관: -1.5,
-  편관: -1.5,
-};
-
-/**
- * 간여지동 보너스 계산
- * 천간과 지지가 같은 오행일 때 해당 십성에 따른 보너스 적용
- */
-function calculateGanyjidongBonus(
-  pillars: { year: string; month: string; day: string; hour: string },
-  sipsinScores: {
-    year: {
-      gan: { name: string | null; score: number };
-      ji: { name: string | null; score: number };
-    };
-    month: {
-      gan: { name: string | null; score: number };
-      ji: { name: string | null; score: number };
-    };
-    day: {
-      gan: { name: string | null; score: number };
-      ji: { name: string | null; score: number };
-    };
-    hour: {
-      gan: { name: string | null; score: number };
-      ji: { name: string | null; score: number };
-    };
-  }
-): number {
-  let totalBonus = 0;
-
-  // 각 기둥별로 간여지동 확인
-  const pillarData = [
-    {
-      name: "year",
-      gan: pillars.year[0],
-      ji: pillars.year[1],
-      ganSipsin: sipsinScores.year.gan.name,
-      jiSipsin: sipsinScores.year.ji.name,
-    },
-    {
-      name: "month",
-      gan: pillars.month[0],
-      ji: pillars.month[1],
-      ganSipsin: sipsinScores.month.gan.name,
-      jiSipsin: sipsinScores.month.ji.name,
-    },
-    {
-      name: "day",
-      gan: pillars.day[0],
-      ji: pillars.day[1],
-      ganSipsin: sipsinScores.day.gan.name,
-      jiSipsin: sipsinScores.day.ji.name,
-    },
-    {
-      name: "hour",
-      gan: pillars.hour[0],
-      ji: pillars.hour[1],
-      ganSipsin: sipsinScores.hour.gan.name,
-      jiSipsin: sipsinScores.hour.ji.name,
-    },
-  ];
-
-  for (const pillar of pillarData) {
-    const ganOhaeng = GAN_TO_OHAENG[pillar.gan];
-    const jiOhaeng = JI_TO_OHAENG[pillar.ji];
-
-    // 간여지동 확인: 천간과 지지가 같은 오행인가?
-    if (ganOhaeng === jiOhaeng) {
-      // 천간 보너스 (일간은 본원이므로 제외)
-      if (pillar.name !== "day" || pillar.ganSipsin !== "본원") {
-        const ganBonus = pillar.ganSipsin
-          ? GANYJIDONG_BONUS[pillar.ganSipsin] || 0
-          : 0;
-        totalBonus += ganBonus;
-      }
-
-      // 지지 보너스
-      const jiBonus = pillar.jiSipsin
-        ? GANYJIDONG_BONUS[pillar.jiSipsin] || 0
-        : 0;
-      totalBonus += jiBonus;
-    }
-  }
-
-  return totalBonus;
-}
-
-/**
  * 패널티 계산 (현재는 세력만 고려하여 패널티 없음)
  */
 function calculatePenalties(): number {
@@ -665,7 +187,117 @@ function classifyNewWangseLevel(score: number): {
 }
 
 /**
- * 버전1: 새로운 신강신약 계산 함수
+ * 새로운 오행 기반 단순 계산 함수들
+ */
+
+// 득령 계산 (월지 오행 기준)
+function calculateSimpleDeukryeong(
+  dayGanOhaeng: string,
+  monthJiOhaeng: string
+): number {
+  if (dayGanOhaeng === monthJiOhaeng) {
+    return 10; // 일간과 같은 오행
+  }
+  if (isSupportingOhaeng(dayGanOhaeng, monthJiOhaeng)) {
+    return 8; // 일간을 도와주는 오행
+  }
+  return 0; // 해치는 오행이나 나머지 (음수 방지)
+}
+
+// 득지 계산 (일지 오행 기준)
+function calculateSimpleDeukji(
+  dayGanOhaeng: string,
+  dayJiOhaeng: string
+): number {
+  if (dayGanOhaeng === dayJiOhaeng) {
+    return 8; // 일간과 같은 오행
+  }
+  if (isSupportingOhaeng(dayGanOhaeng, dayJiOhaeng)) {
+    return 6; // 일간을 도와주는 오행
+  }
+  return 0; // 해치는 오행이나 나머지 (음수 방지)
+}
+
+// 득세 계산 (나머지 오행들)
+function calculateSimpleDeukse(
+  dayGanOhaeng: string,
+  pillars: { year: string; month: string; day: string; hour: string }
+): number {
+  let totalScore = 0;
+
+  // 천간 (년간, 월간, 시간) - 각 2-3점
+  const gans = [pillars.year[0], pillars.month[0], pillars.hour[0]];
+  for (const gan of gans) {
+    const ganOhaeng = GAN_TO_OHAENG[gan];
+    if (dayGanOhaeng === ganOhaeng) {
+      totalScore += 3; // 같은 오행
+    } else if (isSupportingOhaeng(dayGanOhaeng, ganOhaeng)) {
+      totalScore += 2; // 도움 오행
+    }
+    // 해치는 오행은 0점 (음수 방지)
+  }
+
+  // 지지 (년지, 시지) - 각 3-4점
+  const jis = [pillars.year[1], pillars.hour[1]];
+  for (const ji of jis) {
+    const jiOhaeng = JI_TO_OHAENG[ji];
+    if (dayGanOhaeng === jiOhaeng) {
+      totalScore += 4; // 같은 오행
+    } else if (isSupportingOhaeng(dayGanOhaeng, jiOhaeng)) {
+      totalScore += 3; // 도움 오행
+    }
+    // 해치는 오행은 0점 (음수 방지)
+  }
+
+  return totalScore;
+}
+
+// 간여지동 보너스 계산
+function calculateSimpleGanyjidongBonus(
+  dayGanOhaeng: string,
+  pillars: { year: string; month: string; day: string; hour: string }
+): number {
+  let bonus = 0;
+
+  const pillarPositions = [
+    { gan: pillars.year[0], ji: pillars.year[1] },
+    { gan: pillars.month[0], ji: pillars.month[1] },
+    { gan: pillars.day[0], ji: pillars.day[1] },
+    { gan: pillars.hour[0], ji: pillars.hour[1] },
+  ];
+
+  for (const pillar of pillarPositions) {
+    const ganOhaeng = GAN_TO_OHAENG[pillar.gan];
+    const jiOhaeng = JI_TO_OHAENG[pillar.ji];
+
+    // 간여지동 확인: 천간과 지지가 같은 오행
+    if (ganOhaeng === jiOhaeng) {
+      if (
+        dayGanOhaeng === ganOhaeng ||
+        isSupportingOhaeng(dayGanOhaeng, ganOhaeng)
+      ) {
+        bonus += 5; // 도움되는 간여지동
+      }
+    }
+  }
+
+  return bonus;
+}
+
+// 지지합 보너스 계산 (간소화)
+function calculateSimpleJijiHapBonus(): number {
+  // 간소화: 지지합 계산 생략 (복잡성 제거)
+  return 0;
+}
+
+// 삭감 계산 (간소화)
+function calculateSimplePenalties(): number {
+  // 간소화: 충형해파 삭감 생략 (복잡성 제거)
+  return 0;
+}
+
+/**
+ * 버전2: 새로운 오행 기반 신강신약 계산 함수
  */
 export function calculateNewWangseStrength(
   pillars: { year: string; month: string; day: string; hour: string },
@@ -675,82 +307,72 @@ export function calculateNewWangseStrength(
   const isYanggan = YANGGAN_LIST.includes(dayGan);
   const ganType: "양간" | "음간" = isYanggan ? "양간" : "음간";
 
-  console.log("🔍 [왕쇠강약] pillars:", pillars);
-  console.log("🔍 [왕쇠강약] dayGan:", dayGan);
+  console.log("🔍 [왕쇠강약 v2] pillars:", pillars);
+  console.log("🔍 [왕쇠강약 v2] dayGan:", dayGan);
 
-  // 1. 기본 가중치 4대 요소 계산
-  const deukryeongResult = calculateDeukryeong(dayGan, pillars.month[1]); // 득령 7점
-  const deukryeong = deukryeongResult.score;
-  const deukryeongGan = deukryeongResult.gan; // 득령 천간 저장
-  const deukji = calculateDeukji(dayGan, pillars.day[1]); // 득지 4점
-  const tonggeun = calculateTonggeun(dayGan, pillars); // 통근 2-3점
-  const deukse = calculateDeukse(dayGan, pillars); // 득세 1-2점
+  // 1. 오행 매핑
+  const dayGanOhaeng = GAN_TO_OHAENG[dayGan];
+  const monthJiOhaeng = JI_TO_OHAENG[pillars.month[1]];
+  const dayJiOhaeng = JI_TO_OHAENG[pillars.day[1]];
+
+  // 2. 득령 (월지 오행 기준)
+  const deukryeong = calculateSimpleDeukryeong(dayGanOhaeng, monthJiOhaeng);
+
+  // 3. 득지 (일지 오행 기준)
+  const deukji = calculateSimpleDeukji(dayGanOhaeng, dayJiOhaeng);
+
+  // 4. 득세 (나머지 오행들)
+  const deukse = calculateSimpleDeukse(dayGanOhaeng, pillars);
+
+  // 5. 보너스 계산
+  const ganyjidongBonus = calculateSimpleGanyjidongBonus(dayGanOhaeng, pillars);
+  const jijiHapBonus = calculateSimpleJijiHapBonus();
+
+  // 6. 삭감 계산
+  const penalties = calculateSimplePenalties();
+
+  // 7. 최종 점수 계산
+  const baseScore = deukryeong + deukji + deukse;
+  const totalBonus = ganyjidongBonus + jijiHapBonus;
+  const finalScore = Math.max(0, baseScore + totalBonus - penalties);
 
   console.log(
-    "🔍 [왕쇠강약] 득령:",
+    "🔍 [왕쇠강약 v2] 득령:",
     deukryeong,
     "득지:",
     deukji,
-    "통근:",
-    tonggeun,
     "득세:",
     deukse
   );
-
-  // 2. 보너스 계산
-  const ganyjidongBonus = calculateNewGanyjidongBonus(dayGan, pillars); // 간여지동 ±4점
-  const jijiHapBonus = calculateJijiHapBonus(dayGan, pillars); // 지지합 5점
-
-  // 3. 삭감 대상 확인
-  const affectedJi = calculateJijiReductionPenalty(pillars); // 충형해파 50% 삭감
-  const affectedGan = calculateCheonganHapPenalty(pillars); // 천간합 50% 삭감
-
-  // 4. 기본 점수 합산
-  const baseScore = deukryeong + deukji + tonggeun + deukse;
-
-  // 5. 보너스 합산 (삭감 적용 전)
-  const totalBonus = ganyjidongBonus + jijiHapBonus;
-
-  // 6. 삭감 적용 (득령 25%, 득지 50%)
-  // 지지 삭감: 득령, 득지, 통근, 득세 중 해당 지지 점수
-  let jiReduction = 0;
-  if (affectedJi.includes(pillars.month[1])) jiReduction += deukryeong * 0.25; // 득령 삭감 25%
-  if (affectedJi.includes(pillars.day[1])) jiReduction += deukji * 0.5; // 득지 삭감 50%
-  // 통근, 득세 지지 부분도 삭감 (복잡하므로 간소화)
-
-  // 천간 삭감: 득세 천간 부분, 간여지동 천간 부분
-  let ganReduction = 0;
-  // 간소화: 천간합이 있으면 전체 보너스의 일부 삭감
-  if (affectedGan.length > 0) {
-    ganReduction = totalBonus * 0.2; // 간소화된 삭감
-  }
-
-  // 7. 최종 점수 계산
-  const finalScore = Math.max(
-    0,
-    baseScore + totalBonus - jiReduction - ganReduction
+  console.log(
+    "🔍 [왕쇠강약 v2] 보너스:",
+    totalBonus,
+    "삭감:",
+    penalties,
+    "최종:",
+    finalScore
   );
 
   // 8. 레벨 분류
   const { level, levelDetail } = classifyNewWangseLevel(finalScore);
 
-  // 9. 결과 반환 (기존 인터페이스 호환성 유지)
+  // 9. 결과 반환
   return {
-    ganType, // 실제 양간/음간 구분
-    rawScore: baseScore + totalBonus, // 삭감 전 점수
+    ganType,
+    rawScore: baseScore + totalBonus,
     finalScore,
     level,
     levelDetail,
-    deukryeongGan: deukryeongGan || undefined, // 득령 천간
+    deukryeongGan: undefined, // 간소화
     breakdown: {
-      pillarScores: [], // 간소화
+      pillarScores: [],
       bonuses: totalBonus,
-      penalties: jiReduction + ganReduction,
+      penalties: penalties,
       weightedTotal: baseScore,
       baseScore: baseScore,
       ganyjidongBonus: ganyjidongBonus,
     },
-    analysis: `신강신약 ${levelDetail} (${finalScore.toFixed(1)}점)`,
+    analysis: `신강신약 ${level} (${finalScore.toFixed(1)}점)`,
   };
 }
 
@@ -843,11 +465,8 @@ export function calculateWangseStrength(
     Math.min(10, (weightedTotal + bonuses + penalties) / 4)
   );
 
-  // 9. 간여지동 보너스 계산
-  const ganyjidongBonus = calculateGanyjidongBonus(pillars, sipsinScores);
-
-  // 10. 최종 점수 (기본 점수 + 간여지동 보너스)
-  const finalScore = Math.max(0, Math.min(10, baseScore + ganyjidongBonus));
+  // 9. 최종 점수 (간여지동 보너스 제거)
+  const finalScore = baseScore;
 
   // 11. 레벨 분류 - 새로운 신강신약 체계 적용
   const { level, levelDetail } = classifyNewWangseLevel(finalScore);
@@ -859,7 +478,7 @@ export function calculateWangseStrength(
     levelDetail,
     finalScore,
     bonuses,
-    ganyjidongBonus
+    0 // ganyjidongBonus 제거
   );
 
   return {
@@ -874,7 +493,7 @@ export function calculateWangseStrength(
       penalties,
       weightedTotal,
       baseScore, // 기본 점수 추가
-      ganyjidongBonus, // 간여지동 보너스 추가
+      ganyjidongBonus: 0, // 간여지동 보너스 제거
     },
     analysis,
   };

@@ -129,13 +129,12 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
     };
   } = {
     자: {
-      초기: { gan: "癸", days: 10 },
-      중기: { gan: "壬", days: 10 },
-      정기: { gan: "辛", days: 10 },
+      초기: { gan: "壬", days: 20 },
+      정기: { gan: "癸", days: 10 },
     },
     축: {
-      초기: { gan: "辛", days: 9 },
-      중기: { gan: "癸", days: 3 },
+      초기: { gan: "癸", days: 9 },
+      중기: { gan: "辛", days: 3 },
       정기: { gan: "己", days: 18 },
     },
     인: {
@@ -1218,166 +1217,334 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
           {expandedSections.gyeokguk && (
             <div className="px-4 pb-4">
               <div className="space-y-4">
-                {/* 격국 분석 카드 - 버전2 */}
-                <div className="bg-gradient-to-br from-slate-50 to-blue-50 rounded-2xl p-8 border border-slate-200 shadow-lg">
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-                    {/* 격이름 */}
-                    <div className="group">
-                      <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-5 border-2 border-red-200 hover:border-red-300 transition-all duration-200 hover:shadow-md">
-                        <div className="flex flex-col items-center space-y-3">
-                          <div className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center">
-                            <span className="text-white font-bold text-sm">
-                              格
-                            </span>
-                          </div>
-                          <div className="text-center">
-                            <div className="text-xs font-semibold text-red-600 mb-1">
-                              격이름
-                            </div>
-                            <div className="text-base font-bold text-gray-800">
-                              {(sajuData as SajuData)?.gyeokguk?.gyeokguk
-                                ?.name || "분석중"}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              {(sajuData as SajuData)?.gyeokguk?.gyeokguk
-                                ?.name === "정관격" && "正官格"}
-                              {(sajuData as SajuData)?.gyeokguk?.gyeokguk
-                                ?.name === "정인격" && "正印格"}
-                              {(sajuData as SajuData)?.gyeokguk?.gyeokguk
-                                ?.name === "정재격" && "正財格"}
-                              {(sajuData as SajuData)?.gyeokguk?.gyeokguk
-                                ?.name === "편관격" && "偏官格"}
-                              {(sajuData as SajuData)?.gyeokguk?.gyeokguk
-                                ?.name === "편인격" && "偏印格"}
-                              {(sajuData as SajuData)?.gyeokguk?.gyeokguk
-                                ?.name === "편재격" && "偏財格"}
-                              {(sajuData as SajuData)?.gyeokguk?.gyeokguk
-                                ?.name === "식신격" && "食神格"}
-                              {(sajuData as SajuData)?.gyeokguk?.gyeokguk
-                                ?.name === "상관격" && "傷官格"}
-                              {!(sajuData as SajuData)?.gyeokguk?.gyeokguk
-                                ?.name && "分析中"}
-                            </div>
-                          </div>
+                {/* 격국 분석 카드 - 버전3 (깔끔한 7개 카드) */}
+                <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+                    {/* 1. 격이름 */}
+                    <div className="bg-gradient-to-b from-gray-50 to-white rounded-lg p-4 border border-gray-200 hover:border-indigo-300 hover:shadow-md transition-all">
+                      <div className="text-center space-y-2">
+                        <div className="text-xs font-medium text-indigo-600 uppercase tracking-wide">
+                          격이름
+                        </div>
+                        <div className="text-lg font-bold text-gray-900">
+                          {(sajuData as SajuData)?.gyeokguk?.gyeokguk?.name ||
+                            "—"}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {(() => {
+                            const name = (sajuData as SajuData)?.gyeokguk
+                              ?.gyeokguk?.name;
+                            const hanjaMap: Record<string, string> = {
+                              정관격: "正官格",
+                              편관격: "偏官格",
+                              정재격: "正財格",
+                              편재격: "偏財格",
+                              식신격: "食神格",
+                              상관격: "傷官格",
+                              정인격: "正印格",
+                              편인격: "偏印格",
+                              건록격: "建祿格",
+                              양인격: "羊刃格",
+                            };
+                            return hanjaMap[name || ""] || "—";
+                          })()}
                         </div>
                       </div>
                     </div>
 
-                    {/* 월령 */}
-                    <div className="group">
-                      <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-5 border-2 border-orange-200 hover:border-orange-300 transition-all duration-200 hover:shadow-md">
-                        <div className="flex flex-col items-center space-y-3">
-                          <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
-                            <span className="text-white font-bold text-sm">
-                              令
-                            </span>
-                          </div>
-                          <div className="text-center">
-                            <div className="text-xs font-semibold text-orange-600 mb-1">
-                              월령
-                            </div>
-                            <div className="text-base font-bold text-gray-800">
-                              득령
-                            </div>
-                            <div className="text-xs text-gray-500">得令</div>
-                          </div>
+                    {/* 2. 월령 */}
+                    <div className="bg-gradient-to-b from-gray-50 to-white rounded-lg p-4 border border-gray-200 hover:border-orange-300 hover:shadow-md transition-all">
+                      <div className="text-center space-y-2">
+                        <div className="text-xs font-medium text-orange-600 uppercase tracking-wide">
+                          월령
+                        </div>
+                        <div className="text-lg font-bold">
+                          {(() => {
+                            // 월령 = 월지의 정기(본기) 천간
+                            const monthJi = (sajuData as SajuData)?.pillars
+                              ?.month?.ji;
+                            if (!monthJi)
+                              return <span className="text-gray-400">—</span>;
+
+                            // 월지별 정기 천간 매핑
+                            const monthJiToJeongi: Record<string, string> = {
+                              子: "癸", // 자수 정기: 계수
+                              丑: "己", // 축토 정기: 기토
+                              寅: "甲", // 인목 정기: 갑목
+                              卯: "乙", // 묘목 정기: 을목
+                              辰: "戊", // 진토 정기: 무토
+                              巳: "丙", // 사화 정기: 병화
+                              午: "丁", // 오화 정기: 정화
+                              未: "己", // 미토 정기: 기토
+                              申: "庚", // 신금 정기: 경금
+                              酉: "辛", // 유금 정기: 신금
+                              戌: "戊", // 술토 정기: 무토
+                              亥: "壬", // 해수 정기: 임수
+                            };
+
+                            const wollyeongGan = monthJiToJeongi[monthJi];
+                            if (!wollyeongGan)
+                              return <span className="text-gray-400">—</span>;
+
+                            // 천간 → 오행 매핑
+                            const ganToOhaeng: Record<string, string> = {
+                              甲: "木",
+                              乙: "木",
+                              丙: "火",
+                              丁: "火",
+                              戊: "土",
+                              己: "土",
+                              庚: "金",
+                              辛: "金",
+                              壬: "水",
+                              癸: "水",
+                            };
+
+                            const ohaeng = ganToOhaeng[wollyeongGan];
+
+                            // 오행 색상
+                            const colorMap: Record<string, string> = {
+                              木: "text-green-600",
+                              火: "text-red-600",
+                              土: "text-yellow-600",
+                              金: "text-gray-600",
+                              水: "text-blue-600",
+                            };
+
+                            return (
+                              <span
+                                className={colorMap[ohaeng] || "text-gray-800"}
+                              >
+                                {wollyeongGan}({ohaeng})
+                              </span>
+                            );
+                          })()}
+                        </div>
+                        <div className="text-xs text-gray-400">得令</div>
+                      </div>
+                    </div>
+
+                    {/* 3. 당령 */}
+                    <div className="bg-gradient-to-b from-gray-50 to-white rounded-lg p-4 border border-gray-200 hover:border-amber-300 hover:shadow-md transition-all">
+                      <div className="text-center space-y-2">
+                        <div className="text-xs font-medium text-amber-600 uppercase tracking-wide">
+                          당령
+                        </div>
+                        <div className="text-lg font-bold">
+                          {(() => {
+                            const dangnyeongGan = (sajuData as SajuData)
+                              ?.dangnyeong?.dangnyeongGan;
+                            if (!dangnyeongGan)
+                              return <span className="text-gray-400">—</span>;
+
+                            // 한글 -> 한자 변환
+                            const hangulToHanja: Record<string, string> = {
+                              갑: "甲",
+                              을: "乙",
+                              병: "丙",
+                              정: "丁",
+                              무: "戊",
+                              기: "己",
+                              경: "庚",
+                              신: "辛",
+                              임: "壬",
+                              계: "癸",
+                            };
+                            const displayGan =
+                              hangulToHanja[dangnyeongGan] || dangnyeongGan;
+
+                            // 오행 가져오기
+                            const ganToOhaeng: Record<string, string> = {
+                              甲: "木",
+                              乙: "木",
+                              丙: "火",
+                              丁: "火",
+                              戊: "土",
+                              己: "土",
+                              庚: "金",
+                              辛: "金",
+                              壬: "水",
+                              癸: "水",
+                              갑: "木",
+                              을: "木",
+                              병: "火",
+                              정: "火",
+                              무: "土",
+                              기: "土",
+                              경: "金",
+                              신: "金",
+                              임: "水",
+                              계: "水",
+                            };
+                            const ohaeng = ganToOhaeng[dangnyeongGan] || "";
+
+                            // 오행별 색상
+                            const colorMap: Record<string, string> = {
+                              木: "text-green-600",
+                              火: "text-red-600",
+                              土: "text-yellow-600",
+                              金: "text-gray-600",
+                              水: "text-blue-600",
+                            };
+
+                            return (
+                              <span
+                                className={colorMap[ohaeng] || "text-gray-800"}
+                              >
+                                {displayGan}({ohaeng})
+                              </span>
+                            );
+                          })()}
+                        </div>
+                        <div className="text-xs text-gray-400">當令</div>
+                      </div>
+                    </div>
+
+                    {/* 4. 사령 */}
+                    <div className="bg-gradient-to-b from-gray-50 to-white rounded-lg p-4 border border-gray-200 hover:border-yellow-300 hover:shadow-md transition-all">
+                      <div className="text-center space-y-2">
+                        <div className="text-xs font-medium text-yellow-600 uppercase tracking-wide">
+                          사령
+                        </div>
+                        <div className="text-lg font-bold">
+                          {(() => {
+                            const saryeongGan = (sajuData as SajuData)?.saryeong
+                              ?.saryeongGan;
+                            if (!saryeongGan)
+                              return <span className="text-gray-400">—</span>;
+
+                            // 한글 -> 한자 변환
+                            const hangulToHanja: Record<string, string> = {
+                              갑: "甲",
+                              을: "乙",
+                              병: "丙",
+                              정: "丁",
+                              무: "戊",
+                              기: "己",
+                              경: "庚",
+                              신: "辛",
+                              임: "壬",
+                              계: "癸",
+                            };
+                            const displayGan =
+                              hangulToHanja[saryeongGan] || saryeongGan;
+
+                            // 오행 가져오기
+                            const ganToOhaeng: Record<string, string> = {
+                              甲: "木",
+                              乙: "木",
+                              丙: "火",
+                              丁: "火",
+                              戊: "土",
+                              己: "土",
+                              庚: "金",
+                              辛: "金",
+                              壬: "水",
+                              癸: "水",
+                              갑: "木",
+                              을: "木",
+                              병: "火",
+                              정: "火",
+                              무: "土",
+                              기: "土",
+                              경: "金",
+                              신: "金",
+                              임: "水",
+                              계: "水",
+                            };
+                            const ohaeng = ganToOhaeng[saryeongGan] || "";
+
+                            // 오행별 색상
+                            const colorMap: Record<string, string> = {
+                              木: "text-green-600",
+                              火: "text-red-600",
+                              土: "text-yellow-600",
+                              金: "text-gray-600",
+                              水: "text-blue-600",
+                            };
+
+                            return (
+                              <span
+                                className={colorMap[ohaeng] || "text-gray-800"}
+                              >
+                                {displayGan}({ohaeng})
+                              </span>
+                            );
+                          })()}
+                        </div>
+                        <div className="text-xs text-gray-400">
+                          {(() => {
+                            const role = (sajuData as SajuData)?.saryeong?.role;
+                            if (!role) return "司令";
+                            const roleMap: Record<string, string> = {
+                              초기: "初氣",
+                              중기: "中氣",
+                              정기: "正氣",
+                            };
+                            return roleMap[role] || "司令";
+                          })()}
                         </div>
                       </div>
                     </div>
 
-                    {/* 사령 */}
-                    <div className="group">
-                      <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl p-5 border-2 border-yellow-200 hover:border-yellow-300 transition-all duration-200 hover:shadow-md">
-                        <div className="flex flex-col items-center space-y-3">
-                          <div className="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center">
-                            <span className="text-white font-bold text-sm">
-                              司
-                            </span>
-                          </div>
-                          <div className="text-center">
-                            <div className="text-xs font-semibold text-yellow-600 mb-1">
-                              사령
-                            </div>
-                            <div className="text-base font-bold text-gray-800">
-                              투간
-                            </div>
-                            <div className="text-xs text-gray-500">透干</div>
-                          </div>
+                    {/* 5. 진신 */}
+                    <div className="bg-gradient-to-b from-gray-50 to-white rounded-lg p-4 border border-gray-200 hover:border-green-300 hover:shadow-md transition-all">
+                      <div className="text-center space-y-2">
+                        <div className="text-xs font-medium text-green-600 uppercase tracking-wide">
+                          진신
+                        </div>
+                        <div className="text-lg font-bold text-gray-900">
+                          {(sajuData as SajuData)?.jinsin?.jinsin || "—"}
+                        </div>
+                        <div className="text-xs text-gray-400">
+                          {(sajuData as SajuData)?.jinsin?.strength
+                            ? `${(sajuData as SajuData)?.jinsin?.strength}%`
+                            : "—"}
                         </div>
                       </div>
                     </div>
 
-                    {/* 진신 */}
-                    <div className="group">
-                      <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-5 border-2 border-green-200 hover:border-green-300 transition-all duration-200 hover:shadow-md">
-                        <div className="flex flex-col items-center space-y-3">
-                          <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
-                            <span className="text-white font-bold text-sm">
-                              眞
-                            </span>
-                          </div>
-                          <div className="text-center">
-                            <div className="text-xs font-semibold text-green-600 mb-1">
-                              진신
-                            </div>
-                            <div className="text-base font-bold text-gray-800">
-                              유근
-                            </div>
-                            <div className="text-xs text-gray-500">有根</div>
-                          </div>
+                    {/* 6. 가신 */}
+                    <div className="bg-gradient-to-b from-gray-50 to-white rounded-lg p-4 border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all">
+                      <div className="text-center space-y-2">
+                        <div className="text-xs font-medium text-blue-600 uppercase tracking-wide">
+                          가신
+                        </div>
+                        <div className="text-lg font-bold text-gray-900">
+                          {(
+                            sajuData as SajuData
+                          )?.jinsin?.conflictingFactors?.join(", ") || "—"}
+                        </div>
+                        <div className="text-xs text-gray-400">
+                          {(sajuData as SajuData)?.jinsin?.confidence
+                            ? `신뢰도 ${
+                                (sajuData as SajuData)?.jinsin?.confidence
+                              }%`
+                            : "—"}
                         </div>
                       </div>
                     </div>
 
-                    {/* 가신 */}
-                    <div className="group">
-                      <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-5 border-2 border-blue-200 hover:border-blue-300 transition-all duration-200 hover:shadow-md">
-                        <div className="flex flex-col items-center space-y-3">
-                          <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
-                            <span className="text-white font-bold text-sm">
-                              假
-                            </span>
-                          </div>
-                          <div className="text-center">
-                            <div className="text-xs font-semibold text-blue-600 mb-1">
-                              가신
-                            </div>
-                            <div className="text-base font-bold text-gray-800">
-                              재성
-                            </div>
-                            <div className="text-xs text-gray-500">財星</div>
-                          </div>
+                    {/* 7. 상신 */}
+                    <div className="bg-gradient-to-b from-gray-50 to-white rounded-lg p-4 border border-gray-200 hover:border-purple-300 hover:shadow-md transition-all">
+                      <div className="text-center space-y-2">
+                        <div className="text-xs font-medium text-purple-600 uppercase tracking-wide">
+                          상신
                         </div>
-                      </div>
-                    </div>
-
-                    {/* 상신 */}
-                    <div className="group">
-                      <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-5 border-2 border-purple-200 hover:border-purple-300 transition-all duration-200 hover:shadow-md">
-                        <div className="flex flex-col items-center space-y-3">
-                          <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center">
-                            <span className="text-white font-bold text-sm">
-                              相
-                            </span>
-                          </div>
-                          <div className="text-center">
-                            <div className="text-xs font-semibold text-purple-600 mb-1">
-                              상신
-                            </div>
-                            <div className="text-base font-bold text-gray-800">
-                              인성
-                            </div>
-                            <div className="text-xs text-gray-500">印星</div>
-                          </div>
+                        <div className="text-lg font-bold text-gray-900">
+                          인성
                         </div>
+                        <div className="text-xs text-gray-400">印星</div>
                       </div>
                     </div>
                   </div>
 
                   {/* 버전 정보 */}
-                  <div className="mt-6 flex items-center justify-center space-x-4">
-                    <div className="flex items-center space-x-2 bg-slate-100 text-slate-600 px-3 py-1 rounded-full">
-                      <span className="text-xs font-medium">버전2 디자인</span>
+                  <div className="mt-6 pt-4 border-t border-gray-100 flex items-center justify-center space-x-4">
+                    <div className="flex items-center space-x-2 bg-gray-100 text-gray-600 px-3 py-1.5 rounded-full">
+                      <span className="text-xs font-medium">
+                        버전3 · 깔끔한 디자인
+                      </span>
                     </div>
                     <div className="flex items-center space-x-2">
                       {(sajuData as SajuData)?.gyeokguk ? (

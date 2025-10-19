@@ -79,6 +79,7 @@ export interface SajuData {
   wangseStrength?: import("../services/wangse-strength.service").WangseResult; // ✅ 왕쇠강약 분석 추가 (선택적)
   dangnyeong?: import("../services/dangnyeong.service").DangnyeongResult; // ✅ 당령 분석 추가 (선택적)
   saryeong?: import("../services/saryeong.service").SaryeongResult; // ✅ 사령 분석 추가 (선택적)
+  jinsin?: import("../services/jinsin.service").JinsinResult; // ✅ 진신 분석 추가 (선택적)
   gyeokguk?: import("../services/gyeokguk.service").GyeokgukAnalysis; // ✅ 격국 분석 추가 (선택적)
   currentDaewoon: Daewoon | null;
   currentSewoon: SewoonData;

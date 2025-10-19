@@ -89,6 +89,7 @@ export interface WangseResult {
   finalScore: number;
   level: string;
   levelDetail: string;
+  deukryeongGan?: string; // 득령한 천간 (지장간 중)
   breakdown: {
     pillarScores: Array<{
       pillar: string;
@@ -137,6 +138,9 @@ export interface SajuData {
     yukae: string[]; // 육해 관계
   };
   wangseStrength?: WangseResult; // ✅ 왕쇠강약 분석 추가 (선택적)
+  dangnyeong?: DangnyeongResult; // ✅ 당령 분석 추가 (선택적)
+  saryeong?: SaryeongResult; // ✅ 사령 분석 추가 (선택적)
+  jinsin?: JinsinResult; // ✅ 진신 분석 추가 (선택적)
   gyeokguk?: GyeokgukAnalysis; // ✅ 격국 분석 추가 (선택적)
   currentDaewoon: Daewoon | null;
   currentSewoon: SewoonData;
@@ -270,9 +274,49 @@ export interface GyeokgukType {
   };
 }
 
+// 당령 분석 결과 (백엔드와 동일)
+export interface DangnyeongResult {
+  dangnyeongGan: string; // 당령 천간 (한글, 예: "신")
+  jeolgi: string; // 해당 절기 (예: "상강")
+  jeolgiStart: Date; // 절기 시작일
+  jeolgiEnd: Date | null; // 절기 종료일 (다음 절기 시작일)
+}
+
+// 사령 분석 결과 (백엔드와 동일)
+export interface SaryeongResult {
+  saryeongGan: string; // 사령 천간 (한글, 예: "무")
+  role: "초기" | "중기" | "정기"; // 해당 구간 (여기/중기/본기)
+  monthJi: string; // 월지 (예: "술")
+  jeolgiStart: Date; // 절기 시작일
+  jeolgiEnd: Date | null; // 절기 종료일
+  daysFromStart: number; // 절기 시작일로부터 경과일수
+}
+
+export interface JinsinResult {
+  jinsin: string; // 진신 (예: "유근", "무근", "병근" 등)
+  jinsinType:
+    | "유근"
+    | "무근"
+    | "병근"
+    | "정근"
+    | "기근"
+    | "경근"
+    | "신근"
+    | "임근"
+    | "계근"
+    | "갑근"
+    | "을근";
+  strength: number; // 진신의 강도 (0-100)
+  reason: string; // 진신 판단 근거
+  supportingFactors: string[]; // 진신을 도와주는 요소들
+  conflictingFactors: string[]; // 진신을 해치는 요소들
+  confidence: number; // 신뢰도 (0-100)
+}
+
 export interface GyeokgukAnalysis {
   gyeokguk: GyeokgukType | null; // 확정된 격국
   monthJiSipsin: string; // 월지 십성
+  saRyeongGan: string | null; // 사령 천간 (격국을 이루는 지장간 천간)
   isSuccess: boolean; // 성격 여부
   breakFactors: string[]; // 파격 요인들
   yongsinType: string; // 용신 유형 ("印", "財", "官" 등)
