@@ -229,7 +229,7 @@ export const getSajuDetails = async (
   const saryeongResult = analyzeSaryeong(birthDate, monthPillar[1]);
 
   // ✅ 진신 분석 (가장 강한 십성)
-  const jinsinResult = calculateJinsin(pillars);
+  const jinsinResult = calculateJinsin(pillars, { birthDate });
 
   // ✅ 격국 분석 (임시 sajuData로 먼저 생성 후 분석)
   const tempSajuData = {
