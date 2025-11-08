@@ -7,7 +7,7 @@
 export interface GyeokgukType {
   name: string; // 격국명 (예: "정관격")
   code: string; // 격국 코드 (예: "JEONGGWAN")
-  category: "정격" | "외격"; // 격국 분류
+  category: "정격" | "외잡격" | "응용격국"; // 격국 분류
   baseSipsin: string; // 기준 십성 (월지 십성)
   description: string; // 격국 설명
 
@@ -218,12 +218,12 @@ export const GYEOKGUK_DATA: Record<string, GyeokgukType> = {
     },
   },
 
-  // ========== 외격 (外格) ==========
+  // ========== 외잡격 (外雜格) ==========
 
   GEONROK: {
     name: "건록격",
     code: "GEONROK",
-    category: "외격",
+    category: "외잡격",
     baseSipsin: "비견",
     description: "월지에 일간의 록이 있어 일간이 건왕한 격국",
     success: {
@@ -245,7 +245,7 @@ export const GYEOKGUK_DATA: Record<string, GyeokgukType> = {
   YANGIN: {
     name: "양인격",
     code: "YANGIN",
-    category: "외격",
+    category: "외잡격",
     baseSipsin: "겁재",
     description: "월지에 양인이 있어 양인을 제어하여 쓰는 격국",
     success: {
@@ -263,6 +263,9 @@ export const GYEOKGUK_DATA: Record<string, GyeokgukType> = {
       priority: 10,
     },
   },
+
+  // ========== 응용격국 (應用格局) ==========
+  // 응용격국은 여기에 추가됩니다.
 };
 
 /**

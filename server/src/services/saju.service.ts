@@ -11,6 +11,7 @@ import { analyzeGyeokguk } from "./gyeokguk.service";
 import { analyzeDangnyeong } from "./dangnyeong.service"; // ✅ 당령 분석 import
 import { analyzeSaryeong } from "./saryeong.service"; // ✅ 사령 분석 import
 import { calculateJinsin } from "./jinsin.service"; // ✅ 진신 분석 import
+import { analyzeYongsin } from "./yongsin.service";
 import {
   getSeasonalDataForYear,
   getLoadedSeasonalData,
@@ -65,7 +66,8 @@ const getMonthGanji = (
     ? 8
     : 0;
 
-  const finalGanIndex = (monthGanStartIndex + monthJiIndex - 2 + 10) % 10;
+  const monthIndexFromTiger = (monthJiIndex + 12 - 2) % 12;
+  const finalGanIndex = (monthGanStartIndex + monthIndexFromTiger) % 10;
   const monthGan = GAN[finalGanIndex];
 
   return monthGan + monthJi;
@@ -111,8 +113,9 @@ export const getDayGanji = (date: Date): string => {
 const getHourGanji = (date: Date, dayGan: string): string => {
   const hour = date.getHours();
   const min = date.getMinutes();
-  const hourJiIndex =
-    hour === 23 && min >= 30 ? 0 : Math.floor((hour + 1) / 2) % 12;
+  const totalMinutes = hour * 60 + min;
+  const adjustedMinutes = (totalMinutes + 30) % 1440;
+  const hourJiIndex = Math.floor(adjustedMinutes / 120);
   const hourJi = JI[hourJiIndex];
 
   const dayGanIndex = GAN.indexOf(dayGan);
@@ -229,7 +232,7 @@ export const getSajuDetails = async (
   const saryeongResult = analyzeSaryeong(birthDate, monthPillar[1]);
 
   // ✅ 진신 분석 (가장 강한 십성)
-  const jinsinResult = calculateJinsin(pillars, { birthDate });
+  const jinsinResult = calculateJinsin(pillars);
 
   // ✅ 격국 분석 (임시 sajuData로 먼저 생성 후 분석)
   const tempSajuData = {
@@ -306,6 +309,13 @@ export const getSajuDetails = async (
     currentWoolwoon,
     nextYearWoolwoon,
   };
+
+  // ✅ 용신 분석 추가 (용희기구한 데이터)
+  try {
+    sajuData.yongsin = analyzeYongsin(sajuData, currentDaewoon);
+  } catch (error) {
+    console.error("용신 분석 중 오류 발생:", error);
+  }
 
   const interpretation: InterpretationResult = interpretSaju(sajuData);
 

@@ -92,6 +92,288 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
     }>
   > | null>(null);
 
+  const yongsinData = (sajuData as SajuData)?.yongsin;
+  const jinsinResult = (sajuData as SajuData)?.jinsin;
+
+  const GAN_TO_OHAENG_KOR: Record<string, string> = {
+    甲: "목",
+    乙: "목",
+    丙: "화",
+    丁: "화",
+    戊: "토",
+    己: "토",
+    庚: "금",
+    辛: "금",
+    壬: "수",
+    癸: "수",
+  };
+
+  const GAN_TO_LABEL: Record<string, string> = {
+    甲: "갑목",
+    乙: "을목",
+    丙: "병화",
+    丁: "정화",
+    戊: "무토",
+    己: "기토",
+    庚: "경금",
+    辛: "신금",
+    壬: "임수",
+    癸: "계수",
+  };
+
+  const CATEGORY_LABELS: Array<{
+    key: "hui" | "gi" | "gu" | "han";
+    label: string;
+  }> = [
+    { key: "hui", label: "희신" },
+    { key: "gi", label: "기신" },
+    { key: "gu", label: "구신" },
+    { key: "han", label: "한신" },
+  ];
+
+  type YongsinCardKey = "yongsin" | "hui" | "gi" | "gu" | "han";
+
+  interface CardStyle {
+    gradient: string;
+    border: string;
+    pillClass: string;
+    valueClass: string;
+  }
+
+  const BASE_CARD_STYLE: Record<YongsinCardKey, CardStyle> = {
+    yongsin: {
+      gradient: "from-emerald-50 via-white to-emerald-100",
+      border: "border-emerald-200",
+      pillClass: "border border-emerald-200 bg-emerald-500/10 text-emerald-600",
+      valueClass: "text-emerald-800",
+    },
+    hui: {
+      gradient: "from-sky-50 via-white to-cyan-100",
+      border: "border-sky-200",
+      pillClass: "border border-sky-200 bg-sky-500/10 text-sky-600",
+      valueClass: "text-sky-700",
+    },
+    gi: {
+      gradient: "from-rose-50 via-white to-rose-100",
+      border: "border-rose-200",
+      pillClass: "border border-rose-200 bg-rose-500/10 text-rose-600",
+      valueClass: "text-rose-700",
+    },
+    gu: {
+      gradient: "from-amber-50 via-white to-amber-100",
+      border: "border-amber-200",
+      pillClass: "border border-amber-200 bg-amber-500/10 text-amber-600",
+      valueClass: "text-amber-700",
+    },
+    han: {
+      gradient: "from-slate-50 via-white to-gray-100",
+      border: "border-slate-200",
+      pillClass: "border border-slate-200 bg-slate-500/10 text-slate-600",
+      valueClass: "text-slate-700",
+    },
+  };
+
+  const ELEMENT_CARD_STYLE: Record<string, CardStyle> = {
+    목: {
+      gradient: "from-emerald-50 via-white to-emerald-100",
+      border: "border-emerald-200",
+      pillClass: "border border-emerald-200 bg-emerald-500/10 text-emerald-600",
+      valueClass: "text-emerald-700",
+    },
+    화: {
+      gradient: "from-rose-50 via-white to-rose-100",
+      border: "border-rose-200",
+      pillClass: "border border-rose-200 bg-rose-500/10 text-rose-600",
+      valueClass: "text-rose-700",
+    },
+    토: {
+      gradient: "from-amber-50 via-white to-amber-100",
+      border: "border-amber-200",
+      pillClass: "border border-amber-200 bg-amber-500/10 text-amber-600",
+      valueClass: "text-amber-700",
+    },
+    금: {
+      gradient: "from-slate-50 via-white to-slate-100",
+      border: "border-slate-200",
+      pillClass: "border border-slate-200 bg-slate-500/10 text-slate-600",
+      valueClass: "text-slate-700",
+    },
+    수: {
+      gradient: "from-sky-50 via-white to-sky-100",
+      border: "border-sky-200",
+      pillClass: "border border-sky-200 bg-sky-500/10 text-sky-600",
+      valueClass: "text-sky-700",
+    },
+  };
+
+  type GyeokgukCardKey =
+    | "name"
+    | "wollyeong"
+    | "dangnyeong"
+    | "saryeong"
+    | "jinsin"
+    | "gasin";
+
+  const GYEOKGUK_CARD_META: Record<GyeokgukCardKey, CardStyle> = {
+    name: {
+      gradient: "from-indigo-50 via-white to-indigo-100",
+      border: "border-indigo-200",
+      pillClass: "border border-indigo-200 bg-indigo-500/10 text-indigo-600",
+      valueClass: "text-indigo-700",
+    },
+    wollyeong: {
+      gradient: "from-orange-50 via-white to-orange-100",
+      border: "border-orange-200",
+      pillClass: "border border-orange-200 bg-orange-500/10 text-orange-600",
+      valueClass: "text-orange-700",
+    },
+    dangnyeong: {
+      gradient: "from-amber-50 via-white to-amber-100",
+      border: "border-amber-200",
+      pillClass: "border border-amber-200 bg-amber-500/10 text-amber-600",
+      valueClass: "text-amber-700",
+    },
+    saryeong: {
+      gradient: "from-yellow-50 via-white to-yellow-100",
+      border: "border-yellow-200",
+      pillClass: "border border-yellow-200 bg-yellow-500/10 text-yellow-600",
+      valueClass: "text-yellow-700",
+    },
+    jinsin: {
+      gradient: "from-emerald-50 via-white to-emerald-100",
+      border: "border-emerald-200",
+      pillClass: "border border-emerald-200 bg-emerald-500/10 text-emerald-600",
+      valueClass: "text-emerald-700",
+    },
+    gasin: {
+      gradient: "from-sky-50 via-white to-sky-100",
+      border: "border-sky-200",
+      pillClass: "border border-sky-200 bg-sky-500/10 text-sky-600",
+      valueClass: "text-sky-700",
+    },
+  };
+
+  const OHAENG_TO_HANJA: Record<string, string> = {
+    목: "木",
+    화: "火",
+    토: "土",
+    금: "金",
+    수: "水",
+  };
+
+  const HANJA_TO_OHAENG_KOR: Record<string, string> = {
+    木: "목",
+    火: "화",
+    土: "토",
+    金: "금",
+    水: "수",
+  };
+
+  const OHAENG_COLOR_CLASS: Record<string, string> = {
+    목: "text-green-600",
+    화: "text-red-500",
+    토: "text-amber-600",
+    금: "text-slate-600",
+    수: "text-blue-600",
+  };
+
+  const primaryYongsinHanja = yongsinData?.primaryYongsin || "";
+  const primaryOhaengKor = primaryYongsinHanja
+    ? GAN_TO_OHAENG_KOR[primaryYongsinHanja] || ""
+    : "";
+  const primaryOhaengHanja = primaryOhaengKor
+    ? OHAENG_TO_HANJA[primaryOhaengKor] || ""
+    : "";
+  const primaryYongsinLabel = primaryYongsinHanja
+    ? primaryOhaengHanja
+      ? `${primaryYongsinHanja} (${primaryOhaengHanja})`
+      : primaryYongsinHanja
+    : "-";
+
+  const categoryElements = CATEGORY_LABELS.reduce<Record<string, string>>(
+    (acc, { key }) => {
+      acc[key] = "-";
+      return acc;
+    },
+    {}
+  );
+
+  if (primaryOhaengKor) {
+    const PRODUCED_BY: Record<string, string> = {
+      목: "수",
+      화: "목",
+      토: "화",
+      금: "토",
+      수: "금",
+    };
+
+    const CONTROLLED_BY: Record<string, string> = {
+      목: "금",
+      화: "수",
+      토: "목",
+      금: "화",
+      수: "토",
+    };
+
+    const setCategoryElement = (
+      key: "hui" | "gi" | "gu" | "han",
+      elementKor?: string
+    ) => {
+      if (!elementKor) return;
+      categoryElements[key] = OHAENG_TO_HANJA[elementKor] || elementKor || "-";
+    };
+
+    const huiElement = PRODUCED_BY[primaryOhaengKor];
+    setCategoryElement("hui", huiElement);
+
+    const giElement = CONTROLLED_BY[primaryOhaengKor];
+    setCategoryElement("gi", giElement);
+
+    if (giElement) {
+      setCategoryElement("gu", PRODUCED_BY[giElement]);
+      setCategoryElement("han", CONTROLLED_BY[giElement]);
+    }
+  }
+
+  const renderGanChips = (list?: string[]) => {
+    if (!list || list.length === 0) {
+      return (
+        <span className="inline-flex items-center justify-center rounded-md border border-dashed border-gray-300 px-2 py-1 text-[12px] font-medium text-gray-400">
+          —
+        </span>
+      );
+    }
+
+    return list.map((gan, index) => {
+      const element = GAN_TO_OHAENG_KOR[gan] || "";
+      const colorClass =
+        element && OHAENG_COLOR_CLASS[element]
+          ? OHAENG_COLOR_CLASS[element]
+          : "text-gray-800";
+
+      return (
+        <span
+          key={`${gan}-${index}`}
+          className={`inline-flex items-center justify-center rounded-md border border-gray-200 bg-white/80 px-2 py-1 text-[12px] font-semibold ${colorClass}`}
+          title={element ? `${gan} · ${element}` : gan}
+        >
+          {gan}
+        </span>
+      );
+    });
+  };
+
+  const getCardStyle = (
+    key: YongsinCardKey,
+    elementKor: string | null
+  ): CardStyle => {
+    const base = BASE_CARD_STYLE[key];
+    if (!elementKor) return base;
+    const elementStyle = ELEMENT_CARD_STYLE[elementKor];
+    if (!elementStyle) return base;
+    return elementStyle;
+  };
+
   // 분석 드롭박스 섹션 상태 관리
   const [expandedSections, setExpandedSections] = useState<{
     wangse: boolean;
@@ -701,64 +983,88 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
       });
     });
 
+    if (
+      sinsalHits.length === 0 &&
+      heungsinHits.length === 0 &&
+      gilsinHits.length === 0
+    ) {
+      return null;
+    }
+
     return (
-      <div className="mt-2 p-3 bg-gray-50 rounded-lg">
-        {/* 1행: 신살 */}
-        {sinsalHits.length > 0 && (
-          <div className="mb-2">
-            <div className="text-center text-xs text-gray-600 mb-1">신살</div>
-            <div className="flex flex-wrap gap-1 justify-center">
-              {sinsalHits.map((hit, index) => (
-                <span
-                  key={`sinsal-${hit.name}-${index}`}
-                  className="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold border bg-gray-100 text-gray-700 border-gray-200 cursor-pointer hover:bg-gray-200 transition-colors"
-                  title={hit.name}
-                  onClick={() => handleSinsalClick(hit)}
-                >
-                  {hit.name.length > 2 ? hit.name.slice(0, 2) : hit.name}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
+      <div className="mt-4 overflow-x-auto">
+        <table className="w-full border-collapse">
+          <tbody>
+            {/* 신살 행 */}
+            {sinsalHits.length > 0 && (
+              <tr className="border-b border-gray-200">
+                <td className="px-3 py-3 text-xs font-medium text-gray-700 bg-gray-100/50 w-16">
+                  신살
+                </td>
+                <td className="px-3 py-3">
+                  <div className="flex flex-wrap gap-1">
+                    {sinsalHits.map((hit, index) => (
+                      <span
+                        key={`sinsal-${hit.name}-${index}`}
+                        className="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold border bg-gray-100 text-gray-700 border-gray-200 cursor-pointer hover:bg-gray-200 transition-colors"
+                        title={hit.name}
+                        onClick={() => handleSinsalClick(hit)}
+                      >
+                        {hit.name.length > 2 ? hit.name.slice(0, 2) : hit.name}
+                      </span>
+                    ))}
+                  </div>
+                </td>
+              </tr>
+            )}
 
-        {/* 2행: 흉신 */}
-        {heungsinHits.length > 0 && (
-          <div className="mb-2">
-            <div className="text-center text-xs text-gray-600 mb-1">흉신</div>
-            <div className="flex flex-wrap gap-1 justify-center">
-              {heungsinHits.map((hit, index) => (
-                <span
-                  key={`heungsin-${hit.name}-${index}`}
-                  className="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold border bg-rose-100 text-rose-800 border-rose-200 cursor-pointer hover:bg-rose-200 transition-colors"
-                  title={hit.name}
-                  onClick={() => handleSinsalClick(hit)}
-                >
-                  {hit.name.length > 2 ? hit.name.slice(0, 2) : hit.name}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
+            {/* 흉신 행 */}
+            {heungsinHits.length > 0 && (
+              <tr className="border-b border-gray-200">
+                <td className="px-3 py-3 text-xs font-medium text-gray-700 bg-rose-100/50 w-16">
+                  흉신
+                </td>
+                <td className="px-3 py-3">
+                  <div className="flex flex-wrap gap-1">
+                    {heungsinHits.map((hit, index) => (
+                      <span
+                        key={`heungsin-${hit.name}-${index}`}
+                        className="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold border bg-rose-100 text-rose-800 border-rose-200 cursor-pointer hover:bg-rose-200 transition-colors"
+                        title={hit.name}
+                        onClick={() => handleSinsalClick(hit)}
+                      >
+                        {hit.name.length > 2 ? hit.name.slice(0, 2) : hit.name}
+                      </span>
+                    ))}
+                  </div>
+                </td>
+              </tr>
+            )}
 
-        {/* 3행: 길신 */}
-        {gilsinHits.length > 0 && (
-          <div>
-            <div className="text-center text-xs text-gray-600 mb-1">길신</div>
-            <div className="flex flex-wrap gap-1 justify-center">
-              {gilsinHits.map((hit, index) => (
-                <span
-                  key={`gilsin-${hit.name}-${index}`}
-                  className="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold border bg-yellow-100 text-yellow-800 border-yellow-200 cursor-pointer hover:bg-yellow-200 transition-colors"
-                  title={hit.name}
-                  onClick={() => handleSinsalClick(hit)}
-                >
-                  {hit.name.length > 2 ? hit.name.slice(0, 2) : hit.name}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
+            {/* 길신 행 */}
+            {gilsinHits.length > 0 && (
+              <tr className="border-b border-gray-200">
+                <td className="px-3 py-3 text-xs font-medium text-gray-700 bg-yellow-100/50 w-16">
+                  길신
+                </td>
+                <td className="px-3 py-3">
+                  <div className="flex flex-wrap gap-1">
+                    {gilsinHits.map((hit, index) => (
+                      <span
+                        key={`gilsin-${hit.name}-${index}`}
+                        className="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold border bg-yellow-100 text-yellow-800 border-yellow-200 cursor-pointer hover:bg-yellow-200 transition-colors"
+                        title={hit.name}
+                        onClick={() => handleSinsalClick(hit)}
+                      >
+                        {hit.name.length > 2 ? hit.name.slice(0, 2) : hit.name}
+                      </span>
+                    ))}
+                  </div>
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
     );
   };
@@ -993,12 +1299,12 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
                 <div className="flex-shrink-0">
                   <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                     <span className="text-blue-600 font-semibold text-sm">
-                      왕
+                      강약
                     </span>
                   </div>
                 </div>
                 <div className="flex items-center justify-between gap-4">
-                  <h4 className="font-medium text-gray-900">신강신약 분석</h4>
+                  <h4 className="font-medium text-gray-900">신강신약</h4>
                   {wangseData && (
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                       {wangseData.levelDetail}{" "}
@@ -1146,12 +1452,11 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
           )}
         </div>
 
-        {/* 용희기구한 섹션 (추후 구현) */}
+        {/* 용희기구한 섹션 */}
         <div className="border-b border-gray-200 last:border-b-0">
           <button
             onClick={() => toggleSection("yongsin")}
-            className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors focus:outline-none focus:bg-gray-50 opacity-50 cursor-not-allowed"
-            disabled
+            className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors focus:outline-none focus:bg-gray-50"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
@@ -1163,16 +1468,185 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
                   </div>
                 </div>
                 <div>
-                  <h4 className="font-medium text-gray-900">용희기구한 분석</h4>
+                  <h4 className="font-medium text-gray-900">용신 분석</h4>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {yongsinData?.primaryYongsin
+                      ? `주용신 : ${
+                          GAN_TO_LABEL[yongsinData.primaryYongsin] ||
+                          yongsinData.primaryYongsin
+                        } (${
+                          OHAENG_TO_HANJA[
+                            GAN_TO_OHAENG_KOR[yongsinData.primaryYongsin] || ""
+                          ] || ""
+                        }) · 확신도 ${yongsinData.confidence}%`
+                      : "용신 데이터를 불러오는 중이거나 분석 결과가 없습니다."}
+                  </p>
                 </div>
               </div>
-              <div className="flex-shrink-0">
-                <span className="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded-full">
-                  준비중
-                </span>
+              <div className="flex items-center space-x-2">
+                {yongsinData?.selectedTier ? (
+                  <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                    {yongsinData.selectedTier.name}
+                  </span>
+                ) : (
+                  <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
+                    데이터
+                  </span>
+                )}
+                <svg
+                  className={`w-5 h-5 text-gray-400 transition-transform ${
+                    expandedSections.yongsin ? "rotate-180" : ""
+                  }`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
               </div>
             </div>
           </button>
+
+          {expandedSections.yongsin && (
+            <div className="px-4 pb-4">
+              {yongsinData ? (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                    {[
+                      {
+                        key: "yongsin" as YongsinCardKey,
+                        label: "용신",
+                        value: primaryYongsinLabel,
+                      },
+                      ...CATEGORY_LABELS.map(({ key, label }) => ({
+                        key,
+                        label,
+                        value: categoryElements[key],
+                      })),
+                    ].map(({ key, label, value }) => {
+                      const displayValue = value === "-" ? "—" : value;
+                      const elementKor =
+                        key === "yongsin"
+                          ? primaryOhaengKor || null
+                          : (() => {
+                              if (!value || value === "-" || value === "—") {
+                                return null;
+                              }
+                              const normalized =
+                                value
+                                  .replace(/\s+/g, "")
+                                  .replace(/.*\(/, "")
+                                  .replace(/\)/g, "") || value;
+                              return HANJA_TO_OHAENG_KOR[normalized] || null;
+                            })();
+
+                      const cardStyle = getCardStyle(key, elementKor);
+                      const valueClass =
+                        displayValue === "—"
+                          ? "text-gray-400"
+                          : cardStyle.valueClass;
+
+                      return (
+                        <div
+                          key={label}
+                          className={`group relative overflow-hidden rounded-xl border bg-gradient-to-br p-4 text-center shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg ${cardStyle.border} ${cardStyle.gradient}`}
+                        >
+                          <div className="pointer-events-none absolute inset-0 bg-white/30 opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
+                          <div className="relative flex h-full flex-col items-center justify-center space-y-2">
+                            <span
+                              className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-semibold tracking-wide ${cardStyle.pillClass}`}
+                            >
+                              <span>{label}</span>
+                            </span>
+                            <p className={`text-xl font-bold ${valueClass}`}>
+                              {displayValue}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full border border-gray-200 text-sm">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 border-b">
+                            이름
+                          </th>
+                          <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 border-b">
+                            용신
+                          </th>
+                          <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 border-b">
+                            확신도
+                          </th>
+                          <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 border-b">
+                            적용 여부
+                          </th>
+                          <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 border-b">
+                            판단 근거
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {yongsinData.allAnalyses.map((analysis) => (
+                          <tr
+                            key={analysis.tier}
+                            className="border-b last:border-b-0"
+                          >
+                            <td className="px-3 py-2 text-sm text-gray-800 font-medium">
+                              {analysis.name}
+                            </td>
+                            <td className="px-3 py-2 text-sm text-gray-800">
+                              {analysis.yongsin
+                                ? (() => {
+                                    const hanja =
+                                      OHAENG_TO_HANJA[
+                                        GAN_TO_OHAENG_KOR[analysis.yongsin] ||
+                                          ""
+                                      ] || "";
+                                    return hanja
+                                      ? `${analysis.yongsin} (${hanja})`
+                                      : analysis.yongsin;
+                                  })()
+                                : "—"}
+                            </td>
+                            <td className="px-3 py-2 text-sm text-gray-700">
+                              {analysis.confidence}%
+                            </td>
+                            <td className="px-3 py-2 text-sm">
+                              {analysis.isDominant ? (
+                                <span className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-700">
+                                  적용
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-500">
+                                  참고
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-3 py-2 text-xs text-gray-600">
+                              {analysis.reason}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 text-sm rounded-lg p-4">
+                  용신 분석 데이터를 불러오는 중이거나 분석을 수행할 수
+                  없습니다. 만세력 데이터를 다시 확인해 주세요.
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* 격국 분석 섹션 */}
@@ -1217,326 +1691,358 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
           {expandedSections.gyeokguk && (
             <div className="px-4 pb-4">
               <div className="space-y-4">
-                {/* 격국 분석 카드 - 버전3 (깔끔한 7개 카드) */}
+                {/* 격국 분석 카드 - 버전3 (깔끔한 6개 카드) */}
                 <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                     {/* 1. 격이름 */}
-                    <div className="bg-gradient-to-b from-gray-50 to-white rounded-lg p-4 border border-gray-200 hover:border-indigo-300 hover:shadow-md transition-all">
-                      <div className="text-center space-y-2">
-                        <div className="text-xs font-medium text-indigo-600 uppercase tracking-wide">
-                          격이름
+                    {(() => {
+                      const meta = GYEOKGUK_CARD_META.name;
+                      return (
+                        <div
+                          className={`group relative overflow-hidden rounded-xl border bg-gradient-to-br p-4 text-center shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg ${meta.border} ${meta.gradient}`}
+                        >
+                          <div className="pointer-events-none absolute inset-0 bg-white/30 opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
+                          <div className="relative flex h-full flex-col items-center justify-center space-y-2">
+                            <span
+                              className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-semibold tracking-wide ${meta.pillClass}`}
+                            >
+                              <span>격이름</span>
+                            </span>
+                            <p
+                              className={`text-xl font-bold ${meta.valueClass}`}
+                            >
+                              {(sajuData as SajuData)?.gyeokguk?.gyeokguk
+                                ?.name || "—"}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {(() => {
+                                const name = (sajuData as SajuData)?.gyeokguk
+                                  ?.gyeokguk?.name;
+                                const hanjaMap: Record<string, string> = {
+                                  정관격: "正官格",
+                                  편관격: "偏官格",
+                                  정재격: "正財格",
+                                  편재격: "偏財格",
+                                  식신격: "食神格",
+                                  상관격: "傷官格",
+                                  정인격: "正印格",
+                                  편인격: "偏印格",
+                                  건록격: "建祿格",
+                                  양인격: "羊刃格",
+                                };
+                                return hanjaMap[name || ""] || "—";
+                              })()}
+                            </p>
+                          </div>
                         </div>
-                        <div className="text-lg font-bold text-gray-900">
-                          {(sajuData as SajuData)?.gyeokguk?.gyeokguk?.name ||
-                            "—"}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          {(() => {
-                            const name = (sajuData as SajuData)?.gyeokguk
-                              ?.gyeokguk?.name;
-                            const hanjaMap: Record<string, string> = {
-                              정관격: "正官格",
-                              편관격: "偏官格",
-                              정재격: "正財格",
-                              편재격: "偏財格",
-                              식신격: "食神格",
-                              상관격: "傷官格",
-                              정인격: "正印格",
-                              편인격: "偏印格",
-                              건록격: "建祿格",
-                              양인격: "羊刃格",
-                            };
-                            return hanjaMap[name || ""] || "—";
-                          })()}
-                        </div>
-                      </div>
-                    </div>
+                      );
+                    })()}
 
                     {/* 2. 월령 */}
-                    <div className="bg-gradient-to-b from-gray-50 to-white rounded-lg p-4 border border-gray-200 hover:border-orange-300 hover:shadow-md transition-all">
-                      <div className="text-center space-y-2">
-                        <div className="text-xs font-medium text-orange-600 uppercase tracking-wide">
-                          월령
+                    {(() => {
+                      const meta = GYEOKGUK_CARD_META.wollyeong;
+                      return (
+                        <div
+                          className={`group relative overflow-hidden rounded-xl border bg-gradient-to-br p-4 text-center shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg ${meta.border} ${meta.gradient}`}
+                        >
+                          <div className="pointer-events-none absolute inset-0 bg-white/30 opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
+                          <div className="relative flex h-full flex-col items-center justify-center space-y-2">
+                            <span
+                              className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-semibold tracking-wide ${meta.pillClass}`}
+                            >
+                              <span>월령</span>
+                            </span>
+                            <p
+                              className={`text-xl font-bold ${meta.valueClass}`}
+                            >
+                              {(() => {
+                                const monthJi = (sajuData as SajuData)?.pillars
+                                  ?.month?.ji;
+                                if (!monthJi) return "—";
+
+                                const monthJiToJeongi: Record<string, string> =
+                                  {
+                                    子: "癸",
+                                    丑: "己",
+                                    寅: "甲",
+                                    卯: "乙",
+                                    辰: "戊",
+                                    巳: "丙",
+                                    午: "丁",
+                                    未: "己",
+                                    申: "庚",
+                                    酉: "辛",
+                                    戌: "戊",
+                                    亥: "壬",
+                                  };
+
+                                const wollyeongGan = monthJiToJeongi[monthJi];
+                                if (!wollyeongGan) return "—";
+
+                                const ganToOhaeng: Record<string, string> = {
+                                  甲: "木",
+                                  乙: "木",
+                                  丙: "火",
+                                  丁: "火",
+                                  戊: "土",
+                                  己: "土",
+                                  庚: "金",
+                                  辛: "金",
+                                  壬: "水",
+                                  癸: "水",
+                                };
+
+                                const ohaeng = ganToOhaeng[wollyeongGan];
+                                const colorMap: Record<string, string> = {
+                                  木: "text-green-600",
+                                  火: "text-red-600",
+                                  土: "text-yellow-600",
+                                  金: "text-gray-600",
+                                  水: "text-blue-600",
+                                };
+
+                                return (
+                                  <span
+                                    className={
+                                      colorMap[ohaeng] || meta.valueClass
+                                    }
+                                  >
+                                    {wollyeongGan}({ohaeng})
+                                  </span>
+                                );
+                              })()}
+                            </p>
+                            <p className="text-xs text-gray-400">得令</p>
+                          </div>
                         </div>
-                        <div className="text-lg font-bold">
-                          {(() => {
-                            // 월령 = 월지의 정기(본기) 천간
-                            const monthJi = (sajuData as SajuData)?.pillars
-                              ?.month?.ji;
-                            if (!monthJi)
-                              return <span className="text-gray-400">—</span>;
-
-                            // 월지별 정기 천간 매핑
-                            const monthJiToJeongi: Record<string, string> = {
-                              子: "癸", // 자수 정기: 계수
-                              丑: "己", // 축토 정기: 기토
-                              寅: "甲", // 인목 정기: 갑목
-                              卯: "乙", // 묘목 정기: 을목
-                              辰: "戊", // 진토 정기: 무토
-                              巳: "丙", // 사화 정기: 병화
-                              午: "丁", // 오화 정기: 정화
-                              未: "己", // 미토 정기: 기토
-                              申: "庚", // 신금 정기: 경금
-                              酉: "辛", // 유금 정기: 신금
-                              戌: "戊", // 술토 정기: 무토
-                              亥: "壬", // 해수 정기: 임수
-                            };
-
-                            const wollyeongGan = monthJiToJeongi[monthJi];
-                            if (!wollyeongGan)
-                              return <span className="text-gray-400">—</span>;
-
-                            // 천간 → 오행 매핑
-                            const ganToOhaeng: Record<string, string> = {
-                              甲: "木",
-                              乙: "木",
-                              丙: "火",
-                              丁: "火",
-                              戊: "土",
-                              己: "土",
-                              庚: "金",
-                              辛: "金",
-                              壬: "水",
-                              癸: "水",
-                            };
-
-                            const ohaeng = ganToOhaeng[wollyeongGan];
-
-                            // 오행 색상
-                            const colorMap: Record<string, string> = {
-                              木: "text-green-600",
-                              火: "text-red-600",
-                              土: "text-yellow-600",
-                              金: "text-gray-600",
-                              水: "text-blue-600",
-                            };
-
-                            return (
-                              <span
-                                className={colorMap[ohaeng] || "text-gray-800"}
-                              >
-                                {wollyeongGan}({ohaeng})
-                              </span>
-                            );
-                          })()}
-                        </div>
-                        <div className="text-xs text-gray-400">得令</div>
-                      </div>
-                    </div>
+                      );
+                    })()}
 
                     {/* 3. 당령 */}
-                    <div className="bg-gradient-to-b from-gray-50 to-white rounded-lg p-4 border border-gray-200 hover:border-amber-300 hover:shadow-md transition-all">
-                      <div className="text-center space-y-2">
-                        <div className="text-xs font-medium text-amber-600 uppercase tracking-wide">
-                          당령
+                    {(() => {
+                      const meta = GYEOKGUK_CARD_META.dangnyeong;
+                      return (
+                        <div
+                          className={`group relative overflow-hidden rounded-xl border bg-gradient-to-br p-4 text-center shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg ${meta.border} ${meta.gradient}`}
+                        >
+                          <div className="pointer-events-none absolute inset-0 bg-white/30 opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
+                          <div className="relative flex h-full flex-col items-center justify-center space-y-2">
+                            <span
+                              className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-semibold tracking-wide ${meta.pillClass}`}
+                            >
+                              <span>당령</span>
+                            </span>
+                            <p
+                              className={`text-xl font-bold ${meta.valueClass}`}
+                            >
+                              {(() => {
+                                const dangnyeongGan = (sajuData as SajuData)
+                                  ?.dangnyeong?.dangnyeongGan;
+                                if (!dangnyeongGan) return "—";
+
+                                const hangulToHanja: Record<string, string> = {
+                                  갑: "甲",
+                                  을: "乙",
+                                  병: "丙",
+                                  정: "丁",
+                                  무: "戊",
+                                  기: "己",
+                                  경: "庚",
+                                  신: "辛",
+                                  임: "壬",
+                                  계: "癸",
+                                };
+                                const displayGan =
+                                  hangulToHanja[dangnyeongGan] || dangnyeongGan;
+
+                                const ganToOhaeng: Record<string, string> = {
+                                  甲: "木",
+                                  乙: "木",
+                                  丙: "火",
+                                  丁: "火",
+                                  戊: "土",
+                                  己: "土",
+                                  庚: "金",
+                                  辛: "金",
+                                  壬: "水",
+                                  癸: "水",
+                                  갑: "木",
+                                  을: "木",
+                                  병: "火",
+                                  정: "火",
+                                  무: "土",
+                                  기: "土",
+                                  경: "金",
+                                  신: "金",
+                                  임: "水",
+                                  계: "水",
+                                };
+                                const ohaeng = ganToOhaeng[dangnyeongGan] || "";
+                                const colorMap: Record<string, string> = {
+                                  木: "text-green-600",
+                                  火: "text-red-600",
+                                  土: "text-yellow-600",
+                                  金: "text-gray-600",
+                                  水: "text-blue-600",
+                                };
+
+                                return (
+                                  <span
+                                    className={
+                                      colorMap[ohaeng] || meta.valueClass
+                                    }
+                                  >
+                                    {displayGan}({ohaeng})
+                                  </span>
+                                );
+                              })()}
+                            </p>
+                            <p className="text-xs text-gray-400">當令</p>
+                          </div>
                         </div>
-                        <div className="text-lg font-bold">
-                          {(() => {
-                            const dangnyeongGan = (sajuData as SajuData)
-                              ?.dangnyeong?.dangnyeongGan;
-                            if (!dangnyeongGan)
-                              return <span className="text-gray-400">—</span>;
-
-                            // 한글 -> 한자 변환
-                            const hangulToHanja: Record<string, string> = {
-                              갑: "甲",
-                              을: "乙",
-                              병: "丙",
-                              정: "丁",
-                              무: "戊",
-                              기: "己",
-                              경: "庚",
-                              신: "辛",
-                              임: "壬",
-                              계: "癸",
-                            };
-                            const displayGan =
-                              hangulToHanja[dangnyeongGan] || dangnyeongGan;
-
-                            // 오행 가져오기
-                            const ganToOhaeng: Record<string, string> = {
-                              甲: "木",
-                              乙: "木",
-                              丙: "火",
-                              丁: "火",
-                              戊: "土",
-                              己: "土",
-                              庚: "金",
-                              辛: "金",
-                              壬: "水",
-                              癸: "水",
-                              갑: "木",
-                              을: "木",
-                              병: "火",
-                              정: "火",
-                              무: "土",
-                              기: "土",
-                              경: "金",
-                              신: "金",
-                              임: "水",
-                              계: "水",
-                            };
-                            const ohaeng = ganToOhaeng[dangnyeongGan] || "";
-
-                            // 오행별 색상
-                            const colorMap: Record<string, string> = {
-                              木: "text-green-600",
-                              火: "text-red-600",
-                              土: "text-yellow-600",
-                              金: "text-gray-600",
-                              水: "text-blue-600",
-                            };
-
-                            return (
-                              <span
-                                className={colorMap[ohaeng] || "text-gray-800"}
-                              >
-                                {displayGan}({ohaeng})
-                              </span>
-                            );
-                          })()}
-                        </div>
-                        <div className="text-xs text-gray-400">當令</div>
-                      </div>
-                    </div>
+                      );
+                    })()}
 
                     {/* 4. 사령 */}
-                    <div className="bg-gradient-to-b from-gray-50 to-white rounded-lg p-4 border border-gray-200 hover:border-yellow-300 hover:shadow-md transition-all">
-                      <div className="text-center space-y-2">
-                        <div className="text-xs font-medium text-yellow-600 uppercase tracking-wide">
-                          사령
+                    {(() => {
+                      const meta = GYEOKGUK_CARD_META.saryeong;
+                      return (
+                        <div
+                          className={`group relative overflow-hidden rounded-xl border bg-gradient-to-br p-4 text-center shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg ${meta.border} ${meta.gradient}`}
+                        >
+                          <div className="pointer-events-none absolute inset-0 bg-white/30 opacity-0 transition-opacity	duration-200 group-hover:opacity-100" />
+                          <div className="relative flex h-full flex-col items-center justify-center space-y-2">
+                            <span
+                              className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-semibold tracking-wide ${meta.pillClass}`}
+                            >
+                              <span>사령</span>
+                            </span>
+                            <p
+                              className={`text-xl font-bold ${meta.valueClass}`}
+                            >
+                              {(() => {
+                                const saryeongGan = (sajuData as SajuData)
+                                  ?.saryeong?.saryeongGan;
+                                if (!saryeongGan) return "—";
+
+                                const hangulToHanja: Record<string, string> = {
+                                  갑: "甲",
+                                  을: "乙",
+                                  병: "丙",
+                                  정: "丁",
+                                  무: "戊",
+                                  기: "己",
+                                  경: "庚",
+                                  신: "辛",
+                                  임: "壬",
+                                  계: "癸",
+                                };
+                                const displayGan =
+                                  hangulToHanja[saryeongGan] || saryeongGan;
+
+                                const ganToOhaeng: Record<string, string> = {
+                                  甲: "木",
+                                  乙: "木",
+                                  丙: "火",
+                                  丁: "火",
+                                  戊: "土",
+                                  己: "土",
+                                  庚: "金",
+                                  辛: "金",
+                                  壬: "水",
+                                  癸: "水",
+                                  갑: "木",
+                                  을: "木",
+                                  병: "火",
+                                  정: "火",
+                                  무: "土",
+                                  기: "土",
+                                  경: "金",
+                                  신: "金",
+                                  임: "水",
+                                  계: "水",
+                                };
+                                const ohaeng = ganToOhaeng[saryeongGan] || "";
+                                const colorMap: Record<string, string> = {
+                                  木: "text-green-600",
+                                  火: "text-red-600",
+                                  土: "text-yellow-600",
+                                  金: "text-gray-600",
+                                  水: "text-blue-600",
+                                };
+
+                                return (
+                                  <span
+                                    className={
+                                      colorMap[ohaeng] || meta.valueClass
+                                    }
+                                  >
+                                    {displayGan}({ohaeng})
+                                  </span>
+                                );
+                              })()}
+                            </p>
+                            <p className="text-xs text-gray-400">
+                              {(() => {
+                                const role = (sajuData as SajuData)?.saryeong
+                                  ?.role;
+                                if (!role) return "司令";
+                                const roleMap: Record<string, string> = {
+                                  초기: "初氣",
+                                  중기: "中氣",
+                                  정기: "正氣",
+                                };
+                                return roleMap[role] || "司令";
+                              })()}
+                            </p>
+                          </div>
                         </div>
-                        <div className="text-lg font-bold">
-                          {(() => {
-                            const saryeongGan = (sajuData as SajuData)?.saryeong
-                              ?.saryeongGan;
-                            if (!saryeongGan)
-                              return <span className="text-gray-400">—</span>;
-
-                            // 한글 -> 한자 변환
-                            const hangulToHanja: Record<string, string> = {
-                              갑: "甲",
-                              을: "乙",
-                              병: "丙",
-                              정: "丁",
-                              무: "戊",
-                              기: "己",
-                              경: "庚",
-                              신: "辛",
-                              임: "壬",
-                              계: "癸",
-                            };
-                            const displayGan =
-                              hangulToHanja[saryeongGan] || saryeongGan;
-
-                            // 오행 가져오기
-                            const ganToOhaeng: Record<string, string> = {
-                              甲: "木",
-                              乙: "木",
-                              丙: "火",
-                              丁: "火",
-                              戊: "土",
-                              己: "土",
-                              庚: "金",
-                              辛: "金",
-                              壬: "水",
-                              癸: "水",
-                              갑: "木",
-                              을: "木",
-                              병: "火",
-                              정: "火",
-                              무: "土",
-                              기: "土",
-                              경: "金",
-                              신: "金",
-                              임: "水",
-                              계: "水",
-                            };
-                            const ohaeng = ganToOhaeng[saryeongGan] || "";
-
-                            // 오행별 색상
-                            const colorMap: Record<string, string> = {
-                              木: "text-green-600",
-                              火: "text-red-600",
-                              土: "text-yellow-600",
-                              金: "text-gray-600",
-                              水: "text-blue-600",
-                            };
-
-                            return (
-                              <span
-                                className={colorMap[ohaeng] || "text-gray-800"}
-                              >
-                                {displayGan}({ohaeng})
-                              </span>
-                            );
-                          })()}
-                        </div>
-                        <div className="text-xs text-gray-400">
-                          {(() => {
-                            const role = (sajuData as SajuData)?.saryeong?.role;
-                            if (!role) return "司令";
-                            const roleMap: Record<string, string> = {
-                              초기: "初氣",
-                              중기: "中氣",
-                              정기: "正氣",
-                            };
-                            return roleMap[role] || "司令";
-                          })()}
-                        </div>
-                      </div>
-                    </div>
+                      );
+                    })()}
 
                     {/* 5. 진신 */}
-                    <div className="bg-gradient-to-b from-gray-50 to-white rounded-lg p-4 border border-gray-200 hover:border-green-300 hover:shadow-md transition-all">
-                      <div className="text-center space-y-2">
-                        <div className="text-xs font-medium text-green-600 uppercase tracking-wide">
-                          진신
+                    {(() => {
+                      const meta = GYEOKGUK_CARD_META.jinsin;
+                      return (
+                        <div
+                          className={`group relative overflow-hidden rounded-xl border bg-gradient-to-br p-4 text-center shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg ${meta.border} ${meta.gradient}`}
+                        >
+                          <div className="pointer-events-none absolute inset-0 bg-white/30 opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
+                          <div className="relative flex h-full flex-col items-center justify-center space-y-2">
+                            <span
+                              className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-semibold tracking-wide ${meta.pillClass}`}
+                            >
+                              <span>진신</span>
+                            </span>
+                            <div className="flex flex-wrap justify-center gap-1">
+                              {renderGanChips(jinsinResult?.jinsinList)}
+                            </div>
+                          </div>
                         </div>
-                        <div className="text-lg font-bold text-gray-900">
-                          {(sajuData as SajuData)?.jinsin?.jinsin || "—"}
-                        </div>
-                        <div className="text-xs text-gray-400">
-                          {(sajuData as SajuData)?.jinsin?.strength
-                            ? `${(sajuData as SajuData)?.jinsin?.strength}%`
-                            : "—"}
-                        </div>
-                      </div>
-                    </div>
+                      );
+                    })()}
 
                     {/* 6. 가신 */}
-                    <div className="bg-gradient-to-b from-gray-50 to-white rounded-lg p-4 border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all">
-                      <div className="text-center space-y-2">
-                        <div className="text-xs font-medium text-blue-600 uppercase tracking-wide">
-                          가신
+                    {(() => {
+                      const meta = GYEOKGUK_CARD_META.gasin;
+                      return (
+                        <div
+                          className={`group relative overflow-hidden rounded-xl border bg-gradient-to-br p-4 text-center shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg ${meta.border} ${meta.gradient}`}
+                        >
+                          <div className="pointer-events-none absolute inset-0 bg-white/30 opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
+                          <div className="relative flex h-full flex-col items-center justify-center space-y-2">
+                            <span
+                              className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-semibold tracking-wide ${meta.pillClass}`}
+                            >
+                              <span>가신</span>
+                            </span>
+                            <div className="flex flex-wrap justify-center gap-1">
+                              {renderGanChips(jinsinResult?.gasinList)}
+                            </div>
+                          </div>
                         </div>
-                        <div className="text-lg font-bold text-gray-900">
-                          {(
-                            sajuData as SajuData
-                          )?.jinsin?.conflictingFactors?.join(", ") || "—"}
-                        </div>
-                        <div className="text-xs text-gray-400">
-                          {(sajuData as SajuData)?.jinsin?.confidence
-                            ? `신뢰도 ${
-                                (sajuData as SajuData)?.jinsin?.confidence
-                              }%`
-                            : "—"}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* 7. 상신 */}
-                    <div className="bg-gradient-to-b from-gray-50 to-white rounded-lg p-4 border border-gray-200 hover:border-purple-300 hover:shadow-md transition-all">
-                      <div className="text-center space-y-2">
-                        <div className="text-xs font-medium text-purple-600 uppercase tracking-wide">
-                          상신
-                        </div>
-                        <div className="text-lg font-bold text-gray-900">
-                          인성
-                        </div>
-                        <div className="text-xs text-gray-400">印星</div>
-                      </div>
-                    </div>
+                      );
+                    })()}
                   </div>
 
                   {/* 버전 정보 */}
@@ -2010,159 +2516,204 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
 
     // 타입 캐스팅으로 오류 해결
     const relData = relationships as Record<string, string[]>;
-    const badges: React.ReactElement[] = [];
+    const ganBadges: React.ReactElement[] = []; // 천간 배지
+    const jiBadges: React.ReactElement[] = []; // 지지 배지
 
-    // 천간합
+    // 한자 → 한글 변환 맵
+    const hanjaToHangul: Record<string, string> = {
+      甲: "갑",
+      乙: "을",
+      丙: "병",
+      丁: "정",
+      戊: "무",
+      己: "기",
+      庚: "경",
+      辛: "신",
+      壬: "임",
+      癸: "계",
+      子: "자",
+      丑: "축",
+      寅: "인",
+      卯: "묘",
+      辰: "진",
+      巳: "사",
+      午: "오",
+      未: "미",
+      申: "신",
+      酉: "유",
+      戌: "술",
+      亥: "해",
+    };
+
+    // 한자 문자열을 한글로 변환하는 함수
+    const convertToHangul = (hanjaStr: string): string => {
+      return hanjaStr
+        .split("")
+        .map((char) => hanjaToHangul[char] || char)
+        .join("");
+    };
+
+    // 천간합 (천간)
     if (relData.cheonganhap && relData.cheonganhap.length > 0) {
       relData.cheonganhap.forEach((rel: string, index: number) => {
         const ganji = rel.split("(")[0]; // "甲己(year-month)" 에서 "甲己" 추출
-        badges.push(
+        const hangul = convertToHangul(ganji);
+        ganBadges.push(
           <span
             key={`cheonganhap-${ganji}-${index}`}
             className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 px-2 py-1 rounded-full text-xs font-medium mr-1 mb-1"
           >
-            🔒 {ganji}
+            🔒{hangul}합
           </span>
         );
       });
     }
 
-    // 천간충
+    // 천간충 (천간)
     if (relData.cheonganchung && relData.cheonganchung.length > 0) {
       relData.cheonganchung.forEach((rel: string, index: number) => {
         const ganji = rel.split("(")[0];
-        badges.push(
+        const hangul = convertToHangul(ganji);
+        ganBadges.push(
           <span
             key={`cheonganchung-${ganji}-${index}`}
             className="inline-flex items-center gap-1 bg-rose-100 text-rose-800 px-2 py-1 rounded-full text-xs font-medium mr-1 mb-1"
           >
-            🔓 {ganji}
+            🔓{hangul}충
           </span>
         );
       });
     }
 
-    // 육합
+    // 육합 (지지)
     if (relData.yukhap && relData.yukhap.length > 0) {
       relData.yukhap.forEach((rel: string, index: number) => {
         const ganji = rel.split("(")[0];
-        badges.push(
+        const hangul = convertToHangul(ganji);
+        jiBadges.push(
           <span
             key={`yukhap-${ganji}-${index}`}
             className="inline-flex items-center gap-1 bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium mr-1 mb-1"
           >
-            ⚙️ {ganji}
+            ⚙️{hangul}합
           </span>
         );
       });
     }
 
-    // 삼합
+    // 삼합 (지지)
     if (relData.samhap && relData.samhap.length > 0) {
       relData.samhap.forEach((rel: string, index: number) => {
         const ganji = rel.split("(")[0];
-        badges.push(
+        const hangul = convertToHangul(ganji);
+        jiBadges.push(
           <span
             key={`samhap-${ganji}-${index}`}
             className="inline-flex items-center gap-1 bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium mr-1 mb-1"
           >
-            🔗 {ganji}
+            🔗{hangul}합
           </span>
         );
       });
     }
 
-    // 암합
+    // 암합 (지지)
     if (relData.amhap && relData.amhap.length > 0) {
       relData.amhap.forEach((rel: string, index: number) => {
         const ganji = rel.split("(")[0];
-        badges.push(
+        const hangul = convertToHangul(ganji);
+        jiBadges.push(
           <span
             key={`amhap-${ganji}-${index}`}
             className="inline-flex items-center gap-1 bg-indigo-100 text-indigo-800 px-2 py-1 rounded-full text-xs font-medium mr-1 mb-1"
           >
-            🌑 {ganji}
+            🌑{hangul}합
           </span>
         );
       });
     }
 
-    // 방합
+    // 방합 (지지)
     if (relData.banghap && relData.banghap.length > 0) {
       relData.banghap.forEach((rel: string, index: number) => {
         const ganji = rel.split("(")[0];
-        badges.push(
+        const hangul = convertToHangul(ganji);
+        jiBadges.push(
           <span
             key={`banghap-${ganji}-${index}`}
             className="inline-flex items-center gap-1 bg-teal-100 text-teal-800 px-2 py-1 rounded-full text-xs font-medium mr-1 mb-1"
           >
-            🧭 {ganji}
+            🧭{hangul}합
           </span>
         );
       });
     }
 
-    // 육충
+    // 육충 (지지)
     if (relData.yukchung && relData.yukchung.length > 0) {
       relData.yukchung.forEach((rel: string, index: number) => {
         const ganji = rel.split("(")[0];
-        badges.push(
+        const hangul = convertToHangul(ganji);
+        jiBadges.push(
           <span
             key={`yukchung-${ganji}-${index}`}
             className="inline-flex items-center gap-1 bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-medium mr-1 mb-1"
           >
-            ⚡ {ganji}
+            ⚡{hangul}충
           </span>
         );
       });
     }
 
-    // 육형
+    // 육형 (지지)
     if (relData.yukhyung && relData.yukhyung.length > 0) {
       relData.yukhyung.forEach((rel: string, index: number) => {
         const ganji = rel.split("(")[0];
-        badges.push(
+        const hangul = convertToHangul(ganji);
+        jiBadges.push(
           <span
             key={`yukhyung-${ganji}-${index}`}
             className="inline-flex items-center gap-1 bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs font-medium mr-1 mb-1"
           >
-            ⚔️ {ganji}
+            ⚔️{hangul}형
           </span>
         );
       });
     }
 
-    // 육파
+    // 육파 (지지)
     if (relData.yukpa && relData.yukpa.length > 0) {
       relData.yukpa.forEach((rel: string, index: number) => {
         const ganji = rel.split("(")[0];
-        badges.push(
+        const hangul = convertToHangul(ganji);
+        jiBadges.push(
           <span
             key={`yukpa-${ganji}-${index}`}
             className="inline-flex items-center gap-1 bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs font-medium mr-1 mb-1"
           >
-            💥 {ganji}
+            💥{hangul}파
           </span>
         );
       });
     }
 
-    // 육해
+    // 육해 (지지)
     if (relData.yukae && relData.yukae.length > 0) {
       relData.yukae.forEach((rel: string, index: number) => {
         const ganji = rel.split("(")[0];
-        badges.push(
+        const hangul = convertToHangul(ganji);
+        jiBadges.push(
           <span
             key={`yukae-${ganji}-${index}`}
             className="inline-flex items-center gap-1 bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs font-medium mr-1 mb-1"
           >
-            ☠️ {ganji}
+            ☠️{hangul}해
           </span>
         );
       });
     }
 
-    if (badges.length === 0) {
+    if (ganBadges.length === 0 && jiBadges.length === 0) {
       return (
         <div className="mt-2 p-3 bg-gray-50 rounded-lg">
           <p className="text-xs text-gray-500 text-center">
@@ -2240,7 +2791,38 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
           </div>
           {/* 운 전용 토글 제거: 탭 자체가 운 전용 의미 */}
         </div>
-        <div className="flex flex-wrap gap-1 justify-center">{badges}</div>
+        {/* 형충파해합 테이블 */}
+        {(ganBadges.length > 0 || jiBadges.length > 0) && (
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full border-collapse">
+              <tbody>
+                {/* 천간 행 */}
+                {ganBadges.length > 0 && (
+                  <tr className="border-b border-gray-200">
+                    <td className="px-3 py-3 text-xs font-medium text-gray-700 bg-blue-50/50 w-16">
+                      천간
+                    </td>
+                    <td className="px-3 py-3">
+                      <div className="flex flex-wrap gap-1">{ganBadges}</div>
+                    </td>
+                  </tr>
+                )}
+
+                {/* 지지 행 */}
+                {jiBadges.length > 0 && (
+                  <tr className="border-b border-gray-200">
+                    <td className="px-3 py-3 text-xs font-medium text-gray-700 bg-green-50/50 w-16">
+                      지지
+                    </td>
+                    <td className="px-3 py-3">
+                      <div className="flex flex-wrap gap-1">{jiBadges}</div>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
         {renderSinsalBadges()}
       </div>
     );

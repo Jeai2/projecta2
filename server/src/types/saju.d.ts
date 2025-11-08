@@ -81,6 +81,7 @@ export interface SajuData {
   saryeong?: import("../services/saryeong.service").SaryeongResult; // ✅ 사령 분석 추가 (선택적)
   jinsin?: import("../services/jinsin.service").JinsinResult; // ✅ 진신 분석 추가 (선택적)
   gyeokguk?: import("../services/gyeokguk.service").GyeokgukAnalysis; // ✅ 격국 분석 추가 (선택적)
+  yongsin?: import("../data/yongsin.data").YongsinResult; // ✅ 용희기구한 분석 추가 (선택적)
   currentDaewoon: Daewoon | null;
   currentSewoon: SewoonData;
   daewoonFull: Daewoon[];

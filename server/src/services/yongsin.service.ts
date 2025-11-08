@@ -374,9 +374,9 @@ function checkJeonwangVariable2(
 }
 
 /**
- * Tier 1: 전왕용신 분석
+ * Tier 3: 전왕용신 분석
  */
-export function analyzeTier1_JeonWang(
+export function analyzeTier3_JeonWang(
   sajuData: SajuData,
   currentDaewoon: { ganji: string } | null = null
 ): TierAnalysis {
@@ -425,7 +425,7 @@ export function analyzeTier1_JeonWang(
   }
 
   return {
-    tier: 1,
+    tier: 3,
     name: "전왕용신",
     isDominant,
     yongsin: actualYongsin,
@@ -791,10 +791,10 @@ function analyzeExcessOhaengs(
 }
 
 /**
- * Tier 3: 병약용신 분석
+ * Tier 4: 병약용신 분석
  * 특정 오행이 고립되거나 과다할 때 적용
  */
-export function analyzeTier3_Byeongyak(sajuData: SajuData): TierAnalysis {
+export function analyzeTier4_Byeongyak(sajuData: SajuData): TierAnalysis {
   const ohaengCount = countOhaengInSaju(sajuData.pillars);
 
   // 새로운 고립 로직: 포위된 천간 찾기
@@ -842,7 +842,7 @@ export function analyzeTier3_Byeongyak(sajuData: SajuData): TierAnalysis {
   }
 
   return {
-    tier: 3,
+    tier: 4,
     name: "병약용신",
     isDominant,
     yongsin: actualYongsin,
@@ -869,7 +869,7 @@ export function analyzeTier3_Byeongyak(sajuData: SajuData): TierAnalysis {
   };
 }
 
-export function analyzeTier4_Tonggwan(sajuData: SajuData): TierAnalysis {
+export function analyzeTier5_Tonggwan(sajuData: SajuData): TierAnalysis {
   const ohaengCount = countOhaengInSaju(sajuData.pillars);
 
   // 모든 극하는 관계 조합 확인
@@ -950,9 +950,12 @@ export function analyzeTier4_Tonggwan(sajuData: SajuData): TierAnalysis {
   };
 }
 
-export function analyzeTier5_Eokbu(sajuData: SajuData): TierAnalysis {
+/**
+ * Tier 1: 억부용신 분석
+ */
+export function analyzeTier1_Eokbu(sajuData: SajuData): TierAnalysis {
   // 신강신약 점수 확인 (새 35점 체계)
-  const wangseScore = sajuData.wangseStrength?.finalScore || 17.5; // 기본값 17.5 (중간)
+  const wangseScore = sajuData.wangseStrength?.finalScore ?? 17.5; // 기본값 17.5 (중간)
   const dayMasterGan = sajuData.pillars.day.gan;
   const dayMasterOhaeng = GAN_OHENG[dayMasterGan as keyof typeof GAN_OHENG];
 
@@ -1018,7 +1021,7 @@ export function analyzeTier5_Eokbu(sajuData: SajuData): TierAnalysis {
   }
 
   return {
-    tier: 5,
+    tier: 1,
     name: "억부용신",
     isDominant,
     yongsin: actualYongsin,
@@ -1037,19 +1040,6 @@ export function analyzeTier5_Eokbu(sajuData: SajuData): TierAnalysis {
   };
 }
 
-export function analyzeTier6_Gyeokguk(): TierAnalysis {
-  // TODO: 격국용신 구현
-  return {
-    tier: 6,
-    name: "격국용신",
-    isDominant: false,
-    yongsin: "",
-    confidence: 0,
-    reason: "격국용신 분석 미구현",
-    details: {},
-  };
-}
-
 /**
  * 메인 용신 분석 함수
  */
@@ -1059,12 +1049,11 @@ export function analyzeYongsin(
 ): YongsinResult {
   // 모든 Tier 분석
   const analyses = [
-    analyzeTier1_JeonWang(sajuData, currentDaewoon),
+    analyzeTier1_Eokbu(sajuData),
     analyzeTier2_Johu(sajuData),
-    analyzeTier3_Byeongyak(sajuData),
-    analyzeTier4_Tonggwan(sajuData),
-    analyzeTier5_Eokbu(sajuData),
-    analyzeTier6_Gyeokguk(),
+    analyzeTier3_JeonWang(sajuData, currentDaewoon),
+    analyzeTier4_Byeongyak(sajuData),
+    analyzeTier5_Tonggwan(sajuData),
   ];
 
   // 우선순위에 따라 주체 선정

@@ -39,7 +39,7 @@ export interface OhaengCount {
 // Tier별 판단 기준값
 // =================================================================
 
-// Tier 1: 전왕용신 (從格) 기준
+// Tier 3: 전왕용신 (從格) 기준
 export const JEONWANG_CRITERIA = {
   // 기본 조건 (가장 엄격)
   BASIC: {
@@ -136,7 +136,7 @@ export const JOHU_CRITERIA = {
   },
 };
 
-// Tier 3: 병약용신 (病藥) 기준
+// Tier 4: 병약용신 (病藥) 기준
 export const BYEONGYAK_CRITERIA = {
   // 고립 기준 (특정 천간/지지가 적군에게 포위된 상태)
   ISOLATION: {
@@ -168,7 +168,7 @@ export const BYEONGYAK_CRITERIA = {
   },
 };
 
-// Tier 4: 통관용신 (通關) 기준
+// Tier 5: 통관용신 (通關) 기준
 export const TONGGWAN_CRITERIA = {
   // 대치 세력 기준
   CONFLICT_MIN_COUNT: 3, // 각 세력이 최소 3개 이상
@@ -184,7 +184,7 @@ export const TONGGWAN_CRITERIA = {
   },
 };
 
-// Tier 5: 억부용신 (抑扶) 기준 (디폴트)
+// Tier 1: 억부용신 (抑扶) 기준 (디폴트)
 export const EOKBU_CRITERIA = {
   // 신강신약 점수 기준 (새 35점 체계)
   WEAK_THRESHOLD: 14.0, // 14.0 미만 = 약함 (태약+신약) → 扶 (도움 필요)

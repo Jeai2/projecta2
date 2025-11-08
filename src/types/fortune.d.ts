@@ -142,6 +142,7 @@ export interface SajuData {
   saryeong?: SaryeongResult; // ✅ 사령 분석 추가 (선택적)
   jinsin?: JinsinResult; // ✅ 진신 분석 추가 (선택적)
   gyeokguk?: GyeokgukAnalysis; // ✅ 격국 분석 추가 (선택적)
+  yongsin?: YongsinResult; // ✅ 용희기구한 분석 추가 (선택적)
   currentDaewoon: Daewoon | null;
   currentSewoon: SewoonData;
   daewoonFull: Daewoon[];
@@ -255,7 +256,7 @@ export interface StarData {
 export interface GyeokgukType {
   name: string; // 격국명 (예: "정관격")
   code: string; // 격국 코드 (예: "JEONGGWAN")
-  category: "정격" | "외격"; // 격국 분류
+  category: "정격" | "외잡격" | "응용격국"; // 격국 분류
   baseSipsin: string; // 기준 십성 (월지 십성)
   description: string; // 격국 설명
   success: {
@@ -293,24 +294,28 @@ export interface SaryeongResult {
 }
 
 export interface JinsinResult {
-  jinsin: string; // 진신 (예: "유근", "무근", "병근" 등)
-  jinsinType:
-    | "유근"
-    | "무근"
-    | "병근"
-    | "정근"
-    | "기근"
-    | "경근"
-    | "신근"
-    | "임근"
-    | "계근"
-    | "갑근"
-    | "을근";
-  strength: number; // 진신의 강도 (0-100)
-  reason: string; // 진신 판단 근거
-  supportingFactors: string[]; // 진신을 도와주는 요소들
-  conflictingFactors: string[]; // 진신을 해치는 요소들
-  confidence: number; // 신뢰도 (0-100)
+  dayGan: string;
+  jinsinList: string[];
+  gasinList: string[];
+  summary: string;
+}
+
+export interface YongsinTierAnalysis {
+  tier: number;
+  name: string;
+  isDominant: boolean;
+  yongsin: string;
+  confidence: number;
+  reason: string;
+  details?: Record<string, unknown>;
+}
+
+export interface YongsinResult {
+  primaryYongsin: string;
+  selectedTier: YongsinTierAnalysis | null;
+  allAnalyses: YongsinTierAnalysis[];
+  confidence: number;
+  summary: string;
 }
 
 export interface GyeokgukAnalysis {
