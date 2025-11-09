@@ -42,6 +42,19 @@ export interface IljinFortune {
   };
 }
 
+export interface LukimComponent {
+  type: "birthYearGan" | "birthYearJi" | "dayGan" | "hourJi";
+  label: string;
+  symbol: string;
+  value: number;
+}
+
+export interface LukimFortune {
+  value: number;
+  summary: string;
+  components: LukimComponent[];
+}
+
 export interface TodayFortuneResponse {
   userInfo: {
     name?: string;
@@ -71,5 +84,6 @@ export interface TodayFortuneResponse {
       daewoonEffect: string;
     };
   };
+  lukim?: LukimFortune | null;
   generatedAt: string; // 생성 시간
 }

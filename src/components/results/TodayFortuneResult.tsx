@@ -2,14 +2,6 @@
 // 오늘의 운세 전용 결과 컴포넌트 (일진 기반)
 
 import React from "react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "../ui/common/Card";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/common/Tabs";
 import { Button } from "../ui/common/Button";
 import type { TodayFortuneResponse } from "../../types/today-fortune";
 
@@ -41,235 +33,354 @@ export const TodayFortuneResult: React.FC<TodayFortuneResultProps> = ({
     水: "text-blue-400",
   };
 
+  const formattedDate = new Date(iljin.date).toLocaleDateString("ko-KR", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    weekday: "long",
+  });
+
+  const compatibilityMetrics = data.compatibility
+    ? [
+        {
+          label: "천간 상성",
+          value: data.compatibility.ganCompatibility,
+          accent: "text-emerald-300",
+        },
+        {
+          label: "지지 상성",
+          value: data.compatibility.jiCompatibility,
+          accent: "text-emerald-300",
+        },
+        {
+          label: "조화 보너스",
+          value: data.compatibility.harmonyBonus,
+          accent: "text-amber-300",
+        },
+        {
+          label: "대운 지원",
+          value: data.compatibility.daewoonSupport,
+          accent: "text-sky-300",
+        },
+      ]
+    : [];
+
+  const compatibilityNotes = data.compatibility
+    ? [
+        data.compatibility.analysis.ganRelation,
+        data.compatibility.analysis.jiRelation,
+        data.compatibility.analysis.daewoonEffect,
+      ].filter(Boolean)
+    : [];
+
+  const specialHarmony =
+    data.compatibility?.analysis.specialHarmony?.filter(Boolean) ?? [];
+
+  const themeCards = [
+    {
+      key: "work",
+      title: "직업 · 사업",
+      icon: "💼",
+      content: fortune.work,
+      border: "border-sky-400/40",
+      gradient: "from-sky-500/15 via-sky-500/5 to-transparent",
+    },
+    {
+      key: "money",
+      title: "재물",
+      icon: "💰",
+      content: fortune.money,
+      border: "border-amber-400/40",
+      gradient: "from-amber-500/15 via-amber-500/5 to-transparent",
+    },
+    {
+      key: "love",
+      title: "연애 · 인간관계",
+      icon: "💞",
+      content: fortune.love,
+      border: "border-pink-400/40",
+      gradient: "from-pink-500/15 via-pink-500/5 to-transparent",
+    },
+    {
+      key: "health",
+      title: "건강",
+      icon: "🌿",
+      content: fortune.health,
+      border: "border-emerald-400/40",
+      gradient: "from-emerald-500/15 via-emerald-500/5 to-transparent",
+    },
+    {
+      key: "relations",
+      title: "협력 · 네트워크",
+      icon: "🤝",
+      content: fortune.relations ?? "-",
+      border: "border-indigo-400/40",
+      gradient: "from-indigo-500/15 via-indigo-500/5 to-transparent",
+    },
+    {
+      key: "documents",
+      title: "계약 · 문서",
+      icon: "📄",
+      content: fortune.documents ?? "-",
+      border: "border-violet-400/40",
+      gradient: "from-violet-500/15 via-violet-500/5 to-transparent",
+    },
+  ];
+
+  const highlightCards = [
+    {
+      key: "lucky",
+      title: "길한 포인트",
+      icon: "🍀",
+      border: "border-emerald-400/40",
+      gradient: "from-emerald-500/20 via-emerald-500/5 to-transparent",
+      items: [
+        { label: "방향", value: fortune.lucky.direction },
+        { label: "색상", value: fortune.lucky.color },
+        { label: "숫자", value: fortune.lucky.number },
+        { label: "시간", value: fortune.lucky.time },
+      ],
+    },
+    {
+      key: "avoid",
+      title: "주의 포인트",
+      icon: "⚠️",
+      border: "border-rose-400/40",
+      gradient: "from-rose-500/20 via-rose-500/5 to-transparent",
+      items: [
+        { label: "방향", value: fortune.avoid.direction },
+        { label: "색상", value: fortune.avoid.color },
+        { label: "시간", value: fortune.avoid.time },
+      ],
+    },
+    {
+      key: "advice",
+      title: "오늘의 조언",
+      icon: "💫",
+      border: "border-amber-400/40",
+      gradient: "from-amber-500/20 via-amber-500/5 to-transparent",
+      content: fortune.advice,
+    },
+  ];
+
   return (
-    <div className="space-y-8 animate-in fade-in-50 duration-500">
-      {/* 헤더 섹션 제거 → 이미지 영역을 날짜/일진 카드 내부로 이동 */}
-
-      {/* 오늘 날짜 일진 */}
-      <Card className="border-accent-gold/20 bg-gradient-to-br from-accent-gold/5 to-transparent">
-        <CardHeader>
-          {/* 프로필형 이미지 영역 (날짜/일진 카드 상단) */}
-          <div className="flex justify-center mb-3">
-            <div className="w-20 h-20 border border-white/20 bg-gradient-to-br from-accent-gold/10 to-transparent flex items-center justify-center text-xs text-text-muted shadow-lg">
-              이미지
-            </div>
+    <div className="space-y-10 animate-in fade-in-50 duration-500">
+      <section className="relative overflow-hidden rounded-3xl border border-[#d9ccb7] bg-gradient-to-br from-[#fdfaf4] via-[#f5efe3] to-[#ebe4d9] p-8 shadow-xl shadow-amber-900/10">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(212,163,115,0.18),_transparent_60%)]" />
+        <div className="relative z-10 space-y-8">
+          <div className="flex flex-wrap items-center gap-3 text-xs uppercase tracking-[0.3em] text-slate-500">
+            <span className="rounded-full border border-[#d9ccb7] bg-white/80 px-3 py-1">
+              오늘의 운세
+            </span>
+            <span className="rounded-full border border-[#d9ccb7] bg-white/80 px-3 py-1">
+              {formattedDate}
+            </span>
           </div>
-          <CardDescription className="text-center">
-            {iljin.date} (
-            {new Date(iljin.date).toLocaleDateString("ko-KR", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-              weekday: "long",
-            })}
-            )
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center space-y-4">
-            <div className="text-4xl font-bold text-accent-gold">
-              {iljin.ganji}
-            </div>
-            <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
-              <div className="text-center">
-                <div className="text-sm text-text-muted">천간</div>
-                <div
-                  className={`text-2xl font-bold flex items-baseline justify-center gap-1 ${
-                    ohaengToColorClass[iljin.ohaeng.gan] || ""
-                  }`}
-                >
-                  <span>{iljin.gan}</span>
-                  <span
-                    className={`text-sm ${
-                      ohaengToColorClass[iljin.ohaeng.gan] || "text-text-muted"
-                    }`}
-                  >
-                    {iljin.ohaeng.gan}
-                  </span>
-                </div>
-                <div className="text-xs mt-1">
-                  <span className="text-accent-gold font-medium">
-                    {data.sipsinOfToday?.gan || "-"}
-                  </span>
+
+          <div className="space-y-8">
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <p className="text-sm text-accent-gold/80">오늘의 일진</p>
+                <div className="mt-2 text-5xl font-semibold tracking-tight text-accent-gold">
+                  {iljin.ganji}
                 </div>
               </div>
-              <div className="text-center">
-                <div className="text-sm text-text-muted">지지</div>
-                <div
-                  className={`text-2xl font-bold flex items-baseline justify-center gap-1 ${
-                    ohaengToColorClass[iljin.ohaeng.ji] || ""
-                  }`}
-                >
-                  <span>{iljin.ji}</span>
-                  <span
-                    className={`text-sm ${
-                      ohaengToColorClass[iljin.ohaeng.ji] || "text-text-muted"
-                    }`}
-                  >
-                    {iljin.ohaeng.ji}
-                  </span>
+              <div className="grid gap-2 sm:grid-cols-2 sm:max-w-xs w-full">
+                <div className="relative overflow-hidden rounded-lg border border-[#dacfbf] bg-white/85 px-3 py-3">
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(234,231,225,0.55),_transparent_70%)]" />
+                  <div className="relative z-10 space-y-1.5 text-center">
+                    <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">
+                      천간
+                    </p>
+                    <div
+                      className={`text-xl font-semibold ${
+                        ohaengToColorClass[iljin.ohaeng.gan] || "text-slate-700"
+                      }`}
+                    >
+                      {iljin.gan}
+                    </div>
+                    <p className="text-[11px] text-slate-600">
+                      {iljin.ohaeng.gan}의 기운
+                    </p>
+                    <div className="flex items-center justify-center text-[10px] text-accent-gold">
+                      <span className="rounded-full border border-accent-gold/30 bg-accent-gold/10 px-2 py-0.5">
+                        십성 {data.sipsinOfToday?.gan || "-"}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <div className="text-xs mt-1">
-                  <span className="text-accent-gold font-medium">
-                    {data.sipsinOfToday?.ji || "-"}
-                  </span>
+
+                <div className="relative overflow-hidden rounded-lg border border-[#dacfbf] bg-white/85 px-3 py-3">
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(234,231,225,0.55),_transparent_70%)]" />
+                  <div className="relative z-10 space-y-1.5 text-center">
+                    <p className="text-[11px] uppercase tracking-[0.18em] text-slate-500">
+                      지지
+                    </p>
+                    <div
+                      className={`text-xl font-semibold ${
+                        ohaengToColorClass[iljin.ohaeng.ji] || "text-slate-700"
+                      }`}
+                    >
+                      {iljin.ji}
+                    </div>
+                    <p className="text-[11px] text-slate-600">
+                      {iljin.ohaeng.ji}의 기운
+                    </p>
+                    <div className="flex items-center justify-center text-[10px] text-accent-gold">
+                      <span className="rounded-full border border-accent-gold/30 bg-accent-gold/10 px-2 py-0.5">
+                        십성 {data.sipsinOfToday?.ji || "-"}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
 
-      {/* 운세 (한줄 요약 + 총평) */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-center text-xl font-bold">
-            ✨ 운세
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* 한줄 요약 */}
-          <div className="text-center">
-            <p className="text-sm font-semibold text-accent-gold mb-2">
-              한줄 요약
+            <p className="text-lg leading-relaxed text-slate-700">
+              {fortune.summary}
             </p>
-            <p className="text-base leading-relaxed">{fortune.summary}</p>
+
+            <div className="relative overflow-hidden rounded-2xl border border-[#dacfbf] bg-white/80 p-6 shadow-lg shadow-amber-900/10">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(212,163,115,0.22),_transparent_75%)]" />
+              <div className="relative z-10 space-y-3">
+                <p className="text-sm font-semibold text-accent-gold">총평</p>
+                <p className="text-sm leading-relaxed text-slate-700">
+                  {fortune.general}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {data.compatibility && (
+        <section className="rounded-3xl border border-[#d9ccb7] bg-white/80 p-8 shadow-lg shadow-amber-900/10">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h3 className="text-lg font-semibold text-accent-gold">
+                상성 분석
+              </h3>
+              <p className="text-sm text-slate-500">
+                총점 {data.compatibility.totalScore}점
+              </p>
+            </div>
+            {specialHarmony.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {specialHarmony.map((item, idx) => (
+                  <span
+                    key={`${item}-${idx}`}
+                    className="rounded-full border border-emerald-400/40 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-700"
+                  >
+                    {item}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* 총평 */}
-          <div className="border-t border-white/10 pt-4">
-            <p className="text-sm font-semibold text-accent-gold mb-2">총평</p>
-            <p className="text-sm leading-relaxed">{fortune.general}</p>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {compatibilityMetrics.map((metric) => (
+              <div
+                key={metric.label}
+                className="rounded-2xl border border-[#e2d7c5] bg-white/90 p-4 text-center"
+              >
+                <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
+                  {metric.label}
+                </p>
+                <p className={`mt-3 text-2xl font-semibold ${metric.accent}`}>
+                  {metric.value > 0 ? `+${metric.value}` : metric.value}
+                </p>
+              </div>
+            ))}
           </div>
-        </CardContent>
-      </Card>
 
-      {/* 주제별 운세 - 탭 */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-center text-xl font-bold">
-            📚 주제별 운세
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="health" className="w-full">
-            <TabsList className="flex flex-wrap gap-2 justify-center">
-              <TabsTrigger value="health">건강</TabsTrigger>
-              <TabsTrigger value="money">재물</TabsTrigger>
-              <TabsTrigger value="love">연애</TabsTrigger>
-              <TabsTrigger value="work">직장</TabsTrigger>
-              <TabsTrigger value="relations">관계</TabsTrigger>
-              <TabsTrigger value="documents">문서</TabsTrigger>
-            </TabsList>
-            <TabsContent value="health">
-              <div className="p-4 border border-white/10 rounded-lg text-sm leading-relaxed">
-                {fortune.health}
-              </div>
-            </TabsContent>
-            <TabsContent value="money">
-              <div className="p-4 border border-white/10 rounded-lg text-sm leading-relaxed">
-                {fortune.money}
-              </div>
-            </TabsContent>
-            <TabsContent value="love">
-              <div className="p-4 border border-white/10 rounded-lg text-sm leading-relaxed">
-                {fortune.love}
-              </div>
-            </TabsContent>
-            <TabsContent value="work">
-              <div className="p-4 border border-white/10 rounded-lg text-sm leading-relaxed">
-                {fortune.work}
-              </div>
-            </TabsContent>
-            <TabsContent value="relations">
-              <div className="p-4 border border-white/10 rounded-lg text-sm leading-relaxed">
-                {(fortune as any).relations || "-"}
-              </div>
-            </TabsContent>
-            <TabsContent value="documents">
-              <div className="p-4 border border-white/10 rounded-lg text-sm leading-relaxed">
-                {(fortune as any).documents || "-"}
-              </div>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+          {compatibilityNotes.length > 0 && (
+            <div className="mt-6 space-y-2 rounded-2xl border border-[#e2d7c5] bg-white/90 p-5">
+              {compatibilityNotes.map((note, index) => (
+                <p
+                  key={index}
+                  className="text-sm leading-relaxed text-slate-700"
+                >
+                  {note}
+                </p>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
 
-      {/* 길한 것들 / 피해야 할 것들 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* 길한 것들 */}
-        <Card className="border-green-500/20 bg-green-500/5">
-          <CardHeader>
-            <CardTitle className="text-center text-green-400">
-              🍀 길한 것들
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex justify-between">
-              <span className="text-sm text-text-muted">방향:</span>
-              <span className="text-sm font-medium">
-                {fortune.lucky.direction}
-              </span>
+      <section className="space-y-6">
+        <h3 className="text-lg font-semibold text-accent-gold">주제별 운세</h3>
+        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+          {themeCards.map((card) => (
+            <div
+              key={card.key}
+              className={`group relative overflow-hidden rounded-2xl border ${card.border.replace(
+                "/40",
+                "/30"
+              )} bg-gradient-to-br ${
+                card.gradient
+              } p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-amber-900/10`}
+            >
+              <div className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.22),_transparent_70%)]" />
+              <div className="relative z-10 space-y-4">
+                <div className="flex items-center gap-3">
+                  <span className="text-xl">{card.icon}</span>
+                  <p className="text-sm font-semibold text-slate-700">
+                    {card.title}
+                  </p>
+                </div>
+                <p className="text-sm leading-relaxed text-slate-700">
+                  {card.content}
+                </p>
+              </div>
             </div>
-            <div className="flex justify-between">
-              <span className="text-sm text-text-muted">색상:</span>
-              <span className="text-sm font-medium">{fortune.lucky.color}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-sm text-text-muted">숫자:</span>
-              <span className="text-sm font-medium">
-                {fortune.lucky.number}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-sm text-text-muted">시간:</span>
-              <span className="text-sm font-medium">{fortune.lucky.time}</span>
-            </div>
-          </CardContent>
-        </Card>
+          ))}
+        </div>
+      </section>
 
-        {/* 피해야 할 것들 */}
-        <Card className="border-red-500/20 bg-red-500/5">
-          <CardHeader>
-            <CardTitle className="text-center text-red-400">
-              ⚠️ 피해야 할 것들
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex justify-between">
-              <span className="text-sm text-text-muted">방향:</span>
-              <span className="text-sm font-medium">
-                {fortune.avoid.direction}
-              </span>
+      <section className="grid gap-6 lg:grid-cols-3">
+        {highlightCards.map((card) => (
+          <div
+            key={card.key}
+            className={`relative overflow-hidden rounded-2xl border ${card.border.replace(
+              "/40",
+              "/30"
+            )} bg-gradient-to-br ${card.gradient} p-6`}
+          >
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.18),_transparent_75%)]" />
+            <div className="relative z-10 space-y-4">
+              <div className="flex items-center gap-3">
+                <span className="text-xl">{card.icon}</span>
+                <p className="text-sm font-semibold text-slate-700">
+                  {card.title}
+                </p>
+              </div>
+              {"items" in card && card.items ? (
+                <div className="space-y-3">
+                  {card.items.map((item) => (
+                    <div
+                      key={`${card.key}-${item.label}`}
+                      className="flex items-center justify-between text-sm text-slate-700"
+                    >
+                      <span className="text-slate-500">{item.label}</span>
+                      <span className="font-medium text-slate-800">
+                        {item.value}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm leading-relaxed text-slate-700">
+                  {card.content}
+                </p>
+              )}
             </div>
-            <div className="flex justify-between">
-              <span className="text-sm text-text-muted">색상:</span>
-              <span className="text-sm font-medium">{fortune.avoid.color}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-sm text-text-muted">시간:</span>
-              <span className="text-sm font-medium">{fortune.avoid.time}</span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        ))}
+      </section>
 
-      {/* 오늘의 조언 */}
-      <Card className="border-accent-gold/30 bg-gradient-to-br from-accent-gold/10 to-transparent">
-        <CardHeader>
-          <CardTitle className="text-center text-accent-gold">
-            💫 오늘의 조언
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-center text-base leading-relaxed">
-            {fortune.advice}
-          </p>
-        </CardContent>
-      </Card>
-
-      {/* 다시 분석하기 버튼 */}
-      <div className="text-center pt-8">
+      <div className="pt-4 text-center">
         <Button onClick={onReset} variant="outline" size="lg">
           다른 날 운세 보기
         </Button>

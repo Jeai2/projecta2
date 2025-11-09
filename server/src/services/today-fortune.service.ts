@@ -6,7 +6,11 @@ import {
   analyzeCompatibility,
   type CompatibilityResult,
 } from "./compatibility.service";
-import { SIPSIN_TABLE } from "../data/saju.data";
+import { SIPSIN_TABLE, JI } from "../data/saju.data";
+import {
+  getLukimInterpretation,
+  type LukimInterpretation,
+} from "../data/lukim-interpretations";
 import type {
   TodayFortuneResponse,
   IljinData,
@@ -194,6 +198,107 @@ const GANJI_TO_TIME: Record<string, { good: string[]; bad: string[] }> = {
   // ... 나머지도 동일한 패턴으로 추가 가능
 };
 
+const createLukimValueMap = (): Record<string, number> => {
+  const map: Record<string, number> = {};
+  const assign = (symbols: string[], value: number) => {
+    symbols.forEach((symbol) => {
+      map[symbol] = value;
+    });
+  };
+
+  assign(["甲", "己", "子", "午", "갑", "기", "자", "오"], 9);
+  assign(["乙", "庚", "丑", "未", "을", "경", "축", "미"], 8);
+  assign(["丙", "辛", "寅", "申", "병", "신", "인", "신"], 7);
+  assign(["丁", "壬", "卯", "酉", "정", "임", "묘", "유"], 6);
+  assign(["戊", "癸", "辰", "戌", "무", "계", "진", "술"], 5);
+  assign(["巳", "亥", "사", "해"], 4);
+
+  return map;
+};
+
+const LUKIM_VALUE_MAP = createLukimValueMap();
+
+type LukimComponentType = "birthYearGan" | "birthYearJi" | "dayGan" | "hourJi";
+
+interface LukimComponentDetail {
+  type: LukimComponentType;
+  label: string;
+  symbol: string;
+  value: number;
+}
+
+interface LukimCalculationResult {
+  total: number;
+  interpretation: LukimInterpretation | null;
+  components: LukimComponentDetail[];
+}
+
+const getLukimNumericValue = (symbol: string): number | null => {
+  if (!symbol) return null;
+  return LUKIM_VALUE_MAP[symbol] ?? null;
+};
+
+const getHourBranchSymbol = (date: Date): string => {
+  const hour = date.getHours();
+  const minute = date.getMinutes();
+  const totalMinutes = hour * 60 + minute;
+  const adjustedMinutes = (totalMinutes + 30) % 1440;
+  const hourJiIndex = Math.floor(adjustedMinutes / 120);
+  return JI[hourJiIndex];
+};
+
+const calculateLukimResult = (
+  gender: "M" | "W",
+  userPillars: {
+    year: { gan: string; ji: string };
+  },
+  iljin: IljinData,
+  referenceDate: Date
+): LukimCalculationResult | null => {
+  const birthSymbol =
+    gender === "M" ? userPillars.year.gan : userPillars.year.ji;
+  const birthComponent: LukimComponentDetail = {
+    type: gender === "M" ? "birthYearGan" : "birthYearJi",
+    label: gender === "M" ? "생년간" : "생년지",
+    symbol: birthSymbol,
+    value: getLukimNumericValue(birthSymbol) ?? 0,
+  };
+
+  const dayComponent: LukimComponentDetail = {
+    type: "dayGan",
+    label: "점일간",
+    symbol: iljin.gan,
+    value: getLukimNumericValue(iljin.gan) ?? 0,
+  };
+
+  const hourBranch = getHourBranchSymbol(referenceDate);
+  const hourComponent: LukimComponentDetail = {
+    type: "hourJi",
+    label: "점시지",
+    symbol: hourBranch,
+    value: getLukimNumericValue(hourBranch) ?? 0,
+  };
+
+  const components = [birthComponent, dayComponent, hourComponent];
+
+  if (components.some((component) => component.value === 0)) {
+    return null;
+  }
+
+  const total = components.reduce((sum, component) => sum + component.value, 0);
+  const interpretation = getLukimInterpretation(total);
+
+  if (!interpretation) {
+    return null;
+  }
+
+  return {
+    total,
+    interpretation,
+    components,
+  };
+};
+
 // 일진 데이터 생성
 export const generateIljinData = (date: Date): IljinData => {
   const ganji = getDayGanji(date);
@@ -222,7 +327,8 @@ export const generateIljinData = (date: Date): IljinData => {
 // 운세 풀이 생성 (상성 분석 반영)
 export const generateFortuneWithCompatibility = (
   iljin: IljinData,
-  compatibility: CompatibilityResult
+  compatibility: CompatibilityResult,
+  lukim: LukimCalculationResult | null
 ): IljinFortune => {
   const { totalScore, analysis } = compatibility;
 
@@ -235,6 +341,8 @@ export const generateFortuneWithCompatibility = (
     : isNegative
     ? `${iljin.ganji} 일진과 조심스러운 관계입니다. 신중한 판단이 필요한 하루가 될 것 같습니다.`
     : `${iljin.ganji} 일진과 무난한 관계입니다. 평온하고 안정적인 하루가 예상됩니다.`;
+
+  const lukimSummary = lukim?.interpretation?.summary ?? null;
 
   const workFortune = isPositive
     ? "업무에서 탁월한 성과를 낼 수 있는 날입니다. 새로운 프로젝트나 중요한 결정을 내리기에 최적의 시기입니다."
@@ -249,7 +357,7 @@ export const generateFortuneWithCompatibility = (
     : "인간관계가 평온하게 유지될 것입니다. 기존 관계를 소중히 여기는 하루가 되겠습니다.";
 
   return {
-    summary: baseSummary,
+    summary: lukimSummary ?? baseSummary,
     general: `${analysis.ganRelation} ${analysis.jiRelation} ${
       analysis.specialHarmony.length > 0
         ? `특히 ${analysis.specialHarmony.join(
@@ -354,8 +462,24 @@ export const getTodayFortune = async (userInfo: {
     ji: calcSipsin(userDayGan, iljin.ji, "e"),
   };
 
+  const lukimResult = calculateLukimResult(
+    userInfo.gender,
+    {
+      year: {
+        gan: userPillars.year.gan,
+        ji: userPillars.year.ji,
+      },
+    },
+    iljin,
+    today
+  );
+
   // 상성 분석을 반영한 운세 생성
-  const fortune = generateFortuneWithCompatibility(iljin, compatibility);
+  const fortune = generateFortuneWithCompatibility(
+    iljin,
+    compatibility,
+    lukimResult
+  );
 
   return {
     userInfo: {
@@ -366,6 +490,13 @@ export const getTodayFortune = async (userInfo: {
     fortune,
     sipsinOfToday,
     compatibility, // 상성 분석 결과 추가
+    lukim: lukimResult
+      ? {
+          value: lukimResult.total,
+          summary: lukimResult.interpretation?.summary ?? "",
+          components: lukimResult.components,
+        }
+      : null,
     generatedAt: new Date().toISOString(),
   };
 };
