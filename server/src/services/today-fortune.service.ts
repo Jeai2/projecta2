@@ -15,7 +15,17 @@ import type {
   TodayFortuneResponse,
   IljinData,
   IljinFortune,
+  FortuneScoreMeta,
+  TenGodType,
+  FortuneGrade,
 } from "../../../src/types/today-fortune";
+import {
+  calculateFortuneScores,
+  fortuneGradeSummary,
+  getFortuneGrade,
+  getGradeTone,
+  getTenGodMessage,
+} from "./today-fortune.utils";
 
 // 오행 매핑
 const GAN_TO_OHAENG: Record<string, "木" | "火" | "土" | "金" | "水"> = {
@@ -299,6 +309,15 @@ const calculateLukimResult = (
   };
 };
 
+interface FortuneGenerationOptions {
+  sipsinOfToday?: {
+    dayGan: string;
+    gan?: string | null;
+    ji?: string | null;
+  };
+  fortuneScores?: FortuneScoreMeta;
+}
+
 // 일진 데이터 생성
 export const generateIljinData = (date: Date): IljinData => {
   const ganji = getDayGanji(date);
@@ -328,72 +347,115 @@ export const generateIljinData = (date: Date): IljinData => {
 export const generateFortuneWithCompatibility = (
   iljin: IljinData,
   compatibility: CompatibilityResult,
-  lukim: LukimCalculationResult | null
+  lukim: LukimCalculationResult | null,
+  options?: FortuneGenerationOptions
 ): IljinFortune => {
-  const { totalScore, analysis } = compatibility;
+  const { analysis } = compatibility;
+  const fortuneScores = options?.fortuneScores;
+  const grade: FortuneGrade = fortuneScores
+    ? fortuneScores.grade
+    : getFortuneGrade(compatibility.totalScore >= 20 ? 9 : 5);
+  const gradeConfig = fortuneGradeSummary[grade];
+  const tone = getGradeTone(grade);
 
-  // 상성에 따른 기본 톤 설정
-  const isPositive = totalScore >= 20;
-  const isNegative = totalScore < -10;
+  const tenGodKey = (options?.sipsinOfToday?.gan ??
+    options?.sipsinOfToday?.ji ??
+    null) as TenGodType | null;
+  const tenGodMessage = getTenGodMessage(grade, tenGodKey) || "";
 
-  const baseSummary = isPositive
-    ? `${iljin.ganji} 일진과 매우 좋은 상성을 보입니다. 오늘은 당신에게 특별한 기회의 날이 될 것입니다.`
+  const summary = lukim?.interpretation?.summary ?? gradeConfig.overview;
+
+  const specialHarmonyText =
+    analysis.specialHarmony.length > 0
+      ? `특히 ${analysis.specialHarmony.join(", ")} 기운이 함께합니다.`
+      : "";
+
+  const general = [
+    tenGodMessage,
+    analysis.ganRelation,
+    analysis.jiRelation,
+    specialHarmonyText,
+    analysis.daewoonEffect ? `대운 영향: ${analysis.daewoonEffect}.` : "",
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+
+  const isVeryPositive = tone === "very_positive";
+  const isPositive = tone === "positive" || tone === "very_positive";
+  const isNegative = tone === "negative" || tone === "very_negative";
+
+  const workFortune = isVeryPositive
+    ? "업무에서 과감한 시도가 큰 성과로 이어집니다. 중요한 결정도 자신 있게 밀고 나가세요."
+    : isPositive
+    ? "업무가 순조롭게 풀립니다. 계획했던 일을 차근차근 실행하세요."
     : isNegative
-    ? `${iljin.ganji} 일진과 조심스러운 관계입니다. 신중한 판단이 필요한 하루가 될 것 같습니다.`
-    : `${iljin.ganji} 일진과 무난한 관계입니다. 평온하고 안정적인 하루가 예상됩니다.`;
+    ? "업무에서는 변수에 대비해야 합니다. 급한 결정보다는 충분히 검토한 후 진행하세요."
+    : "업무가 평소처럼 무난하게 진행됩니다. 기본에 충실하면 안정적인 흐름을 유지할 수 있습니다.";
 
-  const lukimSummary = lukim?.interpretation?.summary ?? null;
-
-  const workFortune = isPositive
-    ? "업무에서 탁월한 성과를 낼 수 있는 날입니다. 새로운 프로젝트나 중요한 결정을 내리기에 최적의 시기입니다."
+  const loveFortune = isVeryPositive
+    ? "인간관계에서 특별한 만남이나 진전이 기대됩니다. 진심을 담아 표현해 보세요."
+    : isPositive
+    ? "주변 사람들과 조화롭게 교류할 수 있습니다. 마음을 열고 대화를 나눠보세요."
     : isNegative
-    ? "업무에서는 신중함이 필요합니다. 급한 결정보다는 충분히 검토한 후 진행하세요."
-    : "업무가 평소대로 순조롭게 진행될 것입니다. 꾸준히 노력하면 좋은 결과를 얻을 수 있습니다.";
+    ? "오해가 생기기 쉬운 날입니다. 말과 행동을 한 번 더 점검하세요."
+    : "큰 변화 없이 평온한 흐름입니다. 기존 관계를 소중히 챙기는 것이 좋습니다.";
 
-  const loveFortune = isPositive
-    ? "인간관계에서 특별한 만남이나 발전이 기대됩니다. 적극적으로 마음을 표현해보세요."
+  const healthFortune = isVeryPositive
+    ? "컨디션이 최상입니다. 활동량을 늘려도 무리가 없습니다."
+    : isPositive
+    ? "안정적인 컨디션을 유지할 수 있습니다. 규칙적인 생활을 이어가세요."
     : isNegative
-    ? "인간관계에서 오해가 생기기 쉬운 날입니다. 말조심하고 상대방 입장을 이해하려 노력하세요."
-    : "인간관계가 평온하게 유지될 것입니다. 기존 관계를 소중히 여기는 하루가 되겠습니다.";
+    ? "피로가 쌓이기 쉬운 날입니다. 충분한 휴식과 수분 섭취가 필요합니다."
+    : "컨디션이 다소 무거울 수 있습니다. 무리하지 말고 몸 상태를 세심히 살피세요.";
+
+  const moneyFortune = isVeryPositive
+    ? "재물운이 크게 상승합니다. 투자나 새로운 수익 기회를 적극적으로 검토해 보세요."
+    : isPositive
+    ? "수입과 지출이 안정적으로 관리됩니다. 다만 과한 지출은 피하세요."
+    : isNegative
+    ? "재정적인 변동성이 큽니다. 큰 지출이나 투자는 미루는 것이 좋습니다."
+    : "재물 운이 다소 약할 수 있습니다. 예산을 다시 점검하고 지출을 조절하세요.";
+
+  const relationsFortune = isVeryPositive
+    ? "네트워크 확장이 기대됩니다. 새로운 연결이 큰 도움을 줄 수 있습니다."
+    : isPositive
+    ? "대인관계가 원만하게 흐릅니다. 협업이나 소통에 힘을 실어보세요."
+    : isNegative
+    ? "관계 갈등이 생기기 쉽습니다. 감정적으로 반응하지 않도록 주의하세요."
+    : "조용한 흐름입니다. 꼭 필요한 소통만 정리하는 것이 좋습니다.";
+
+  const documentsFortune = isVeryPositive
+    ? "계약과 문서 작업이 모두 유리하게 진행됩니다. 중요한 서류도 자신 있게 처리하세요."
+    : isPositive
+    ? "문서 업무가 순조롭게 처리됩니다. 세부 사항만 다시 한 번 확인하세요."
+    : isNegative
+    ? "서류나 계약에서 실수가 나올 수 있습니다. 서두르지 말고 꼼꼼히 검토하세요."
+    : "문서 업무가 부담스럽게 느껴질 수 있습니다. 체크리스트를 활용해 놓치는 부분이 없도록 하세요.";
+
+  const advice = [
+    analysis.daewoonEffect,
+    isVeryPositive
+      ? "이 기회를 놓치지 말고 적극적으로 움직이세요."
+      : isPositive
+      ? "기회를 현실로 만들 수 있게 한 걸음 더 나아가세요."
+      : isNegative
+      ? "무리한 확장은 피하고 리스크 관리를 우선하세요."
+      : "균형 감각을 잃지 않도록 마음을 다스리세요.",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return {
-    summary: lukimSummary ?? baseSummary,
-    general: `${analysis.ganRelation} ${analysis.jiRelation} ${
-      analysis.specialHarmony.length > 0
-        ? `특히 ${analysis.specialHarmony.join(
-            ", "
-          )} 관계로 더욱 길한 기운이 있습니다.`
-        : ""
-    }`,
+    summary,
+    general,
     work: workFortune,
     love: loveFortune,
-    health: isPositive
-      ? "건강 상태가 매우 좋은 날입니다. 활력이 넘치고 면역력도 강화될 것입니다."
-      : isNegative
-      ? "몸의 컨디션을 세심히 관리하세요. 과로를 피하고 충분한 휴식을 취하는 것이 중요합니다."
-      : "건강 상태가 안정적입니다. 규칙적인 생활 리듬을 유지하세요.",
-    money: isPositive
-      ? "재물운이 상승하는 길한 날입니다. 투자나 새로운 수익 기회를 모색해볼 만합니다."
-      : isNegative
-      ? "재정 관리에 신중을 기하세요. 큰 지출이나 투자는 미루는 것이 좋겠습니다."
-      : "재물운이 평온합니다. 기존 계획대로 착실히 저축하고 관리하세요.",
-    relations: isPositive
-      ? "주변 사람들과의 관계가 매우 원활할 것입니다. 새로운 인맥 형성에도 좋은 날입니다."
-      : isNegative
-      ? "대인관계에서 갈등이 생기기 쉬운 날입니다. 감정적인 대응보다는 이성적으로 접근하세요."
-      : "대인관계가 평온하게 유지될 것입니다. 기존 관계를 더욱 돈독히 하는 데 집중하세요.",
-    documents: isPositive
-      ? "중요한 서류나 계약 관련 일들이 순조롭게 진행될 것입니다. 좋은 소식이 있을 수 있습니다."
-      : isNegative
-      ? "서류나 계약 관련 일에서는 세심한 검토가 필요합니다. 서두르지 말고 꼼꼼히 확인하세요."
-      : "서류 관련 업무가 평소처럼 무난하게 처리될 것입니다.",
-    advice: `${analysis.daewoonEffect}인 상황입니다. ${
-      isPositive
-        ? "이 좋은 기운을 놓치지 말고 적극적으로 행동하세요."
-        : isNegative
-        ? "조심스럽게 행동하되 너무 위축되지는 마세요."
-        : "평상심을 유지하며 꾸준히 노력하세요."
-    }`,
+    health: healthFortune,
+    money: moneyFortune,
+    relations: relationsFortune,
+    documents: documentsFortune,
+    advice,
     lucky: {
       direction: iljin.direction,
       color: iljin.color,
@@ -405,6 +467,9 @@ export const generateFortuneWithCompatibility = (
       color: iljin.color === "청색" ? "빨간색" : "청색",
       time: iljin.time.bad.join(", "),
     },
+    grade,
+    scoreMeta: fortuneScores,
+    tenGodKey,
   };
 };
 
@@ -462,6 +527,14 @@ export const getTodayFortune = async (userInfo: {
     ji: calcSipsin(userDayGan, iljin.ji, "e"),
   };
 
+  const fortuneScores = calculateFortuneScores({
+    daewoon: sajuResult.sajuData.currentDaewoon,
+    sewoon: sajuResult.sajuData.currentSewoon,
+    sajuData: sajuResult.sajuData,
+    todayIljinGanji: iljin.ganji,
+    referenceDate: today,
+  });
+
   const lukimResult = calculateLukimResult(
     userInfo.gender,
     {
@@ -478,7 +551,11 @@ export const getTodayFortune = async (userInfo: {
   const fortune = generateFortuneWithCompatibility(
     iljin,
     compatibility,
-    lukimResult
+    lukimResult,
+    {
+      sipsinOfToday,
+      fortuneScores,
+    }
   );
 
   return {
@@ -497,6 +574,7 @@ export const getTodayFortune = async (userInfo: {
           components: lukimResult.components,
         }
       : null,
+    fortuneScore: fortuneScores,
     generatedAt: new Date().toISOString(),
   };
 };

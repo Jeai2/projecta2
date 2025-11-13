@@ -1,7 +1,19 @@
 // server/src/services/compatibility.service.ts
 // 사용자 사주와 일진 간의 상성 분석 서비스
 
-import { CHEONGANHAP, SAMHAP, YUKHAP } from "../data/relationship.data";
+import {
+  CHEONGANHAP,
+  CHEONGANHAPHWA,
+  CHEONGANCHUNG,
+  SAMHAP,
+  BANGHAP,
+  YUKHAP,
+  YUKCHUNG,
+  YUKHYUNG,
+  YUKPA,
+  YUKAE,
+  YUKHAPHWA,
+} from "../data/relationship.data";
 import { getDaewoon } from "./daewoon.service";
 // Pillars 타입 정의 (간단한 버전)
 interface Pillars {
@@ -11,6 +23,7 @@ interface Pillars {
   hour: string;
 }
 import type { IljinData } from "../../../src/types/today-fortune";
+import { OHAENG_SANGGEUK } from "../data/yongsin.data";
 
 // 천간 오행 매핑
 const GAN_TO_OHAENG: Record<string, string> = {
@@ -99,6 +112,15 @@ const HANGUL_TO_HANJA: Record<string, string> = {
   해: "亥",
 };
 
+interface HarmonyDetail {
+  type: string;
+  base: string;
+  target: string;
+  context: string;
+  description?: string;
+  label?: string;
+}
+
 // 상성 분석 결과 인터페이스
 export interface CompatibilityResult {
   ganCompatibility: number; // 천간 상성 점수 (-20 ~ +20)
@@ -109,7 +131,7 @@ export interface CompatibilityResult {
   analysis: {
     ganRelation: string; // 천간 관계 설명
     jiRelation: string; // 지지 관계 설명
-    specialHarmony: string[]; // 특별한 조화 관계
+    specialHarmony: HarmonyDetail[]; // 특별한 조화 관계
     daewoonEffect: string; // 대운 영향 설명
   };
 }
@@ -140,32 +162,199 @@ export function analyzeCompatibility(
 
   // 3. 특별한 조화 관계 확인 (기존 데이터 활용)
   let harmonyBonus = 0;
-  const specialHarmony: string[] = [];
+  const specialHarmony: HarmonyDetail[] = [];
+  const seenRelations = new Set<string>();
 
-  // 천간 합화 확인 (CHEONGANHAP 활용)
-  const userDayGanHanja = HANGUL_TO_HANJA[userDayGan];
-  const todayGanHanja = HANGUL_TO_HANJA[todayGan];
+  const toHanja = (value: string): string =>
+    HANGUL_TO_HANJA[value] || value || "";
 
-  if (CHEONGANHAP[userDayGanHanja] === todayGanHanja) {
-    harmonyBonus += 15;
-    specialHarmony.push("천간합화");
-  }
+  const addRelation = (
+    type: string,
+    base: string,
+    target: string,
+    context: string,
+    description?: string
+  ) => {
+    if (!type || !base || !target) return;
+    const key = `${type}|${base}|${target}|${context}|${description ?? ""}`;
+    if (seenRelations.has(key)) return;
+    seenRelations.add(key);
+    specialHarmony.push({
+      type,
+      base,
+      target,
+      context,
+      description,
+      label: `${base}${target}`,
+    });
+  };
 
-  // 지지 삼합 확인 (SAMHAP 활용)
-  const userDayJiHanja = HANGUL_TO_HANJA[userDayJi];
-  const todayJiHanja = HANGUL_TO_HANJA[todayJi];
+  const todayGanHanja = toHanja(todayGan);
+  const todayJiHanja = toHanja(todayJi);
 
-  if (SAMHAP[userDayJiHanja]?.includes(todayJiHanja)) {
-    harmonyBonus += 10;
-    const samhapGroup = getSamhapGroupName(userDayJiHanja, todayJiHanja);
-    specialHarmony.push(`삼합(${samhapGroup})`);
-  }
+  const pillarInfos = [
+    {
+      labelGan: "년간",
+      labelJi: "년지",
+      gan: userPillars.year[0],
+      ji: userPillars.year[1],
+    },
+    {
+      labelGan: "월간",
+      labelJi: "월지",
+      gan: userPillars.month[0],
+      ji: userPillars.month[1],
+    },
+    {
+      labelGan: "일간",
+      labelJi: "일지",
+      gan: userPillars.day[0],
+      ji: userPillars.day[1],
+    },
+    {
+      labelGan: "시간",
+      labelJi: "시지",
+      gan: userPillars.hour[0],
+      ji: userPillars.hour[1],
+    },
+  ];
 
-  // 지지 육합 확인 (YUKHAP 활용)
-  if (YUKHAP[userDayJiHanja] === todayJiHanja) {
-    harmonyBonus += 8;
-    specialHarmony.push("육합");
-  }
+  const allJiHanja = pillarInfos.map((info) => toHanja(info.ji));
+
+  const HYUNG_TRIPLE_SETS: string[][] = [
+    ["寅", "巳", "申"],
+    ["丑", "未", "戌"],
+  ];
+
+  const evaluateJiRelationships = () => {
+    const hyungCandidates: Array<{ base: string; context: string }> = [];
+
+    pillarInfos.forEach(({ labelJi, ji }) => {
+      const baseJiHanja = toHanja(ji);
+      if (!baseJiHanja) return;
+
+      if (YUKHAP[baseJiHanja] === todayJiHanja) {
+        harmonyBonus += labelJi === "일지" ? 8 : 0;
+        const yukhapInfo = YUKHAPHWA[baseJiHanja];
+        addRelation(
+          "육합",
+          baseJiHanja,
+          todayJiHanja,
+          labelJi,
+          yukhapInfo?.resultName
+        );
+      }
+
+      const samhapPartners = SAMHAP[baseJiHanja];
+      if (samhapPartners?.includes(todayJiHanja)) {
+        const others = samhapPartners.filter((partner) => partner !== todayJiHanja);
+        const hasAll =
+          others.length > 0 &&
+          others.every((partner) =>
+            partner === baseJiHanja
+              ? false
+              : allJiHanja.some((item) => item === partner)
+          );
+        const type = hasAll ? "삼합" : "반합";
+        if (labelJi === "일지") {
+          harmonyBonus += hasAll ? 10 : 0;
+        }
+        const samhapGroup = getSamhapGroupName(baseJiHanja, todayJiHanja);
+        addRelation(
+          type,
+          baseJiHanja,
+          todayJiHanja,
+          labelJi,
+          samhapGroup !== "미상" ? samhapGroup : undefined
+        );
+      }
+
+      const banghapPartners = BANGHAP[baseJiHanja];
+      if (banghapPartners?.includes(todayJiHanja)) {
+        addRelation("방합", baseJiHanja, todayJiHanja, labelJi);
+      }
+
+      if (YUKCHUNG[baseJiHanja] === todayJiHanja) {
+        addRelation("충", baseJiHanja, todayJiHanja, labelJi);
+      }
+
+      if (YUKHYUNG[baseJiHanja]?.includes(todayJiHanja)) {
+        hyungCandidates.push({ base: baseJiHanja, context: labelJi });
+      }
+
+      if (YUKPA[baseJiHanja] === todayJiHanja) {
+        addRelation("파", baseJiHanja, todayJiHanja, labelJi);
+      }
+
+      if (YUKAE[baseJiHanja] === todayJiHanja) {
+        addRelation("해", baseJiHanja, todayJiHanja, labelJi);
+      }
+    });
+
+    if (hyungCandidates.length > 0) {
+      const usedHyungBases = new Set<string>();
+      HYUNG_TRIPLE_SETS.forEach((triple) => {
+        if (!triple.includes(todayJiHanja)) return;
+        const others = triple.filter((ji) => ji !== todayJiHanja);
+        const matches = hyungCandidates.filter((candidate) =>
+          others.includes(candidate.base)
+        );
+        if (matches.length === others.length) {
+          const combinedBase = others.join("");
+          const combinedContext = matches
+            .map((candidate) => candidate.context)
+            .filter(Boolean)
+            .join(" · ");
+          addRelation("삼형", combinedBase, todayJiHanja, combinedContext || "지지");
+          others.forEach((base) => usedHyungBases.add(base));
+        }
+      });
+
+      hyungCandidates.forEach(({ base, context }) => {
+        if (usedHyungBases.has(base)) return;
+        addRelation("형", base, todayJiHanja, context);
+      });
+    }
+  };
+
+  const evaluateGanRelationships = () => {
+    pillarInfos.forEach(({ labelGan, gan }) => {
+      const baseGanHanja = toHanja(gan);
+      if (!baseGanHanja) return;
+
+      if (CHEONGANHAP[baseGanHanja] === todayGanHanja) {
+        if (labelGan === "일간") {
+          harmonyBonus += 15;
+        }
+        const hwaInfo = CHEONGANHAPHWA[baseGanHanja];
+        addRelation(
+          "천간합",
+          baseGanHanja,
+          todayGanHanja,
+          labelGan,
+          hwaInfo?.resultName
+        );
+      }
+
+      if (CHEONGANCHUNG[baseGanHanja] === todayGanHanja) {
+        addRelation("천간충", baseGanHanja, todayGanHanja, labelGan);
+      }
+
+      const baseGanElement = GAN_TO_OHAENG[baseGanHanja];
+      const todayGanElement = GAN_TO_OHAENG[todayGanHanja] || GAN_TO_OHAENG[todayGan];
+
+      if (baseGanElement && todayGanElement) {
+        if (OHAENG_SANGGEUK[baseGanElement] === todayGanElement) {
+          addRelation("천간극", baseGanHanja, todayGanHanja, labelGan);
+        } else if (OHAENG_SANGGEUK[todayGanElement] === baseGanElement) {
+          addRelation("천간극", baseGanHanja, todayGanHanja, labelGan);
+        }
+      }
+    });
+  };
+
+  evaluateGanRelationships();
+  evaluateJiRelationships();
 
   // 4. 현재 대운 지원도 분석
   const currentAge = new Date().getFullYear() - birthDate.getFullYear() + 1;

@@ -19,6 +19,89 @@ export interface IljinData {
   };
 }
 
+export type FortuneGrade = "대길" | "길" | "평" | "흉" | "대흉";
+
+export type TenGodType =
+  | "비견"
+  | "겁재"
+  | "식신"
+  | "상관"
+  | "편재"
+  | "정재"
+  | "편관"
+  | "정관"
+  | "편인"
+  | "정인";
+
+export type YongsinRole = "용신" | "희신" | "한신" | "기신" | "구신";
+
+export interface AlignmentElementDetail {
+  value: string;
+  element?: string;
+  role: YongsinRole;
+  score: number;
+}
+
+export interface RelationshipDetail {
+  type: string;
+  target: string;
+  score: number;
+}
+
+export interface FortuneAlignmentDetail {
+  label: "대운" | "세운";
+  ganji: string | null;
+  alignmentScore: number;
+  relationshipScore: number;
+  totalScore: number;
+  gan: AlignmentElementDetail;
+  ji: AlignmentElementDetail;
+  relationship?: RelationshipDetail;
+  ganRelationship?: RelationshipDetail;
+}
+
+export interface FortuneScoreMeta {
+  finalScore: number;
+  grade: FortuneGrade;
+  breakdown: {
+    daewoon: FortuneAlignmentDetail | null;
+    sewoon: FortuneAlignmentDetail | null;
+  };
+  collapse?: {
+    wolwoon: { score: number; element: string | null };
+    iljin: { score: number; element: string | null };
+    mainElement: string | null;
+    slots: Array<{
+      branch: string;
+      element: string;
+      value: number;
+      match: number;
+      base: number;
+      bonus: number;
+      range: string;
+    }>;
+    topBranches: string[];
+  };
+  entanglement?: {
+    mainElement: string | null;
+    mainStrength: number;
+    connectionStrength: number;
+    resonanceStrength: number;
+    components: Array<{
+      type: string;
+      label: string;
+      ganji: string | null;
+      branch: string | null;
+      element: string | null;
+      weight: number;
+      match: number;
+      event: number;
+      score: number;
+      range?: string;
+    }>;
+  };
+}
+
 export interface IljinFortune {
   summary: string; // 일진 요약
   general: string; // 일반적인 운세
@@ -40,6 +123,9 @@ export interface IljinFortune {
     color: string; // 피해야 할 색상
     time: string; // 피해야 할 시간대
   };
+  grade?: FortuneGrade;
+  scoreMeta?: FortuneScoreMeta;
+  tenGodKey?: TenGodType | null;
 }
 
 export interface LukimComponent {
@@ -80,10 +166,18 @@ export interface TodayFortuneResponse {
     analysis: {
       ganRelation: string;
       jiRelation: string;
-      specialHarmony: string[];
+      specialHarmony: Array<{
+        type: string;
+        base: string;
+        target: string;
+        context: string;
+        description?: string;
+        label?: string;
+      }>;
       daewoonEffect: string;
     };
   };
   lukim?: LukimFortune | null;
   generatedAt: string; // 생성 시간
+  fortuneScore?: FortuneScoreMeta;
 }
