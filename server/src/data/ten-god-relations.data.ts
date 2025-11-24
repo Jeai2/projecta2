@@ -183,6 +183,53 @@ type DayGan =
   | "癸";
 
 /**
+ * 지지 한자-한글 매핑 (양방향 변환 지원)
+ */
+export const JI_HANJA_TO_HANGUL: Record<string, string> = {
+  子: "자",
+  丑: "축",
+  寅: "인",
+  卯: "묘",
+  辰: "진",
+  巳: "사",
+  午: "오",
+  未: "미",
+  申: "신",
+  酉: "유",
+  戌: "술",
+  亥: "해",
+};
+
+export const JI_HANGUL_TO_HANJA: Record<string, string> = {
+  자: "子",
+  축: "丑",
+  인: "寅",
+  묘: "卯",
+  진: "辰",
+  사: "巳",
+  오: "午",
+  미: "未",
+  신: "申",
+  유: "酉",
+  술: "戌",
+  해: "亥",
+};
+
+/**
+ * 지지를 한자로 정규화 (한글 입력도 한자로 변환)
+ */
+export const normalizeJiToHanja = (ji: string): string => {
+  return JI_HANGUL_TO_HANJA[ji] || ji;
+};
+
+/**
+ * 지지를 한글로 정규화 (한자 입력도 한글로 변환)
+ */
+export const normalizeJiToHangul = (ji: string): string => {
+  return JI_HANJA_TO_HANGUL[ji] || ji;
+};
+
+/**
  * 다중 십성 조합(2개 이상) 해석 단위
  */
 export interface TenGodRelationOverrideEntry
@@ -190,6 +237,7 @@ export interface TenGodRelationOverrideEntry
   scope: RelationScope;
   relation: GanRelationType | JiRelationType;
   partners: TenGodType[]; // 예: ["비견", "편재"] 또는 ["식신", "정관", "정재"]
+  jiMapping?: string[]; // partners와 1:1 매핑되는 지지 배열 (한자 또는 한글 모두 가능) 예: ["축", "술", "미"] 또는 ["丑", "戌", "未"]
   context?: string; // 예: "일진", "세운"
   origin?: ColumnOrigin | ColumnOrigin[]; // 단일 기둥 또는 배열로 지정 가능
   originOverrides?: Partial<
@@ -393,8 +441,7 @@ export const TEN_GOD_RELATION_OVERRIDES: TenGodRelationOverrideMap = {
       relation: "극",
       partners: ["편재", "편인"],
       summary: "아이디어가 현실로, 감정은 차분히 가라앉는다.",
-      detail:
-        "실속있는 결과를 바랄 수 있지만 내면의 여유가 다소 부족하다.",
+      detail: "실속있는 결과를 바랄 수 있지만 내면의 여유가 다소 부족하다.",
       advice:
         "결과 중심으로 흘러가나 효율이 떨어지니 지친다. 숨을 비워 호흡을 천천히 하자.",
       tone: "positive",
@@ -510,6 +557,7 @@ export const TEN_GOD_RELATION_OVERRIDES: TenGodRelationOverrideMap = {
       scope: "ji",
       relation: "반합", //인오반합
       partners: ["비견", "상관"],
+      jiMapping: ["인", "오"],
       summary: "의욕이 넘치며 결과로 인정받을 수 있다.",
       detail:
         "해야되는 일이 완벽하게 이뤄지며 확신과 실행력도 좋다. 결과가 말끔하게 드러난다.",
@@ -521,14 +569,12 @@ export const TEN_GOD_RELATION_OVERRIDES: TenGodRelationOverrideMap = {
         day: {
           detail:
             "머리가 맑고 뭐든 해볼 만하다. 자신감이 생기고 집중력도 좋아진다. 애쓰지 않아도 일이 자연스럽게 흘러간다.",
-          advice:
-            "",
+          advice: "",
         },
         month: {
           detail:
             "내가 움직이면 주변도 따라 움직이고 분위기가 정돈되며, 사람들과의 소통도 좋아진다. 센스와 능력이 동시에 돋보인다.",
-          advice:
-            "",
+          advice: "",
         },
       },
     },
@@ -536,9 +582,9 @@ export const TEN_GOD_RELATION_OVERRIDES: TenGodRelationOverrideMap = {
       scope: "ji",
       relation: "반합", //오술반합
       partners: ["상관", "편재"],
+      jiMapping: ["오", "술"],
       summary: "긴장된 상태에서 결과와 책임감이 높아지고 성과가 있다.",
-      detail:
-        "내 결과가 전반적인 상황에 책임으로 연결되고 보상이 따라온다.",
+      detail: "내 결과가 전반적인 상황에 책임으로 연결되고 보상이 따라온다.",
       advice: "",
       tone: "positive",
       context: "일진",
@@ -547,21 +593,20 @@ export const TEN_GOD_RELATION_OVERRIDES: TenGodRelationOverrideMap = {
         day: {
           detail:
             "아이디어도 많고 손이 잘 움직인다. 압박감이 있지만 결과가 눈에 보이니 뿌듯함도 다가온다.",
-          advice:
-            "",
+          advice: "",
         },
         month: {
           detail:
             "높은 기준 속 주변에서 평가나 기대가 많아지고 잘 해내면 인정을 크게 받을 수 있다. 실직적 이익이나 결과, 성과로 이어진다.",
-          advice:
-            "",
+          advice: "",
         },
       },
     },
     {
       scope: "ji",
       relation: "삼합", //인오술삼합
-      partners: ["비견", "상관","편재"],
+      partners: ["비견", "상관", "편재"],
+      jiMapping: ["인", "오", "술"],
       summary: "흐름이 매끄럽고 일도 인간관계도 술술 풀린다.",
       detail:
         "능력과 주변의 도움이 만나 꾸준히 성과를 내고, 그 성과가 신뢰를 쌓아 결국 현실적인 큰 이익으로 돌아온다.",
@@ -573,24 +618,23 @@ export const TEN_GOD_RELATION_OVERRIDES: TenGodRelationOverrideMap = {
         day: {
           detail:
             "모든 것을 스스로 통제하고 있다는 자신감과 함께 일의 능률이 최고조에 달하여 뿌듯함을 느낀다.",
-          advice:
-            "",
+          advice: "",
         },
         month: {
           detail:
             "뛰어난 실력과 책임감으로 주변의 신뢰를 얻어 리더십이 돋보이며, 노력한 만큼 금전적, 명예적 보상까지 확실하게 따른다.",
-          advice:
-            "",
+          advice: "",
         },
       },
     },
-    { 
+    {
       scope: "ji",
       relation: "반합", //신자반합
-      partners: ["상관", "편재"],
-      summary: "의욕이 넘치며 결과로 인정받을 수 있다.",
+      partners: ["편관", "정인"],
+      jiMapping: ["신", "자"],
+      summary: "흐름이 자연스럽게 이어지고, 결과가 신뢰로 완성된다.",
       detail:
-        "해야되는 일이 완벽하게 이뤄지며 확신과 실행력도 좋다. 결과가 말끔하게 드러난다.",
+        "현실 속 책임과 노력이 매끄러운 흐름을 거쳐 안정적이게 되며, 결국 확신으로 좋은 결과를 만든다.",
       advice: "",
       tone: "positive",
       context: "일진",
@@ -598,15 +642,1023 @@ export const TEN_GOD_RELATION_OVERRIDES: TenGodRelationOverrideMap = {
       originOverrides: {
         day: {
           detail:
-            "머리가 맑고 뭐든 해볼 만하다. 자신감이 생기고 집중력도 좋아진다. 애쓰지 않아도 일이 자연스럽게 흘러간다.",
-          advice:
-            "",
+            "복잡했던 문제가 자연스럽게 정리되면서, 차분하고 편안한 안도감을 느낀다.",
+          advice: "",
         },
         month: {
           detail:
-            "내가 움직이면 주변도 따라 움직이고 분위기가 정돈되며, 사람들과의 소통도 좋아진다. 센스와 능력이 동시에 돋보인다.",
-          advice:
-            "",
+            "책임 있는 태도가 인정을 받고 신뢰를 얻는 모습으로 확고한 좋은 평판까지 얻을 수 있습니다.",
+          advice: "",
+        },
+      },
+    },
+    {
+      scope: "ji",
+      relation: "반합", //자진반합
+      partners: ["정인", "편재"],
+      jiMapping: ["자", "진"],
+      summary: "의욕이 넘치며 결과로 인정받을 수 있다.",
+      detail:
+        "복잡하게 뒤섞였던 감정과 생각이 정돈되어 마음의 안정을 찾고, 최종적으로는 실질적인 결과와 금전적인 성과로 이어진다.",
+      advice: "",
+      tone: "positive",
+      context: "일진",
+      origin: ["day", "month"],
+      originOverrides: {
+        day: {
+          detail:
+            "잠시 감정의 흔들림이나 생각의 혼란이 있더라도 곧 마음의 중심을 되찾고, 스스로 현실적인 해법과 결론을 명확히 내릴 수 있다.",
+          advice: "",
+        },
+        month: {
+          detail:
+            "예민한 감정 표현에도 불구하고 곧 마음이 안정되어 주변에 신뢰감을 주며, 실질적인 성과와 일 처리 면에서 좋은 평가를 받을 수 있다.",
+          advice: "",
+        },
+      },
+    },
+    {
+      scope: "ji",
+      relation: "반합", //신자진반합
+      partners: ["편관", "정인", "편재"],
+      jiMapping: ["신", "자", "진"],
+      summary:
+        "복잡한 흐름이 제자리를 찾아 균형이 되어 안정적인 결과를 이어간다.",
+      detail:
+        "책임감 있게 현실적인 일을 시작하지만 중간에 마음이 복잡해질 수 있습니다. 그러나 결국 감정을 가라앉히고 차분히 정리해서 좋은 결론에 도달하게 됩니다.",
+      advice: "",
+      tone: "positive",
+      context: "일진",
+      origin: ["day", "month"],
+      originOverrides: {
+        day: {
+          detail:
+            "처음에는 일이 많아 부담을 느끼고, 중간에는 잠깐 마음이 복잡해질 수 있지만 곧 침착하게 정리하면서 내가 해야 할 방향과 해결책을 분명히 찾게 됩니다.",
+          advice: "",
+        },
+        month: {
+          detail:
+            "처음엔 책임감 있는 태도로 신뢰를 쌓고, 잠깐 마음이 흔들려도 곧 안정되며, 마지막에는 일도 잘 마무리해서 좋은 평가를 받을 수 있습니다.",
+          advice: "",
+        },
+      },
+    },
+    {
+      scope: "ji",
+      relation: "반합", //사유반합
+      partners: ["식신", "정관"],
+      jiMapping: ["사", "유"],
+      summary:
+        "감정이 잠시 흔들릴 수 있지만 곧 마음이 차분하게 정돈되어, 다시 안정과 생각으로 이어집니다.",
+      detail:
+        "외부 환경에 의해 잠시 감정이 흔들릴 수 있지만 이내 마음을 다잡고 차분해집니다. 생각이 맑아지고 안정감이 찾아옵니다.",
+      advice: "",
+      tone: "positive",
+      context: "일진",
+      origin: ["day", "month"],
+      originOverrides: {
+        day: {
+          detail:
+            "처음엔 감정이 약간 무거울 수 있지만, 곧 마음이 차분해지고 생각도 맑아져 편안해집니다.",
+          advice: "",
+        },
+        month: {
+          detail:
+            "처음에는 조용히 시작할 수 있지만 곧 스스로 중심을 잡고, 신뢰를 주는 침착함과 분명한 판단력으로 주변에 좋은 인상을 남깁니다.",
+          advice: "",
+        },
+      },
+    },
+    {
+      scope: "ji",
+      relation: "반합", //유축반합
+      partners: ["정관", "정재"],
+      jiMapping: ["유", "축"],
+      summary:
+        "마음이 따뜻해지고 자신감이 생긴 후후, 말과 행동이 자연스럽게 이어진다.",
+      detail:
+        "마음이 차분해지고 자신감이 자연스럽게 생기면서, 그 힘으로 말과 행동도 능숙하게 이어집니다.",
+      advice: "",
+      tone: "positive",
+      context: "일진",
+      origin: ["day", "month"],
+      originOverrides: {
+        day: {
+          detail:
+            "마음이 차분해지고 자신에 대한 믿음이 생기면서, 자연스럽게 생각과 감정을 표현할 수 있어 한결 편안해집니다.",
+          advice: "",
+        },
+        month: {
+          detail:
+            "처음에는 차분하고 신뢰를 주는 태도로 시작해요. 곧 자존감이 높아지며 주도적으로 행동할 수 있고, 마지막에는 부드러운 말과 행동으로 주변과 자연스럽게 어울리게 됩니다.",
+          advice: "",
+        },
+      },
+    },
+    {
+      scope: "ji",
+      relation: "반합", //사유축삼합
+      partners: ["식신", "정관", "정재"],
+      jiMapping: ["사", "유", "축"],
+      summary:
+        "처음에는 다소 침체될 수 있지만, 시간이 지나면서 마음이 차분히 정리되고 마지막에는 말이나 행동으로 편안하게 표현할 수 있습니다.",
+      detail:
+        "처음에는 자기주장이 강하게 드러나지만, 시간이 지나면서 외부 상황에 영향을 받아 마음이 차분해지고 생각이 깊어집니다. 마지막에는 차분하고 통찰력 있게 자신의 생각과 감정을 자연스럽게 나타낼 수 있습니다.",
+      advice: "",
+      tone: "positive",
+      context: "일진",
+      origin: ["day", "month"],
+      originOverrides: {
+        day: {
+          detail:
+            "처음에는 자기 뜻대로 하고 싶은 마음이 있지만, 주변 상황에 따라 조금 조심스럽게 움직이게 됩니다. 곧 마음을 가라앉히고 생각을 정리하면서, 마지막에는 차분하게 자신의 생각을 말이나 행동으로 자연스럽게 표현하게 됩니다.",
+          advice: "",
+        },
+        month: {
+          detail:
+            "처음엔 자기 의견을 내세우지만, 점점 차분하게 규칙을 지키며 신뢰를 얻어요. 마지막에는 자연스럽고 센스 있게 자신의 생각을 표현해 분위기를 좋게 만듭니다.",
+          advice: "",
+        },
+      },
+    },
+    {
+      scope: "ji",
+      relation: "반합", //해묘반합
+      partners: ["편인", "겁재"],
+      jiMapping: ["해", "묘"],
+      summary:
+        "감정이 잠깐 눌릴 수 있지만, 결국은 모든 일이 자연스럽고 안정적으로 마무리됩니다.",
+      detail:
+        "감정이 억눌리거나 직감이 흐려질 수 있지만, 곧 현실적으로 필요한 행동을 통해 점점 실행력이 살아나고, 그 과정에서 안정적인 결과와 만족감을 얻을 수 있습니다.",
+      advice: "",
+      tone: "positive",
+      context: "일진",
+      origin: ["day", "month"],
+      originOverrides: {
+        day: {
+          detail:
+            "직감이 막혀 답답하게 느껴질 수 있으나, 점차 몸을 움직이고 행동에 나서다 보면 실행력이 회복되고 노력에 대한 안정된 성과와 만족을 느낄 수 있습니다.",
+          advice: "",
+        },
+        month: {
+          detail:
+            "크게 감정 기복 없이 꾸준히 자신의 역할에 집중하다 보면 실질적인 성과가 나타나고, 주위에서 신뢰와 긍정적인 평가를 받을 수 있습니다.",
+          advice: "",
+        },
+      },
+    },
+    {
+      scope: "ji",
+      relation: "반합", //묘미반합
+      partners: ["겁재", "정재"],
+      jiMapping: ["묘", "미"],
+      summary:
+        "상황이 복잡할 수 있지만, 점차 정리가 되고 결국 책임감 있게 신뢰를 쌓으며 잘 마무리하게 됩니다.",
+      detail:
+        "상황이 복잡할 수 있지만, 책임감 있게 질서를 세우며 일을 하다 보면 점차 마음이 안정되고, 결국 모든 일이 깔끔하게 정리됩니다.",
+      advice: "",
+      tone: "positive",
+      context: "일진",
+      origin: ["day", "month"],
+      originOverrides: {
+        day: {
+          detail:
+            "일이 어지럽고 마음이 복잡해 부담을 느끼지만, 곧 자신의 페이스를 찾아 차분히 정리되고 결국 편안해집니다.",
+          advice: "",
+        },
+        month: {
+          detail:
+            "정신없고 바쁜 상황에서도 꼼꼼하게 일을 챙기다 보면, 자연스럽게 신뢰를 받고 좋은 평가를 얻게 됩니다.",
+          advice: "",
+        },
+      },
+    },
+    {
+      scope: "ji",
+      relation: "반합", //해묘미삼합
+      partners: ["편인", "겁재", "정재"],
+      jiMapping: ["해", "묘", "미"],
+      summary:
+        "잠시 막힘이 있지만 시간이 지나면 자연스럽게 안정과 신뢰로 이어집니다.",
+      detail:
+        "잠깐 답답할 수 있지만, 점점 일도 잘 풀리고 신뢰도 쌓이며 마음도 편해지는 흐름입니다.",
+      advice: "",
+      tone: "positive",
+      context: "일진",
+      origin: ["day", "month"],
+      originOverrides: {
+        day: {
+          detail:
+            "마음이 답답하지만, 시간이 지나면서 일이 자연스럽게 풀리고 결국엔 마음이 편안해집니다.",
+          advice: "",
+        },
+        month: {
+          detail:
+            "감정 기복 없이 차분히 일에 성과를 내고, 신뢰를 얻고 높은 평가를 받는다.",
+          advice: "",
+        },
+      },
+    },
+    {
+      scope: "ji",
+      relation: "방합", //인묘방합
+      partners: ["비견", "겁재"],
+      jiMapping: ["인", "묘"],
+      summary: "움직인 만큼 바로 결과가 따라오는, 흐름이 군더더기 없다.",
+      detail: "주도성과 의욕이 행동과 성과로 나타나며, 결과도 좋아진다.",
+      advice: "",
+      tone: "positive",
+      context: "일진",
+      origin: ["day", "month"],
+      originOverrides: {
+        day: {
+          detail:
+            "의욕과 자신감으로 자연스럽게 일이 착착 풀리고, 바로바로 결과가 보여 만족할 수 있습니다.",
+          advice: "",
+        },
+        month: {
+          detail:
+            "적극적으로 움직이면 바로 좋은 결과가 따라오고, 주위의 인정을 쉽게 받을 수 있습니다.",
+          advice: "",
+        },
+      },
+    },
+    {
+      scope: "ji",
+      relation: "방합", //묘진방합
+      partners: ["겁재", "편재"],
+      jiMapping: ["묘", "진"],
+      summary:
+        "마음은 조금 불안정하다. 결국 현실적인 이익이나 결과에 집중하게 된다.",
+      detail:
+        "심리적으로 불안정할 수 있으나, 결국 현실적인 목표나 결과에 집중하게 됩니다.",
+      advice: "",
+      tone: "positive",
+      context: "일진",
+      origin: ["day", "month"],
+      originOverrides: {
+        day: {
+          detail:
+            "마음이 잠시 불안할 수 있지만, 현실적인 일이나 눈앞의 결과에 집중하면 곧 균형을 찾게 됩니다.",
+          advice: "",
+        },
+        month: {
+          detail:
+            "감정 변화에 쉽게 흔들리지 않고, 현실적이고 실용적인 태도가 돋보입니다. 일을 잘한다는 평을 듣거나, 현실 감각이 뛰어나다는 신뢰를 받기 쉽습니다.",
+          advice: "",
+        },
+      },
+    },
+    {
+      scope: "ji",
+      relation: "방합", //인진방합
+      partners: ["비견", "편재"],
+      jiMapping: ["인", "진"],
+      summary:
+        "마음이 답답할 수 있지만, 일은 자연스럽게 풀리고 실행력과 성과로 이어지는 흐름입니다.",
+      detail:
+        "감정적으로는 다소 답답할 수 있으나, 의욕과 실행력이 강해져 일의 진행과 결과가 원활해집니다.",
+      advice: "",
+      tone: "positive",
+      context: "일진",
+      origin: ["day", "month"],
+      originOverrides: {
+        day: {
+          detail:
+            "마음이 다소 무거울 수 있으나, 실행력이 높아져 일의 진행과 성과가 자연스럽게 이어집니다.",
+          advice: "",
+        },
+        month: {
+          detail:
+            "실무 감각이 뛰어나 빠르고 확실하게 일을 처리하며, 실질적인 성과와 긍정적인 평가를 얻는 흐름입니다.",
+          advice: "",
+        },
+      },
+    },
+    {
+      scope: "ji",
+      relation: "방합", //인묘진방합
+      partners: ["비견", "겁재", "편재"],
+      jiMapping: ["인", "묘", "진"],
+      summary:
+        "감정보다 일 처리와 행동, 성과가 우선시되어 빠르게 진행되는 흐름입니다.",
+      detail:
+        "마음의 평온함은 다소 부족하지만, 실행력과 생산성이 높아 일 처리가 빠르고 성과가 뚜렷하게 나타납니다.",
+      advice: "",
+      tone: "positive",
+      context: "일진",
+      origin: ["day", "month"],
+      originOverrides: {
+        day: {
+          detail:
+            "감정적 여유는 적지만, 추진력이 강해 빠르게 행동하고 결과를 얻는 흐름입니다.",
+          advice: "",
+        },
+        month: {
+          detail:
+            "실무 능력과 실행력이 뛰어나 성과가 두드러지지만, 세밀한 배려는 다소 아쉬울 수 있습니다.",
+          advice: "",
+        },
+      },
+    },
+    {
+      scope: "ji",
+      relation: "방합", //사오방합
+      partners: ["식신", "상관"],
+      jiMapping: ["사", "오"],
+      summary:
+        "할 일의 우선순위와 방향이 명확해지고, 책임감과 신뢰, 질서가 강조되는 흐름입니다.",
+      detail:
+        "책임감과 신뢰, 질서가 강조되어 전체적으로 실질적인 성과와 안정감을 얻기 쉬운 흐름입니다.",
+      advice: "",
+      tone: "positive",
+      context: "일진",
+      origin: ["day", "month"],
+      originOverrides: {
+        day: {
+          detail:
+            "해야 할 일에 대한 책임감을 느끼지만, 실질적으로 일을 정리하고 마무리하며 안정감과 만족을 느낄 수 있는 흐름입니다.",
+          advice: "",
+        },
+        month: {
+          detail:
+            "진지하고 책임감 있게 업무를 처리해 신뢰를 얻고, 안정적이고 신뢰할 만하다는 평가를 받는 흐름입니다.",
+          advice: "",
+        },
+      },
+    },
+    {
+      scope: "ji",
+      relation: "방합", //오미방합
+      partners: ["상관", "정재"],
+      summary:
+        "일과 책임이 많아 잠시 불안할 수 있으나, 점차 안정과 균형을 되찾는 흐름입니다.",
+      detail:
+        "실무와 책임이 많아 일시적으로 부담을 느낄 수 있으나, 객관적이고 이성적으로 상황을 정리하며 점차 안정을 찾게 됩니다.",
+      advice: "",
+      tone: "positive",
+      context: "일진",
+      origin: ["day", "month"],
+      originOverrides: {
+        day: {
+          detail:
+            "일이 많고 부담이 있지만, 차분하게 정리되어 점차 안정감을 회복합니다.",
+          advice: "",
+        },
+        month: {
+          detail:
+            "겉으로는 바쁘고 책임이 많아 보이나, 침착하게 여러 일과 책임을 잘 관리해 신뢰를 얻고, 신중하고 안정적인 모습으로 좋은 평가를 받습니다.",
+          advice: "",
+        },
+      },
+    },
+    {
+      scope: "ji",
+      relation: "방합", //사미방합
+      partners: ["식신", "정재"],
+      summary:
+        "불안정해 보이지만, 차분하게 상황이 정리되어 안정감을 찾게 됩니다.",
+      detail:
+        "잠시 불안정함이 있을 수 있으나, 책임감과 이성적 판단으로 질서와 균형을 자연스럽게 회복하게 됩니다.",
+      advice: "",
+      tone: "positive",
+      context: "일진",
+      origin: ["day", "month"],
+      originOverrides: {
+        day: {
+          detail: "불안정함을 차분히 관리하며 점차 안정을 되찾게 됩니다.",
+          advice: "",
+        },
+        month: {
+          detail:
+            "책임감을 바탕으로 상황을 안정적으로 관리해 신뢰를 얻게됩니다.",
+          advice: "",
+        },
+      },
+    },
+    {
+      scope: "ji",
+      relation: "방합", //사오미방합
+      partners: ["비견", "겁재", "편재"],
+      summary:
+        "흐름이 일시적으로 흔들릴 수 있으나, 객관적인 판단과 책임으로 균형이 다시 잡히는 모습입니다.",
+      detail:
+        "책임이 늘어나 일시적으로 불안할 수 있으나, 이성적이고 객관적으로 상황을 정리해 점차 안정과 균형을 회복합니다.",
+      advice: "",
+      tone: "positive",
+      context: "일진",
+      origin: ["day", "month"],
+      originOverrides: {
+        day: {
+          detail:
+            "감정적인 여유는 부족하지만, 추진력이 높아 신속하게 일처리와 결과를 이끌어내는 경향이 있습니다.",
+          advice: "",
+        },
+        month: {
+          detail:
+            "처음에는 책임감 있고 믿음을 주는 태도로 상황을 이끌고, 일시적으로 흐트러짐이 있어도 객관적으로 잘 정돈해 신뢰를 받는 모습입니다.",
+          advice: "",
+        },
+      },
+    },
+    {
+      scope: "ji",
+      relation: "방합", //신유방합
+      partners: ["편관", "정관"],
+      summary:
+        "해야만 하는 일, 생각, 계획이 많아 바쁘지만 이는 나를 강인하게 만들어줍니다.",
+      detail:
+        "책임과 과제가 늘어나며 부담이 커지지만, 객관적인 판단력과 추진력이 자연스럽게 향상됩니다.",
+      advice: "",
+      tone: "positive",
+      context: "일진",
+      origin: ["day", "month"],
+      originOverrides: {
+        day: {
+          detail:
+            "일이 많아 순간적으로 부담을 느낄 수 있으나, 곧 상황을 명확히 파악하고 스스로를 이끌어가는 추진력이 강화됩니다.",
+          advice: "",
+        },
+        month: {
+          detail:
+            "책임감 있게 상황에 집중하며 신속하고 명확한 판단으로 주도적으로 문제를 해결하거나, 경쟁 속에서 자연스럽게 두각을 나타냅니다.",
+          advice: "",
+        },
+      },
+    },
+    {
+      scope: "ji",
+      relation: "방합", //유술방합
+      partners: ["정관", "편재"],
+      summary:
+        "내면의 주도성과 행동력이 객관적으로 정돈되어 자연스럽게 책임 있는 결과로 이어집니다.",
+      detail:
+        "에너지가 분산되지 않고 본연의 방향으로 집중되어, 자연스럽게 책임 있는 태도와 안정적인 결과로 이어집니다.",
+      advice: "",
+      tone: "positive",
+      context: "일진",
+      origin: ["day", "month"],
+      originOverrides: {
+        day: {
+          detail:
+            "'해야 하는 일'에 자연스럽게 집중하며, 주도성과 책임감 있게 상황을 정돈해 나갑니다.",
+          advice: "",
+        },
+        month: {
+          detail:
+            "일을 꼼꼼하게 처리하여 주변의 신뢰를 얻고, 객관적으로도 책임감이 있다는 평가를 받게 됩니다.",
+          advice: "",
+        },
+      },
+    },
+    {
+      scope: "ji",
+      relation: "방합", //신술방합
+      partners: ["편관", "편재"],
+      summary:
+        "정신이 없으나 흐름은 깔끔하니, 책임과 결과가 결국 안정을 만든다.",
+      detail:
+        "쏟아지는 업무와 책임을 차분하게 정리하여, 자연스럽게 실질적인 결과와 성과로 이어집니다.",
+      advice: "",
+      tone: "positive",
+      context: "일진",
+      origin: ["day", "month"],
+      originOverrides: {
+        day: {
+          detail:
+            "주어진 책임과 업무가 부담스럽게 느껴질 수 있으나, 빠른 판단과 정리 덕분에 실질적인 성과와 안정된 마무리로 이어집니다.",
+          advice: "",
+        },
+        month: {
+          detail:
+            "일과 책임에 집중하여 효율적으로 결과를 만들어내며, 객관적으로도 믿을 만하다는 평가를 받습니다.",
+          advice: "",
+        },
+      },
+    },
+    {
+      scope: "ji",
+      relation: "방합", //신유술방합
+      partners: ["편관", "정관", "편재"],
+      summary:
+        "책임과 일의 흐름이 차분하게 정리되어 결과가 안정적으로 마무리됩니다.",
+      detail:
+        "많은 책임과 일들이 자연스럽게 정리되어 객관적으로 안정된 결과로 이어집니다.",
+      advice: "",
+      tone: "positive",
+      context: "일진",
+      origin: ["day", "month"],
+      originOverrides: {
+        day: {
+          detail:
+            "일과 책임이 한꺼번에 주어져 부담을 느끼지만, 점차 차분하게 정리되며 객관적으로 안정된 결과로 이어집니다.",
+          advice: "",
+        },
+        month: {
+          detail:
+            "여러 책임을 차분하고 객관적으로 처리하는 능력이 인정받아, 신뢰와 긍정적인 성과 평가로 이어집니다.",
+          advice: "",
+        },
+      },
+    },
+    {
+      scope: "ji",
+      relation: "방합", //해자방합
+      partners: ["편인", "정인"],
+      summary:
+        "내면의 에너지가 자연스럽게 행동으로 나타나 현실적인 결과로 이어진다.",
+      detail:
+        "내면의 에너지가 자연스럽게 정리되어, 객관적으로 행동과 결과로 이어집니다.",
+      advice: "",
+      tone: "positive",
+      context: "일진",
+      origin: ["day", "month"],
+      originOverrides: {
+        day: {
+          detail:
+            "편안한 분위기에서 차분하게 일과 관계를 정리하고, 자연스럽게 실질적인 성과와 만족을 얻습니다.",
+          advice: "",
+        },
+        month: {
+          detail:
+            "차분한 분위기에서 자연스럽게 실행력과 소통 능력이 드러나며, 객관적으로 실무와 대인관계에서 긍정적인 평가를 받기 쉽습니다.",
+          advice: "",
+        },
+      },
+    },
+    {
+      scope: "ji",
+      relation: "방합", //자축방합
+      partners: ["정인", "정재"],
+      summary: "생각과 말, 행동이 앞서가며 이상적인 상황은 멀리 떨어집니다.",
+      detail:
+        "일이 빠르게 진행되며 추진력과 실행력이 두드러지지만, 마음의 여유와 정서적 안정감은 다소 부족해질 수 있습니다.",
+      advice: "",
+      tone: "positive",
+      context: "일진",
+      origin: ["day", "month"],
+      originOverrides: {
+        day: {
+          detail:
+            "하고 싶은 말과 행동이 빠르게 드러나며, 감정은 다소 불안정할 수 있습니다.",
+          advice: "",
+        },
+        month: {
+          detail:
+            "말과 행동이 자연스럽게 드러나 추진력은 높지만, 세밀함과 배려는 다소 부족해 보일 수 있어 결과 위주로 평가받습니다.",
+          advice: "",
+        },
+      },
+    },
+    {
+      scope: "ji",
+      relation: "방합", //해축방합
+      partners: ["편인", "정재"],
+      summary: "모든 과정이 차분하고 자연스럽게 이어집니다.",
+      detail:
+        "차분하게 일과 감정이 정리되어, 자연스럽게 성과와 내면의 안정이 이루어집니다.",
+      advice: "",
+      tone: "positive",
+      context: "일진",
+      origin: ["day", "month"],
+      originOverrides: {
+        day: {
+          detail:
+            "차분한 분위기에서 일의 진행이 자연스럽고, 객관적으로 긍정적인 결과와 만족을 얻게 됩니다.",
+          advice: "",
+        },
+        month: {
+          detail:
+            "차분하고 객관적인 태도로 일에 임해 자연스러운 성과와 신뢰를 얻기 좋은 시기입니다.",
+          advice: "",
+        },
+      },
+    },
+    {
+      scope: "ji",
+      relation: "방합", //해자축방합
+      partners: ["편인", "정인", "정재"],
+      summary: "마음은 잠시 무거울 수 있지만, 일이 자연스럽게 풀려나갑니다.",
+      detail:
+        "마음은 다소 무거울 수 있으나, 일은 자연스럽게 진행되고 결과도 분명히 드러납니다.",
+      advice: "",
+      tone: "positive",
+      context: "일진",
+      origin: ["day", "month"],
+      originOverrides: {
+        day: {
+          detail:
+            "안정감은 다소 부족해도 실행과 행동으로 자연스럽게 성과와 성취를 얻습니다.",
+          advice: "",
+        },
+        month: {
+          detail:
+            "표현이 자연스럽고 추진력도 좋아서 일이 잘 풀리지만, 세심한 부분은 조금 아쉬울 수 있습니다. 그래도 실제로 드러나는 성과가 있어 좋은 평가를 받기 쉽습니다.",
+          advice: "",
+        },
+      },
+    },
+    {
+      scope: "ji",
+      relation: "육합", //자축육합
+      partners: ["정인", "정재"],
+      summary:
+        "마음이 차분해지고 행동이 자연스럽게 이어져 좋은 결과로 마무리됩니다.",
+      detail:
+        "내면이 안정되고 여유가 생기면서 말과 행동도 자연스럽게 표현되어, 이러한 흐름이 실질적인 성과와 좋은 결과로 이어집니다.",
+      advice: "",
+      tone: "positive",
+      context: "일진",
+      origin: ["day", "month"],
+      originOverrides: {
+        day: {
+          detail:
+            "마음이 평온하고 안정된 기분이 들어 말과 행동이 한결 자연스럽고 부드럽게 이어지며, 그 흐름이 만족스러운 결과로 마무리됩니다.",
+          advice: "",
+        },
+        month: {
+          detail:
+            "차분한 소통과 유연한 행동으로 실무와 평판에서 좋은 결과를 얻습니다.",
+          advice: "",
+        },
+      },
+    },
+    {
+      scope: "ji",
+      relation: "육합", //인해육합
+      partners: ["비견", "편인"],
+      summary:
+        "마음이 편안해지고 자연스럽게 행동이 이어지면서, 일의 범위도 넓어집니다.",
+      detail:
+        "마음은 다소 무거울 수 있으나, 일은 자연스럽게 진행되고 결과도 분명히 드러납니다.",
+      advice: "",
+      tone: "positive",
+      context: "일진",
+      origin: ["day", "month"],
+      originOverrides: {
+        day: {
+          detail:
+            "안정감은 다소 부족해도 실행과 행동으로 자연스럽게 성과와 성취를 얻습니다.",
+          advice: "",
+        },
+        month: {
+          detail:
+            "표현이 자연스럽고 추진력도 좋아서 일이 잘 풀리지만, 세심한 부분은 조금 아쉬울 수 있습니다. 그래도 실제로 드러나는 성과가 있어 좋은 평가를 받기 쉽습니다.",
+          advice: "",
+        },
+      },
+    },
+    {
+      scope: "ji",
+      relation: "육합", //묘술육합
+      partners: ["겁재", "편재"],
+      summary:
+        "내 안의 에너지가 자연스럽게 움직이며, 변화가 일상 속에서 편안하게 이루어집니다.",
+      detail:
+        "평소보다 의욕이 높아져서 자연스럽게 행동하게 되고, 작은 변화들이 일상에서 쉽게 나타납니다.",
+      advice: "",
+      tone: "positive",
+      context: "일진",
+      origin: ["day", "month"],
+      originOverrides: {
+        day: {
+          detail:
+            "오늘은 기분이 자주 바뀌고 평소보다 더 적극적으로 움직이게 됩니다. 내가 직접 작은 변화를 만들어서 뿌듯함을 느낄 수 있습니다다.",
+          advice: "",
+        },
+        month: {
+          detail:
+            "평소보다 더 적극적으로 움직이고 아이디어도 잘 떠올라, 일상에서 작은 변화가 자연스럽게 생깁니다.",
+          advice: "",
+        },
+      },
+    },
+    {
+      scope: "ji",
+      relation: "육합", //진유육합
+      partners: ["편재", "정관"],
+      summary:
+        "부족한 점을 계기로 점점 힘이 생기고, 자연스럽게 성장으로 이어지는 흐름입니다.",
+      detail:
+        "조금 부족하게 느껴질 수 있지만, 점차 힘이 생기고 내 방식대로 조절하면서 자연스럽게 성장하게 됩니다.",
+      advice: "",
+      tone: "positive",
+      context: "일진",
+      origin: ["day", "month"],
+      originOverrides: {
+        day: {
+          detail:
+            "처음엔 망설여도 점점 자신감이 생기고, 내 스스로 균형을 잡으며 성장하는 걸 자연스럽게 느낍니다.",
+          advice: "",
+        },
+        month: {
+          detail:
+            "시작에 망설임이 있지만, 점점 자신감이 생기면서 적극적으로 움직이고 스스로 균형을 잘 잡아 긍정적인 평가를 받기 쉬운 시기입니다.",
+          advice: "",
+        },
+      },
+    },
+    {
+      scope: "ji",
+      relation: "육합", //사신육합
+      partners: ["식신", "편관"],
+      summary:
+        "책임감이 부담스러울 수 있지만, 시간이 지나며 점점 익숙해지고 스스로 뿌듯함을 느끼게 됩니다.",
+      detail:
+        "책임감이 부담스럽지만, 시간이 지나면서 점점 익숙해지고 상황을 부드럽게 정리해서 마음이 한결 가벼워집니다.",
+      advice: "",
+      tone: "positive",
+      context: "일진",
+      origin: ["day", "month"],
+      originOverrides: {
+        day: {
+          detail:
+            "부담스럽고 책임감이 크지만, 곧 힘이 생기고 실행에 옮기며 스스로 뿌듯하게 마무리합니다.",
+          advice: "",
+        },
+        month: {
+          detail:
+            "부담이 되지만 차츰 익숙해지고, 자연스럽게 맡은 일을 잘 해내며 주변에서 신뢰와 좋은 평가를 받게 됩니다.",
+          advice: "",
+        },
+      },
+    },
+    {
+      scope: "ji",
+      relation: "육합", //오미육합
+      partners: ["식신", "편관"],
+      summary:
+        "내 안에 쌓였던 것들이 하나씩 드러나면서, 자연스럽게 행동하고 결과까지 이어진 뒤 안정감을 느끼게 됩니다.",
+      detail:
+        "표현력과 아이디어가 자연스럽게 돋보이고, 그걸로 결과를 만들어내면서 책임감도 커지고 마음이 한결 편안해집니다.",
+      advice: "",
+      tone: "positive",
+      context: "일진",
+      origin: ["day", "month"],
+      originOverrides: {
+        day: {
+          detail:
+            "마음먹은 대로 행동해서 좋은 결과를 내고, 스스로 뿌듯하고 안정감을 느낍니다.",
+          advice: "",
+        },
+        month: {
+          detail:
+            "말과 행동이 자연스럽게 잘 어울려서 눈에 띄고, 실질적인 결과까지 보여주니 주변에서 신뢰를 얻고 인정받는 때입니다.",
+          advice: "",
+        },
+      },
+    },
+    {
+      scope: "ji",
+      relation: "육합", //오미육합
+      partners: ["식신", "편관"],
+      summary:
+        "내 안에 쌓였던 것들이 하나씩 드러나면서, 자연스럽게 행동하고 결과까지 이어진 뒤 안정감을 느끼게 됩니다.",
+      detail:
+        "표현력과 아이디어가 자연스럽게 돋보이고, 그걸로 결과를 만들어내면서 책임감도 커지고 마음이 한결 편안해집니다.",
+      advice: "",
+      tone: "positive",
+      context: "일진",
+      origin: ["day", "month"],
+      originOverrides: {
+        day: {
+          detail:
+            "마음먹은 대로 행동해서 좋은 결과를 내고, 스스로 뿌듯하고 안정감을 느낍니다.",
+          advice: "",
+        },
+        month: {
+          detail:
+            "말과 행동이 자연스럽게 잘 어울려서 눈에 띄고, 실질적인 결과까지 보여주니 주변에서 신뢰를 얻고 인정받는 때입니다.",
+          advice: "",
+        },
+      },
+    },
+    {
+      scope: "ji",
+      relation: "형", //인사형
+      partners: ["비견", "식신"],
+      summary: "서로 뜻이 잘 맞지 않아 일의 흐름이 자주 끊길 수 있습니다다.",
+      detail:
+        "내 생각이나 행동이 잘 안 맞고, 일의 흐름도 쉽게 어긋나서 전체적으로 안정감이 부족할 수 있습니다.",
+      advice: "",
+      tone: "positive",
+      context: "일진",
+      origin: ["day", "month"],
+      originOverrides: {
+        day: {
+          detail:
+            "마음이 자꾸 산만해져서 집중이 잘 안 되고, 피곤함도 많이 느껴질 수 있습니다. 일이 잘 안 이어져서 다시 흐름을 잡는 데 시간이 걸릴 수 있습니다.",
+          advice: "",
+        },
+        month: {
+          detail:
+            "계획이 어색하게 흘러가고 결과도 들쑥날쑥할 수 있고, 생각이 자꾸 바뀌고 집중이 잘 안 될 수 있습니다.",
+          advice: "",
+        },
+      },
+    },
+    {
+      scope: "ji",
+      relation: "형", //사신형
+      partners: ["식신", "편관"],
+      summary:
+        "내 생각과 주변 상황이 자주 부딪쳐서 기존에 하던 대로가 잘 안 되고, 뭔가 새로운 변화를 만들고 싶어집니다.",
+      detail:
+        "고집을 내세우다 보니 양보 없는 신경전이 이어지고, 평소처럼 흘러가던 분위기가 바뀌어 뭔가 새로운 변화가 필요해지는 느낌입니다.",
+      advice: "",
+      tone: "positive",
+      context: "일진",
+      origin: ["day", "month"],
+      originOverrides: {
+        day: {
+          detail:
+            "뭐든 내 마음대로 하고 싶고, 예전처럼 하기 싫은 기분이 듭니다.",
+          advice: "",
+        },
+        month: {
+          detail:
+            "늘 하던 방식이 잘 안 통해서, 뭔가 색다르게 해보려는 마음이 커지고 평소보다 내주장이 강해질 수 있습니다.",
+          advice: "",
+        },
+      },
+    },
+    {
+      scope: "ji",
+      relation: "충", //인신충
+      partners: ["비견", "편관"],
+      summary:
+        "실속도 챙겨야 하고 압박감도 느껴져서, 뭔가 마음이 답답하고 꽉 막힌 느낌이 듭니다.",
+      detail:
+        "이득을 챙기려다 보니 생각이 많아지고 괜히 힘이 들어가서, 오히려 행동이나 표현이 잘 안 나오고 답답해질 수 있습니다.",
+      advice: "",
+      tone: "positive",
+      context: "일진",
+      origin: ["day", "month"],
+      originOverrides: {
+        day: {
+          detail:
+            "무슨 일이든 내가 챙겨야 할 것 같아 신경이 많이 쓰이고, 생각이 많아져서 괜히 피곤하고 스트레스가 쌓입니다. 하고 싶은 말이나 감정 표현도 잘 안 돼서 마음이 답답할 수 있어요.",
+          advice: "",
+        },
+        month: {
+          detail:
+            "겉으론 괜찮은 척하지만 쉽게 예민해지고 답답한 게 티 날 수 있습니다. 뭐든 능률이 잘 안 오르고, 내 마음도 제대로 말하기 어려울 때입니다.",
+          advice: "",
+        },
+      },
+    },
+    {
+      scope: "ji",
+      relation: "삼형", //인사신삼형
+      partners: ["비견", "식신", "편관"],
+      jiMapping: ["인", "사", "신"],
+      summary:
+        "서로 자기 생각만 내세워서, 분위기가 자연스럽게 잘 안 맞는 것 같습니다.",
+      detail:
+        "자신의 생각과 이익만 챙기려 하다 보니, 협력이 잘 안 되고 전체적인 흐름도 자연스럽지 못합니다.",
+      advice: "",
+      tone: "positive",
+      context: "일진",
+      origin: ["day", "month"],
+      originOverrides: {
+        day: {
+          detail:
+            "이것저것 생각이 많아지고 고집이나 조급함까지 겹쳐서, 마음이 산만해지고 평소처럼 편하게 행동하기가 쉽지 않습니다.",
+          advice: "",
+        },
+        month: {
+          detail:
+            "이득을 챙기려는 모습과 내 주장만 내세우는 태도가 드러나서, 다른 사람들과 어울리기보다는 혼자 움직이려 할 수 있습니다.",
+          advice: "",
+        },
+      },
+    },
+    {
+      scope: "ji",
+      relation: "형", //축술형
+      partners: ["정재", "편재"],
+      jiMapping: ["축", "술"],
+      summary:
+        "마음 가는 대로 움직이지만 뭔가 복잡하게 느껴지고, 생각도 많아지는 때입니다.",
+      detail:
+        "마음이 복잡해지고 쉽게 예민해질 수 있어, 행동이나 결정이 평소보다 더 어렵게 느껴집니다.",
+      advice: "",
+      tone: "positive",
+      context: "일진",
+      origin: ["day", "month"],
+      originOverrides: {
+        day: {
+          detail:
+            "마음이 조금 산만해지고 즉흥적으로 행동하게 되면서, 괜히 생각도 많아지고 마음이 복잡해질 수 있습니다.",
+          advice: "",
+        },
+        month: {
+          detail:
+            "평소보다 자기 주장이나 생각을 더 강하게 드러내서, 주변에서 조금 고집 있어 보이거나 예민하게 느낄 수 있습니다.",
+          advice: "",
+        },
+      },
+    },
+    {
+      scope: "ji",
+      relation: "형", //술미형
+      partners: ["편재", "정재"],
+      jiMapping: ["술", "미"],
+      summary: "마음이 불안해서 괜히 더 세게 보이려고 할 수 있는 때입니다.",
+      detail:
+        "속마음은 불안한데, 괜히 더 단단해 보이려고 솔직하게 말하거나 강하게 행동할 수 있습니다.",
+      advice: "",
+      tone: "positive",
+      context: "일진",
+      origin: ["day", "month"],
+      originOverrides: {
+        day: {
+          detail:
+            "마음이 들뜨고 집중이 잘 안 돼서 괜히 더 세게 행동하거나 말할 수 있습니다.",
+          advice: "",
+        },
+        month: {
+          detail:
+            "겉으로 보기엔 자신감 있고 단단해 보여도, 속마음은 불안해서 괜히 더 세게 말하거나 행동할 수 있는 때입니다.",
+          advice: "",
+        },
+      },
+    },
+    {
+      scope: "ji",
+      relation: "삼형", //축술미삼형
+      partners: ["정재", "편재", "정재"],
+      jiMapping: ["축", "술", "미"],
+      summary:
+        "분위기가 좀 딱딱해지고, 여러 방면에 득실을 따시거나 눈치를 보며, 전체적으로 흐름이 거칠어질 수 있습니다.",
+      detail:
+        "평소의 부드러움이나 안정감이 깨지고, 말이나 행동이 예민하게 튀어나와서 분위기가 다소 날카롭고 한쪽으로 치우칠 수 있습니다.",
+      advice: "",
+      tone: "positive",
+      context: "일진",
+      origin: ["day", "month"],
+      originOverrides: {
+        day: {
+          detail:
+            "말과 행동이 평소보다 조금 더 직설적이고 거칠게 나올 수 있고, 마음이 분산되어 여유가 없어지며, 이것저것 셈하고 따지려는 경향이 강해질 수 있습니다.",
+          advice: "",
+        },
+        month: {
+          detail:
+            "즉각적으로 반응하고 추진력은 좋은데, 균형이 좀 흐트러져서 자기중심적이거나 예민하게 보일 수 있습니다.",
+          advice: "",
+        },
+      },
+    },
+    {
+      scope: "ji",
+      relation: "충", //자오충
+      partners: ["정인", "상관"],
+      jiMapping: ["자", "오"],
+      summary:
+        "분위기가 좀 딱딱해지고, 여러 방면에 득실을 따시거나 눈치를 보며, 전체적으로 흐름이 거칠어질 수 있습니다.",
+      detail:
+        "평소의 부드러움이나 안정감이 깨지고, 말이나 행동이 예민하게 튀어나와서 분위기가 다소 날카롭고 한쪽으로 치우칠 수 있습니다.",
+      advice: "",
+      tone: "positive",
+      context: "일진",
+      origin: ["day", "month"],
+      originOverrides: {
+        day: {
+          detail:
+            "말과 행동이 평소보다 조금 더 직설적이고 거칠게 나올 수 있고, 마음이 분산되어 여유가 없어지며, 이것저것 셈하고 따지려는 경향이 강해질 수 있습니다.",
+          advice: "",
+        },
+        month: {
+          detail:
+            "즉각적으로 반응하고 추진력은 좋은데, 균형이 좀 흐트러져서 자기중심적이거나 예민하게 보일 수 있습니다.",
+          advice: "",
+        },
+      },
+    },
+    {
+      scope: "ji",
+      relation: "충", //축미충
+      partners: ["정재", "정재"],
+      jiMapping: ["축", "미"],
+      summary:
+        "분위기가 좀 딱딱해지고, 여러 방면에 득실을 따시거나 눈치를 보며, 전체적으로 흐름이 거칠어질 수 있습니다.",
+      detail:
+        "평소의 부드러움이나 안정감이 깨지고, 말이나 행동이 예민하게 튀어나와서 분위기가 다소 날카롭고 한쪽으로 치우칠 수 있습니다.",
+      advice: "",
+      tone: "positive",
+      context: "일진",
+      origin: ["day", "month"],
+      originOverrides: {
+        day: {
+          detail:
+            "말과 행동이 평소보다 조금 더 직설적이고 거칠게 나올 수 있고, 마음이 분산되어 여유가 없어지며, 이것저것 셈하고 따지려는 경향이 강해질 수 있습니다.",
+          advice: "",
+        },
+        month: {
+          detail:
+            "즉각적으로 반응하고 추진력은 좋은데, 균형이 좀 흐트러져서 자기중심적이거나 예민하게 보일 수 있습니다.",
+          advice: "",
         },
       },
     },
@@ -617,7 +1669,8 @@ export const TEN_GOD_RELATION_OVERRIDES: TenGodRelationOverrideMap = {
       scope: "gan",
       relation: "극",
       partners: ["정재", "정관"],
-      summary: "辛금 일간에게 정재·정관 극은 계획을 다시 조율하라는 신호입니다.",
+      summary:
+        "辛금 일간에게 정재·정관 극은 계획을 다시 조율하라는 신호입니다.",
       detail:
         "재정 의사결정이 느리게 흘러가고, 책임 소재가 겹치면서 피로도가 올라갑니다. 대신 꼼꼼함 덕분에 균형을 회복할 힘도 충분합니다.",
       advice: "지출과 투자를 다시 분류하고, 꼭 필요한 한 가지부터 처리하세요.",
@@ -625,7 +1678,7 @@ export const TEN_GOD_RELATION_OVERRIDES: TenGodRelationOverrideMap = {
       context: "일진",
       origin: "day",
     },
-    
+
     // 지지: 겁재 ↔ 정관 육합
     {
       scope: "ji",
@@ -668,7 +1721,8 @@ export const TEN_GOD_RELATION_OVERRIDES: TenGodRelationOverrideMap = {
         month: {
           detail:
             "월운에서 정재와 정관이 육합을 이루면 이번 달 계획 전체를 재정비하기 좋습니다. 장기 예산과 업무 루틴을 손보고, 월말에 다시 확인해 보세요.",
-          advice: "월 단위 일정표를 새로 짜고, 쉬는 날과 집중해야 할 날을 함께 표시해 두면 도움이 됩니다.",
+          advice:
+            "월 단위 일정표를 새로 짜고, 쉬는 날과 집중해야 할 날을 함께 표시해 두면 도움이 됩니다.",
         },
       },
     },
@@ -677,7 +1731,8 @@ export const TEN_GOD_RELATION_OVERRIDES: TenGodRelationOverrideMap = {
       scope: "ji",
       relation: "형",
       partners: ["정관", "겁재"],
-      summary: "정관·겁재 형살은 권한과 책임의 균형을 다시 점검하라는 신호입니다.",
+      summary:
+        "정관·겁재 형살은 권한과 책임의 균형을 다시 점검하라는 신호입니다.",
       detail:
         "위에서 요구가 잦아져 압박이 느껴질 수 있습니다. 조급해지면 실수가 나올 수 있으니 기본 규칙을 재정비하세요.",
       advice: "중요한 결정은 서두르지 말고, 근거 자료를 먼저 정리해 두세요.",
@@ -699,10 +1754,8 @@ const normalizePartners = (partners: TenGodType[]): string =>
 /**
  * {PARTNERS} 플레이스홀더 치환
  */
-const fillTemplate = (
-  template: string,
-  partnersLabel: string
-): string => template.replace(/\{PARTNERS\}/g, partnersLabel);
+const fillTemplate = (template: string, partnersLabel: string): string =>
+  template.replace(/\{PARTNERS\}/g, partnersLabel);
 
 /**
  * override > origin > context 순으로 가장 적합한 해석 찾기
@@ -747,7 +1800,8 @@ const findOverride = (
   if (!context) return originFiltered[0];
 
   return (
-    originFiltered.find((entry) => entry.context === context) ?? originFiltered[0]
+    originFiltered.find((entry) => entry.context === context) ??
+    originFiltered[0]
   );
 };
 

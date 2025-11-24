@@ -25,9 +25,11 @@ export const getDaewoon = (
   const { yearPillar, monthPillar, dayPillar } = pillars;
   const yearGan = yearPillar[0];
 
-  // 1. 년간의 음양 확인
-  const yangGan = ["갑", "병", "무", "경", "임"];
-  const isYangYearGan = yangGan.includes(yearGan);
+  // 1. 년간의 음양 확인 (한자/한글 모두 지원)
+  const yangGanHanja = ["甲", "丙", "戊", "庚", "壬"];
+  const yangGanHangul = ["갑", "병", "무", "경", "임"];
+  const isYangYearGan =
+    yangGanHanja.includes(yearGan) || yangGanHangul.includes(yearGan);
 
   // 2. 대운의 방향(순행/역행) 결정
   const isForward =

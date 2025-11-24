@@ -2157,19 +2157,18 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
         };
 
     const baseColumns: Column[] = [];
-    if (hasHour) {
-      baseColumns.push({
-        type: "pillar",
-        title: "시주",
-        data: {
-          gan: pillars.hour.gan,
-          ji: pillars.hour.ji,
-          ganSipsin: pillars.hour.ganSipsin || undefined,
-          jiSipsin: pillars.hour.jiSipsin || undefined,
-          sibiwunseong: pillars.hour.sibiwunseong || undefined,
-        },
-      });
-    }
+    // 항상 시주 컬럼 추가 (시간 미입력 시 빈칸으로 표시)
+    baseColumns.push({
+      type: "pillar",
+      title: "시주",
+      data: {
+        gan: hasHour ? pillars.hour.gan : "",
+        ji: hasHour ? pillars.hour.ji : "",
+        ganSipsin: hasHour ? (pillars.hour.ganSipsin || undefined) : undefined,
+        jiSipsin: hasHour ? (pillars.hour.jiSipsin || undefined) : undefined,
+        sibiwunseong: hasHour ? (pillars.hour.sibiwunseong || undefined) : undefined,
+      },
+    });
     baseColumns.push(
       {
         type: "pillar",

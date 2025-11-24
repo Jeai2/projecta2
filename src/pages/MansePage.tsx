@@ -15,7 +15,7 @@ const MansePage = () => {
   return (
     <FortunePageLayout
       imageUrl="https://placehold.co/1200x400/A98A62/333333?text=Manseoryeok"
-      title="和義 만세력 1.0"
+      title="만세력 1.0"
       description=""
     >
       {fortuneResult ? (
