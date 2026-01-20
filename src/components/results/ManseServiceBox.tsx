@@ -1106,23 +1106,6 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
     }
   };
 
-  // 나이 계산 함수
-  const calculateAge = (birthDate: string) => {
-    const birth = new Date(birthDate);
-    const today = new Date();
-    let age = today.getFullYear() - birth.getFullYear();
-    const monthDiff = today.getMonth() - birth.getMonth();
-
-    if (
-      monthDiff < 0 ||
-      (monthDiff === 0 && today.getDate() < birth.getDate())
-    ) {
-      age--;
-    }
-
-    return age;
-  };
-
   // 양음력 변환 함수 (대략적인 근사치)
   const convertToLunarDate = (solarDate: string, birthTime?: string) => {
     const date = new Date(solarDate);
@@ -1139,62 +1122,6 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
   };
 
   // 기본 정보 표시 함수 (프로필 스타일 + 미니멀)
-  const displayBasicInfo = () => {
-    return (
-      <div className="bg-white rounded-lg shadow-sm border border-gray-100 mb-4 overflow-hidden">
-        {/* 프로필 헤더 */}
-        <div className="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200">
-          <div className="flex items-center space-x-4">
-            {/* 아바타 */}
-            <div className="flex-shrink-0">
-              <div
-                className={`w-12 h-12 rounded-full flex items-center justify-center text-white text-lg font-semibold ${
-                  userInfo.gender === "M"
-                    ? "bg-gradient-to-br from-blue-500 to-blue-600"
-                    : "bg-gradient-to-br from-pink-500 to-pink-600"
-                }`}
-              >
-                {userInfo.name && userInfo.name.trim() !== ""
-                  ? userInfo.name.charAt(0).toUpperCase()
-                  : "?"}
-              </div>
-            </div>
-
-            {/* 기본 정보 */}
-            <div className="flex-1 min-w-0">
-              <h3 className="text-lg font-semibold text-gray-900 truncate">
-                {userInfo.name && userInfo.name.trim() !== ""
-                  ? `${userInfo.name}(${calculateAge(userInfo.birthDate)})`
-                  : "이름 미입력"}
-              </h3>
-              <div className="text-sm text-gray-600 mt-1">
-                <span className="font-medium">
-                  {userInfo.gender === "M" ? "남성" : "여성"}
-                </span>
-                <span className="ml-2">
-                  {userInfo.birthTime && userInfo.birthTime.trim() !== ""
-                    ? `${userInfo.birthDate} ${userInfo.birthTime}`
-                    : userInfo.birthDate}
-                </span>
-                <span className="ml-2">
-                  {userInfo.calendarType === "solar" ? "양력" : "음력"}
-                </span>
-                {userInfo.calendarType === "solar" && (
-                  <span className="ml-2 text-gray-500">
-                    {convertToLunarDate(userInfo.birthDate, userInfo.birthTime)}{" "}
-                    음력
-                  </span>
-                )}
-                {userInfo.birthPlace && userInfo.birthPlace.trim() !== "" && (
-                  <span className="ml-2">{userInfo.birthPlace} 출생</span>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
 
   // 지장간 계산 함수 (간지 기준)
   const getJijangganForGanji = (ganji: string) => {
@@ -2164,9 +2091,11 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
       data: {
         gan: hasHour ? pillars.hour.gan : "",
         ji: hasHour ? pillars.hour.ji : "",
-        ganSipsin: hasHour ? (pillars.hour.ganSipsin || undefined) : undefined,
-        jiSipsin: hasHour ? (pillars.hour.jiSipsin || undefined) : undefined,
-        sibiwunseong: hasHour ? (pillars.hour.sibiwunseong || undefined) : undefined,
+        ganSipsin: hasHour ? pillars.hour.ganSipsin || undefined : undefined,
+        jiSipsin: hasHour ? pillars.hour.jiSipsin || undefined : undefined,
+        sibiwunseong: hasHour
+          ? pillars.hour.sibiwunseong || undefined
+          : undefined,
       },
     });
     baseColumns.push(
@@ -2560,7 +2489,7 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
         ganBadges.push(
           <span
             key={`cheonganhap-${ganji}-${index}`}
-            className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 px-2 py-1 rounded-full text-xs font-medium mr-1 mb-1"
+            className="inline-flex items-center gap-1 bg-stone-50 text-stone-800 px-2 py-1 rounded-full text-xs font-medium mr-1 mb-1"
           >
             🔒{hangul}합
           </span>
@@ -2576,7 +2505,7 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
         ganBadges.push(
           <span
             key={`cheonganchung-${ganji}-${index}`}
-            className="inline-flex items-center gap-1 bg-rose-100 text-rose-800 px-2 py-1 rounded-full text-xs font-medium mr-1 mb-1"
+            className="inline-flex items-center gap-1 bg-stone-50 text-rose-800 px-2 py-1 rounded-full text-xs font-medium mr-1 mb-1"
           >
             🔓{hangul}충
           </span>
@@ -2592,9 +2521,9 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
         jiBadges.push(
           <span
             key={`yukhap-${ganji}-${index}`}
-            className="inline-flex items-center gap-1 bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium mr-1 mb-1"
+            className="inline-flex items-center gap-1 bg-emerald-100 text-green-900 px-2 py-1 rounded-full text-xs font-medium mr-1 mb-1"
           >
-            ⚙️{hangul}합
+            💑{hangul}육합
           </span>
         );
       });
@@ -2608,9 +2537,9 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
         jiBadges.push(
           <span
             key={`samhap-${ganji}-${index}`}
-            className="inline-flex items-center gap-1 bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium mr-1 mb-1"
+            className="inline-flex items-center gap-1 bg-emerald-100 text-green-900 px-2 py-1 rounded-full text-xs font-medium mr-1 mb-1"
           >
-            🔗{hangul}합
+            ⚙️{hangul}삼합
           </span>
         );
       });
@@ -2624,9 +2553,9 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
         jiBadges.push(
           <span
             key={`amhap-${ganji}-${index}`}
-            className="inline-flex items-center gap-1 bg-indigo-100 text-indigo-800 px-2 py-1 rounded-full text-xs font-medium mr-1 mb-1"
+            className="inline-flex items-center gap-1 bg-emerald-100 text-green-900 px-2 py-1 rounded-full text-xs font-medium mr-1 mb-1"
           >
-            🌑{hangul}합
+            🌑{hangul}암합
           </span>
         );
       });
@@ -2640,9 +2569,9 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
         jiBadges.push(
           <span
             key={`banghap-${ganji}-${index}`}
-            className="inline-flex items-center gap-1 bg-teal-100 text-teal-800 px-2 py-1 rounded-full text-xs font-medium mr-1 mb-1"
+            className="inline-flex items-center gap-1 bg-emerald-100 text-green-900 px-2 py-1 rounded-full text-xs font-medium mr-1 mb-1"
           >
-            🧭{hangul}합
+            👪{hangul}방합
           </span>
         );
       });
@@ -2656,7 +2585,7 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
         jiBadges.push(
           <span
             key={`yukchung-${ganji}-${index}`}
-            className="inline-flex items-center gap-1 bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-medium mr-1 mb-1"
+            className="inline-flex items-center gap-1 bg-emerald-100 text-amber-900 px-2 py-1 rounded-full text-xs font-medium mr-1 mb-1"
           >
             ⚡{hangul}충
           </span>
@@ -2672,7 +2601,7 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
         jiBadges.push(
           <span
             key={`yukhyung-${ganji}-${index}`}
-            className="inline-flex items-center gap-1 bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs font-medium mr-1 mb-1"
+            className="inline-flex items-center gap-1 bg-emerald-100 text-amber-900 px-2 py-1 rounded-full text-xs font-medium mr-1 mb-1"
           >
             ⚔️{hangul}형
           </span>
@@ -2688,7 +2617,7 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
         jiBadges.push(
           <span
             key={`yukpa-${ganji}-${index}`}
-            className="inline-flex items-center gap-1 bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs font-medium mr-1 mb-1"
+            className="inline-flex items-center gap-1 bg-emerald-100 text-amber-900 px-2 py-1 rounded-full text-xs font-medium mr-1 mb-1"
           >
             💥{hangul}파
           </span>
@@ -2704,7 +2633,7 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
         jiBadges.push(
           <span
             key={`yukae-${ganji}-${index}`}
-            className="inline-flex items-center gap-1 bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs font-medium mr-1 mb-1"
+            className="inline-flex items-center gap-1 bg-emerald-100 text-amber-900 px-2 py-1 rounded-full text-xs font-medium mr-1 mb-1"
           >
             ☠️{hangul}해
           </span>
@@ -2982,29 +2911,75 @@ const ManseServiceBox: React.FC<ManseServiceBoxProps> = ({
     );
   };
 
+  const formatDateLabel = (raw?: string) => {
+    if (!raw) return "";
+    const [y, m, d] = raw.split("-");
+    if (!y || !m || !d) return raw;
+    return `${y}년 ${Number(m)}월 ${Number(d)}일`;
+  };
+
+  const displayBirthDate = () => formatDateLabel(userInfo.birthDate);
+
+  const getLunarLabel = () => {
+    const lunarRaw = convertToLunarDate(userInfo.birthDate, userInfo.birthTime);
+    if (!lunarRaw) return "";
+    const [datePart, timePart] = lunarRaw.split(" ");
+    const formatted = formatDateLabel(datePart);
+    return timePart ? `${formatted} ${timePart}` : formatted;
+  };
+
+  const userName =
+    userInfo.name && userInfo.name.trim() !== "" ? userInfo.name : "사용자";
+
   return (
     <div className="max-w-4xl mx-auto p-4">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">만세력 결과</h1>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => {
-              console.log("저장하기 클릭");
-            }}
-            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-          >
-            저장하기
-          </button>
-          <button
-            onClick={onReset}
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-          >
-            다시 입력
-          </button>
+      <div className="mb-6 border-b border-gray-200 pb-4">
+        <button
+          onClick={onReset}
+          className="text-sm text-gray-500 hover:text-gray-700 inline-flex items-center gap-1"
+        >
+          ← 다시 입력
+        </button>
+        <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">
+              <span className="text-accent-gold">{userName}</span>님의 사주원국
+            </h1>
+            <div className="mt-1 text-sm text-gray-500">
+              {userInfo.gender === "M" ? "남성" : "여성"}
+              {" · "}
+              양력 {displayBirthDate()}
+              {" · "}
+              음력 {getLunarLabel() || "-"}
+              {userInfo.birthPlace && userInfo.birthPlace.trim() !== "" && (
+                <>
+                  {" · "}
+                  {userInfo.birthPlace} 출생
+                </>
+              )}
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                console.log("공유 클릭");
+              }}
+              className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              공유
+            </button>
+            <button
+              onClick={() => {
+                console.log("저장하기 클릭");
+              }}
+              className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
+            >
+              저장
+            </button>
+          </div>
         </div>
       </div>
 
-      {displayBasicInfo()}
       {displaySajuTable()}
       {renderAnalysisDropbox()}
       {displayDaewoonTable()}

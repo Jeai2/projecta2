@@ -7,9 +7,8 @@ import {
   SIPSIN_TO_GYEOKGUK,
   GyeokgukType,
 } from "../data/gyeokguk.data";
-import { GAN_OHENG } from "../data/saju.data";
+import { GAN_OHENG, SIPSIN_TABLE } from "../data/saju.data";
 import { SAMHAP } from "../data/relationship.data";
-import { getSeasonalDataForYear } from "./seasonal-data.loader";
 import { SajuData } from "../types/saju.d";
 
 /**
@@ -94,167 +93,17 @@ function checkTouchul(
 /**
  * 삼합/반합 확인 함수 (기존 SAMHAP 데이터 활용)
  */
-function checkSamhap(
-  monthJi: string,
-  pillars: {
-    year: { gan: string; ji: string };
-    month: { gan: string; ji: string };
-    day: { gan: string; ji: string };
-    hour: { gan: string; ji: string };
-  }
-): boolean {
-  const allJis = [
-    pillars.year.ji,
-    pillars.month.ji,
-    pillars.day.ji,
-    pillars.hour.ji,
-  ];
-
-  // SAMHAP 데이터를 활용하여 삼합/반합 확인
-  const samhapPartners = SAMHAP[monthJi];
-  if (!samhapPartners) return false;
-
-  // 완전 삼합 (3개 모두 있음) 확인
-  const hasFullSamhap = samhapPartners.every((ji) => allJis.includes(ji));
-  if (hasFullSamhap) return true;
-
-  // 반합 (2개 있음) 확인 - 월지 + 파트너 중 하나
-  const hasHalfSamhap = samhapPartners.some((ji) => allJis.includes(ji));
-  return hasHalfSamhap;
-}
-
-/**
- * 오행 생극 관계 확인 (도움 오행)
- */
-const OHAENG_SUPPORT_MAP: Record<string, string[]> = {
-  木: ["木", "水"], // 목은 목과 수(수생목)의 도움을 받음
-  火: ["火", "木"], // 화는 화와 목(목생화)의 도움을 받음
-  土: ["土", "火"], // 토는 토와 화(화생토)의 도움을 받음
-  金: ["金", "土"], // 금은 금과 토(토생금)의 도움을 받음
-  水: ["水", "金"], // 수는 수와 금(금생수)의 도움을 받음
-};
-
-/**
- * 세력 비교 함수 (지장간 오행과 같은 오행 및 도움 오행 개수로 판단)
- */
-function compareStrength(
-  element1: { role: string; gan: string },
-  element2: { role: string; gan: string },
-  pillars: {
-    year: { gan: string; ji: string };
-    month: { gan: string; ji: string };
-    day: { gan: string; ji: string };
-    hour: { gan: string; ji: string };
-  }
-): { role: string; gan: string } {
-  const allGans = [
-    pillars.year.gan,
-    pillars.month.gan,
-    pillars.day.gan,
-    pillars.hour.gan,
-  ];
-
-  // 각 지장간 오행의 세력 계산
-  const element1Ohaeng = GAN_OHENG[element1.gan as keyof typeof GAN_OHENG];
-  const element2Ohaeng = GAN_OHENG[element2.gan as keyof typeof GAN_OHENG];
-
-  const supportOhaengs1 = OHAENG_SUPPORT_MAP[element1Ohaeng] || [];
-  const supportOhaengs2 = OHAENG_SUPPORT_MAP[element2Ohaeng] || [];
-
-  // 원국에서 도움 오행 개수 계산
-  let strength1 = 0;
-  let strength2 = 0;
-
-  for (const gan of allGans) {
-    const ganOhaeng = GAN_OHENG[gan as keyof typeof GAN_OHENG];
-    if (supportOhaengs1.includes(ganOhaeng)) strength1++;
-    if (supportOhaengs2.includes(ganOhaeng)) strength2++;
-  }
-
-  // 세력이 같으면 정기 우선
-  if (strength1 === strength2) {
-    return element1.role === "정기" ? element1 : element2;
-  }
-
-  return strength1 > strength2 ? element1 : element2;
-}
-
-/**
- * 절기 기준 여기/정기 판단 함수
- */
-async function getJijangganByDate(
-  monthJi: string,
-  birthDate: Date
-): Promise<{ role: string; gan: string } | null> {
-  try {
-    const year = birthDate.getFullYear();
-    const seasonalData = await getSeasonalDataForYear(year);
-
-    if (!seasonalData || !seasonalData[year]) {
-      // 절기 데이터가 없으면 정기 기본 반환
-      const jeongiElement = JIJANGGAN_DATA[monthJi]?.find(
-        (e) => e.role === "정기"
-      );
-      return jeongiElement ? { role: "정기", gan: jeongiElement.gan } : null;
-    }
-
-    const seasons = seasonalData[year];
-
-    // 월별 절기 찾기 (간소화된 로직)
-    let currentSeasonIndex = -1;
-    for (let i = 0; i < seasons.length; i++) {
-      if (seasons[i].date <= birthDate) {
-        currentSeasonIndex = i;
-      } else {
-        break;
-      }
-    }
-
-    if (currentSeasonIndex === -1) {
-      // 절기를 찾을 수 없으면 정기 기본 반환
-      const jeongiElement = JIJANGGAN_DATA[monthJi]?.find(
-        (e) => e.role === "정기"
-      );
-      return jeongiElement ? { role: "정기", gan: jeongiElement.gan } : null;
-    }
-
-    // 절기 시작일로부터 경과 일수 계산
-    const seasonStart = seasons[currentSeasonIndex].date;
-    const daysDiff = Math.floor(
-      (birthDate.getTime() - seasonStart.getTime()) / (1000 * 60 * 60 * 24)
-    );
-
-    // 여기 12일, 정기 18일 기준 (총 30일 기준)
-    if (daysDiff <= 12) {
-      // 여기 (초기)
-      const yeogiElement = JIJANGGAN_DATA[monthJi]?.find(
-        (e) => e.role === "초기"
-      );
-      return yeogiElement ? { role: "초기", gan: yeogiElement.gan } : null;
-    } else {
-      // 정기 (본기)
-      const jeongiElement = JIJANGGAN_DATA[monthJi]?.find(
-        (e) => e.role === "정기"
-      );
-      return jeongiElement ? { role: "정기", gan: jeongiElement.gan } : null;
-    }
-  } catch {
-    // 오류 발생 시 정기 기본 반환
-    const jeongiElement = JIJANGGAN_DATA[monthJi]?.find(
-      (e) => e.role === "정기"
-    );
-    return jeongiElement ? { role: "정기", gan: jeongiElement.gan } : null;
-  }
-}
 
 /**
  * 격국 판단 메인 함수
  */
 export async function analyzeGyeokguk(
   sajuData: SajuData,
-  birthDate?: Date // 생년월일 추가 (선택적)
+  _birthDate?: Date // 생년월일 추가 (선택적)
 ): Promise<GyeokgukAnalysis> {
+  void _birthDate;
   const monthJi = sajuData.pillars.month.ji;
+  const dayGan = sajuData.pillars.day.gan;
 
   // ✅ sipsin.month.ji는 string | null 타입 (예: "정인", "편재")
   const monthJiSipsin = sajuData.sipsin?.month?.ji || "";
@@ -266,18 +115,106 @@ export async function analyzeGyeokguk(
   console.log("  - sipsin.month:", sajuData.sipsin?.month);
   console.log("  - sipsin.month.ji:", sajuData.sipsin?.month?.ji);
 
-  // 월지 십성으로 기본 격국 후보 찾기
-  const gyeokgukCodes = SIPSIN_TO_GYEOKGUK[monthJiSipsin];
+  const { tougan } = checkTouchul(monthJi, sajuData.pillars);
+
+  let selectedElement: { role: string; gan: string } | null = null;
+  let reason = "";
+
+  const jeongiElement = JIJANGGAN_DATA[monthJi]?.find((e) => e.role === "정기");
+  const jungiElement = JIJANGGAN_DATA[monthJi]?.find((e) => e.role === "중기");
+  const yeogiElement = JIJANGGAN_DATA[monthJi]?.find((e) => e.role === "초기");
+
+  // 월지 유형별 판단 (A 선정)
+  if (WANGJI.includes(monthJi)) {
+    // 왕지: 정기 = A
+    if (jeongiElement) {
+      selectedElement = { role: "정기", gan: jeongiElement.gan };
+      reason = `왕지(${monthJi}) - 정기(${jeongiElement.gan}) 자동 채택`;
+    }
+  } else if (SAENGJI.includes(monthJi)) {
+    // 생지: 정기 투간 우선, 이후 여기/중기 투간
+    const jeongiTougan = tougan.find((t) => t.role === "정기");
+    const jungiTougan = tougan.find((t) => t.role === "중기");
+    const yeogiTougan = tougan.find((t) => t.role === "초기");
+
+    if (jeongiTougan && jeongiElement) {
+      selectedElement = { role: "정기", gan: jeongiElement.gan };
+      reason = `생지(${monthJi}) - 정기 투간`;
+    } else if (jungiTougan || yeogiTougan) {
+      if (jungiTougan && yeogiTougan && jungiElement) {
+        selectedElement = { role: "중기", gan: jungiElement.gan };
+        reason = `생지(${monthJi}) - 여기/중기 동시 투간, 중기 채택`;
+      } else if (jungiTougan && jungiElement) {
+        selectedElement = { role: "중기", gan: jungiElement.gan };
+        reason = `생지(${monthJi}) - 중기 투간`;
+      } else if (yeogiTougan && yeogiElement) {
+        selectedElement = { role: "초기", gan: yeogiElement.gan };
+        reason = `생지(${monthJi}) - 여기 투간`;
+      }
+    }
+  } else if (GOJI.includes(monthJi)) {
+    // 고지: 정기와 같은 오행이 천간에 있으면 그 천간이 A
+    const allGans = [
+      sajuData.pillars.year.gan,
+      sajuData.pillars.month.gan,
+      sajuData.pillars.day.gan,
+      sajuData.pillars.hour.gan,
+    ].filter(Boolean);
+    const jeongiOhaeng =
+      jeongiElement && GAN_OHENG[jeongiElement.gan as keyof typeof GAN_OHENG];
+    const sameOhaengGan =
+      jeongiOhaeng &&
+      allGans.find(
+        (gan) => GAN_OHENG[gan as keyof typeof GAN_OHENG] === jeongiOhaeng
+      );
+
+    if (sameOhaengGan) {
+      selectedElement = { role: "정기오행", gan: sameOhaengGan };
+      reason = `고지(${monthJi}) - 정기와 같은 오행 투간(${sameOhaengGan})`;
+    } else {
+      // 삼합 지지가 년지/일지/시지에 있으면 중기
+      const samhapPartners = SAMHAP[monthJi] || [];
+      const hasSamhapInPillars = [
+        sajuData.pillars.year.ji,
+        sajuData.pillars.day.ji,
+        sajuData.pillars.hour.ji,
+      ].some((ji) => samhapPartners.includes(ji));
+
+      if (hasSamhapInPillars && jungiElement) {
+        selectedElement = { role: "중기", gan: jungiElement.gan };
+        reason = `고지(${monthJi}) - 삼합 지지 있음, 중기(${jungiElement.gan}) 채택`;
+      } else if (jeongiElement) {
+        selectedElement = { role: "정기", gan: jeongiElement.gan };
+        reason = `고지(${monthJi}) - 삼합 지지 없음, 정기(${jeongiElement.gan}) 채택`;
+      }
+    }
+  }
+
+  const selectedGan = selectedElement?.gan || "";
+  const dayGanKey = dayGan as keyof typeof SIPSIN_TABLE.h;
+  const selectedGanKey =
+    selectedGan as keyof (typeof SIPSIN_TABLE.h)[typeof dayGanKey];
+  const selectedSipsin =
+    dayGan && selectedGan
+      ? SIPSIN_TABLE.h[dayGanKey]?.[selectedGanKey] || ""
+      : "";
+
+  // A의 십성으로 격국 후보 찾기 (없으면 월지 십성으로 폴백)
+  const gyeokgukCodes = selectedSipsin
+    ? SIPSIN_TO_GYEOKGUK[selectedSipsin]
+    : SIPSIN_TO_GYEOKGUK[monthJiSipsin];
   if (!gyeokgukCodes || gyeokgukCodes.length === 0) {
     return {
       gyeokguk: null,
       monthJiSipsin,
-      saRyeongGan: null,
+      saRyeongGan: selectedGan || null,
       isSuccess: false,
       breakFactors: [],
       yongsinType: "",
       confidence: 0,
-      reason: `월지 십성 '${monthJiSipsin}'에 해당하는 격국이 없습니다.`,
+      reason: `십성 '${
+        selectedSipsin || monthJiSipsin
+      }'에 해당하는 격국이 없습니다.`,
     };
   }
 
@@ -287,7 +224,7 @@ export async function analyzeGyeokguk(
     return {
       gyeokguk: null,
       monthJiSipsin,
-      saRyeongGan: null,
+      saRyeongGan: selectedGan || null,
       isSuccess: false,
       breakFactors: [],
       yongsinType: "",
@@ -296,109 +233,9 @@ export async function analyzeGyeokguk(
     };
   }
 
-  const { touchul, tougan } = checkTouchul(monthJi, sajuData.pillars);
-
-  let selectedElement: { role: string; gan: string } | null = null;
-  let reason = "";
-
-  // 월지 유형별 판단
-  if (WANGJI.includes(monthJi)) {
-    // 왕지: 투출/투간 없어도 정기를 격으로 잡음
-    const jeongiElement = JIJANGGAN_DATA[monthJi]?.find(
-      (e) => e.role === "정기"
-    );
-    if (jeongiElement) {
-      selectedElement = { role: "정기", gan: jeongiElement.gan };
-      reason = `왕지(${monthJi}) - 정기(${jeongiElement.gan}) 자동 채택`;
-    }
-  } else if (SAENGJI.includes(monthJi)) {
-    // 생지: 투출/투간 조건에 따라 판단
-    const jeongiElement = JIJANGGAN_DATA[monthJi]?.find(
-      (e) => e.role === "정기"
-    );
-    const jeongiTouchul = touchul.find((t) => t.role === "정기");
-    const jeongiTougan = tougan.find((t) => t.role === "정기");
-
-    if (jeongiTouchul || jeongiTougan) {
-      // 1. 정기가 투출/투간 → 정기 채택
-      selectedElement = { role: "정기", gan: jeongiElement?.gan || "" };
-      reason = `생지(${monthJi}) - 정기 투출/투간`;
-    } else {
-      // 2. 여기/중기가 투출/투간 → 세력 비교 (TODO: 구현 필요)
-      const otherTouchul = touchul.filter((t) => t.role !== "정기");
-      const otherTougan = tougan.filter((t) => t.role !== "정기");
-
-      if (otherTouchul.length > 0 || otherTougan.length > 0) {
-        // 여기/중기 중 세력이 강한 것 선택
-        const candidates = [...otherTouchul, ...otherTougan];
-        let strongestElement = candidates[0];
-
-        for (let i = 1; i < candidates.length; i++) {
-          strongestElement = compareStrength(
-            strongestElement,
-            candidates[i],
-            sajuData.pillars
-          );
-        }
-
-        selectedElement = {
-          role: strongestElement.role,
-          gan: strongestElement.gan,
-        };
-        reason = `생지(${monthJi}) - ${strongestElement.role}(${strongestElement.gan}) 세력 우세로 채택`;
-      } else {
-        // 3. 모두 투출/투간 안함 → 정기 채택
-        selectedElement = { role: "정기", gan: jeongiElement?.gan || "" };
-        reason = `생지(${monthJi}) - 투출/투간 없음, 정기 기본 채택`;
-      }
-    }
-  } else if (GOJI.includes(monthJi)) {
-    // 고지: 삼합 여부에 따라 판단
-    const hasSamhap = checkSamhap(monthJi, sajuData.pillars);
-
-    if (hasSamhap) {
-      // 1. 삼합 있음 → 중기 채택
-      const jungiElement = JIJANGGAN_DATA[monthJi]?.find(
-        (e) => e.role === "중기"
-      );
-      if (jungiElement) {
-        selectedElement = { role: "중기", gan: jungiElement.gan };
-        reason = `고지(${monthJi}) - 삼합 성립, 중기(${jungiElement.gan}) 채택`;
-      }
-    } else {
-      // 2. 삼합 없음 → 절기 기준으로 여기/정기 선택
-      // birthDate가 없으면 정기를 기본으로 채택
-      if (!birthDate) {
-        const jeongiElement = JIJANGGAN_DATA[monthJi]?.find(
-          (e) => e.role === "정기"
-        );
-        if (jeongiElement) {
-          selectedElement = { role: "정기", gan: jeongiElement.gan };
-          reason = `고지(${monthJi}) - 삼합 없음, 생년월일 없어 정기 기본 채택`;
-        }
-      } else {
-        const dateBasedElement = await getJijangganByDate(monthJi, birthDate);
-
-        if (dateBasedElement) {
-          selectedElement = dateBasedElement;
-          reason = `고지(${monthJi}) - 삼합 없음, 절기 기준 ${dateBasedElement.role}(${dateBasedElement.gan}) 채택`;
-        } else {
-          // 절기 판단 실패 시 정기 기본 채택
-          const jeongiElement = JIJANGGAN_DATA[monthJi]?.find(
-            (e) => e.role === "정기"
-          );
-          if (jeongiElement) {
-            selectedElement = { role: "정기", gan: jeongiElement.gan };
-            reason = `고지(${monthJi}) - 삼합 없음, 절기 판단 실패로 정기 기본 채택`;
-          }
-        }
-      }
-    }
-  }
-
   // 성패 판단 및 용신 선정 (간단 구현)
   const isSuccess = true; // TODO: 실제 성패 판단 로직
-  const yongsinType = gyeokguk.yongsin.success[0] || "";
+  const yongsinType = gyeokguk.yongsin[0] || "";
 
   // 선정된 요소 정보를 reason에 추가
   if (selectedElement) {

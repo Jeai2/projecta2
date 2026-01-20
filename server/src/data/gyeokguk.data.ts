@@ -10,26 +10,8 @@ export interface GyeokgukType {
   category: "정격" | "외잡격" | "응용격국"; // 격국 분류
   baseSipsin: string; // 기준 십성 (월지 십성)
   description: string; // 격국 설명
-
-  // 성격 조건
-  success: {
-    required: string[]; // 필수 조건
-    beneficial: string[]; // 유리한 조건
-    avoid: string[]; // 피해야 할 조건
-  };
-
-  // 파격 요인
-  破格: {
-    factors: string[]; // 파격 요인들
-    severity: "경미" | "중간" | "심각"; // 파격 정도
-  };
-
-  // 용신 선정
-  yongsin: {
-    success: string[]; // 성격 시 용신 (오행)
-    failure: string[]; // 파격 시 구제용신 (오행)
-    priority: number; // 우선순위 (1이 가장 높음)
-  };
+  // 용신 선정 (격국명에 대응하는 용신)
+  yongsin: string[];
 }
 
 /**
@@ -45,20 +27,7 @@ export const GYEOKGUK_DATA: Record<string, GyeokgukType> = {
     category: "정격",
     baseSipsin: "정관",
     description: "월지에 정관이 있어 관성을 위주로 하는 격국",
-    success: {
-      required: ["정관 투간", "일간 적당한 강도"],
-      beneficial: ["정인 보조", "정재 생관"],
-      avoid: ["상관 견관", "비겁 탈재", "편관 혼잡"],
-    },
-    破格: {
-      factors: ["상관 견관", "비겁 과다", "편관 혼잡"],
-      severity: "심각",
-    },
-    yongsin: {
-      success: ["印", "財"], // 성격: 인성으로 생신, 재성으로 생관
-      failure: ["印"], // 파격: 인성으로 제상관
-      priority: 1,
-    },
+    yongsin: ["正官"], // 용신: 인성으로 생신, 재성으로 생관
   },
 
   PYEONGWAN: {
@@ -67,20 +36,7 @@ export const GYEOKGUK_DATA: Record<string, GyeokgukType> = {
     category: "정격",
     baseSipsin: "편관",
     description: "월지에 편관이 있어 편관을 제어하여 쓰는 격국",
-    success: {
-      required: ["편관 투간", "식신/정인 제살"],
-      beneficial: ["식신 제살", "정인 화살"],
-      avoid: ["편관 과다", "재성 생살"],
-    },
-    破格: {
-      factors: ["편관 과다", "제살신 부족", "재성 생살"],
-      severity: "중간",
-    },
-    yongsin: {
-      success: ["食", "印"], // 성격: 식신 제살, 인성 화살
-      failure: ["食", "印"], // 파격: 제살 강화
-      priority: 2,
-    },
+    yongsin: ["偏官"], // 용신: 식신 제살, 인성 화살
   },
 
   // 재성격 (財星格)
@@ -90,20 +46,7 @@ export const GYEOKGUK_DATA: Record<string, GyeokgukType> = {
     category: "정격",
     baseSipsin: "정재",
     description: "월지에 정재가 있어 재성을 위주로 하는 격국",
-    success: {
-      required: ["정재 투간", "일간 건왕"],
-      beneficial: ["관성 위재", "식상 생재"],
-      avoid: ["비겁 탈재", "인성 파재"],
-    },
-    破格: {
-      factors: ["비겁 탈재", "인성 파재"],
-      severity: "중간",
-    },
-    yongsin: {
-      success: ["官", "食"], // 성격: 관성 위재, 식상 생재
-      failure: ["官"], // 파격: 관성으로 제비겁
-      priority: 3,
-    },
+    yongsin: ["正財"], // 용신: 관성 위재, 식상 생재
   },
 
   PYEONGJAE: {
@@ -112,20 +55,7 @@ export const GYEOKGUK_DATA: Record<string, GyeokgukType> = {
     category: "정격",
     baseSipsin: "편재",
     description: "월지에 편재가 있어 편재를 위주로 하는 격국",
-    success: {
-      required: ["편재 투간", "일간 건왕"],
-      beneficial: ["관성 위재", "식상 생재"],
-      avoid: ["비겁 탈재", "인성 파재"],
-    },
-    破格: {
-      factors: ["비겁 탈재", "인성 파재"],
-      severity: "중간",
-    },
-    yongsin: {
-      success: ["官", "食"], // 성격: 관성 위재, 식상 생재
-      failure: ["官"], // 파격: 관성으로 제비겁
-      priority: 4,
-    },
+    yongsin: ["偏財"], // 용신: 관성 위재, 식상 생재
   },
 
   // 식상격 (食傷格)
@@ -135,20 +65,7 @@ export const GYEOKGUK_DATA: Record<string, GyeokgukType> = {
     category: "정격",
     baseSipsin: "식신",
     description: "월지에 식신이 있어 식신을 위주로 하는 격국",
-    success: {
-      required: ["식신 투간", "재성 통관"],
-      beneficial: ["재성 설기", "일간 건왕"],
-      avoid: ["인성 탈식", "관성 제식"],
-    },
-    破格: {
-      factors: ["인성 탈식", "관성 제식"],
-      severity: "중간",
-    },
-    yongsin: {
-      success: ["財"], // 성격: 재성으로 설기
-      failure: ["比"], // 파격: 비겁으로 생식
-      priority: 5,
-    },
+    yongsin: ["食神"],
   },
 
   SANGGWAN: {
@@ -157,20 +74,7 @@ export const GYEOKGUK_DATA: Record<string, GyeokgukType> = {
     category: "정격",
     baseSipsin: "상관",
     description: "월지에 상관이 있어 상관을 위주로 하는 격국",
-    success: {
-      required: ["상관 투간", "재성 통관"],
-      beneficial: ["재성 설기", "일간 건왕"],
-      avoid: ["관성 견관", "인성 탈상관"],
-    },
-    破格: {
-      factors: ["관성 견관", "인성 탈상관"],
-      severity: "심각",
-    },
-    yongsin: {
-      success: ["財"], // 성격: 재성으로 설기
-      failure: ["財"], // 파격: 재성으로 통관
-      priority: 6,
-    },
+    yongsin: ["傷官"], // 용신: 재성으로 설기
   },
 
   // 인성격 (印星格)
@@ -180,20 +84,7 @@ export const GYEOKGUK_DATA: Record<string, GyeokgukType> = {
     category: "정격",
     baseSipsin: "정인",
     description: "월지에 정인이 있어 인성을 위주로 하는 격국",
-    success: {
-      required: ["정인 투간", "관성 생인"],
-      beneficial: ["관성 생인", "일간 약함"],
-      avoid: ["재성 파인", "식상 설기"],
-    },
-    破格: {
-      factors: ["재성 파인", "식상 과다"],
-      severity: "중간",
-    },
-    yongsin: {
-      success: ["官"], // 성격: 관성으로 생인
-      failure: ["比"], // 파격: 비겁으로 생식상
-      priority: 7,
-    },
+    yongsin: ["正印"], // 용신: 인성
   },
 
   PYEONGIN: {
@@ -202,20 +93,7 @@ export const GYEOKGUK_DATA: Record<string, GyeokgukType> = {
     category: "정격",
     baseSipsin: "편인",
     description: "월지에 편인이 있어 편인을 위주로 하는 격국",
-    success: {
-      required: ["편인 투간", "관성 생인"],
-      beneficial: ["관성 생인", "일간 약함"],
-      avoid: ["재성 파인", "식상 설기"],
-    },
-    破格: {
-      factors: ["재성 파인", "정인 혼잡"],
-      severity: "경미",
-    },
-    yongsin: {
-      success: ["官"], // 성격: 관성으로 생인
-      failure: ["比"], // 파격: 비겁으로 생식상
-      priority: 8,
-    },
+    yongsin: ["偏印"], // 용신: 인성
   },
 
   // ========== 외잡격 (外雜格) ==========
@@ -226,20 +104,7 @@ export const GYEOKGUK_DATA: Record<string, GyeokgukType> = {
     category: "외잡격",
     baseSipsin: "비견",
     description: "월지에 일간의 록이 있어 일간이 건왕한 격국",
-    success: {
-      required: ["일간 건왕", "식상/재성/관성 활용"],
-      beneficial: ["식상 설기", "재성 활용", "관성 활용"],
-      avoid: ["인성 과다", "비겁 과다"],
-    },
-    破格: {
-      factors: ["인성 과다", "비겁 중첩"],
-      severity: "경미",
-    },
-    yongsin: {
-      success: ["食", "財", "官"], // 성격: 식상, 재성, 관성 활용
-      failure: ["食"], // 파격: 식상으로 설기
-      priority: 9,
-    },
+    yongsin: ["食", "財", "官"], // 용신: 식상, 재성, 관성 활용
   },
 
   YANGIN: {
@@ -248,20 +113,7 @@ export const GYEOKGUK_DATA: Record<string, GyeokgukType> = {
     category: "외잡격",
     baseSipsin: "겁재",
     description: "월지에 양인이 있어 양인을 제어하여 쓰는 격국",
-    success: {
-      required: ["양인 제어", "관성/식상 제인"],
-      beneficial: ["관성 제인", "식상 제인"],
-      avoid: ["양인 과다", "인성 생인"],
-    },
-    破格: {
-      factors: ["양인 과다", "제인신 부족"],
-      severity: "심각",
-    },
-    yongsin: {
-      success: ["官", "食"], // 성격: 관성, 식상으로 제인
-      failure: ["官"], // 파격: 관성으로 제인
-      priority: 10,
-    },
+    yongsin: ["官", "食"], // 용신: 관성, 식상으로 제인
   },
 
   // ========== 응용격국 (應用格局) ==========

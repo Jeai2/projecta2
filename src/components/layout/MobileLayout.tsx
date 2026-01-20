@@ -5,18 +5,21 @@ import { DrawerMenuMobile } from "../ui/mobile/DrawerMenuMobile";
 import { HeaderBarMobile } from "../ui/mobile/HeaderBarMobile";
 import { ResultsToc } from "../results/layout/ResultsToc"; // ✅ 1. '결과 목차' 컴포넌트 import
 import { useFortuneStore } from "@/store/fortuneStore"; // ✅ 2. 스토어 import
+import { MenuIcon } from "../ui/common/Icons";
 
 // ✅ 3. App.tsx로부터 받을 props 타입을 최종 확정합니다.
 interface MobileLayoutProps {
   children: React.ReactNode;
   onNavigate: (page: string) => void;
   isResultMode: boolean;
+  isExpertMode?: boolean;
 }
 
 export const MobileLayout: React.FC<MobileLayoutProps> = ({
   children,
   onNavigate,
   isResultMode,
+  isExpertMode = false,
 }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const { resetFortuneResult } = useFortuneStore();
@@ -27,11 +30,23 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({
   };
 
   return (
-    <div className="bg-background-main min-h-screen text-text-light">
-      <HeaderBarMobile
-        onMenuClick={() => setIsDrawerOpen(true)}
-        onLogoClick={isResultMode ? handleExit : () => onNavigate("home")}
-      />
+    <div className="bg-slate-950 min-h-screen text-slate-200">
+      {!isExpertMode && (
+        <HeaderBarMobile
+          onMenuClick={() => setIsDrawerOpen(true)}
+          onLogoClick={isResultMode ? handleExit : () => onNavigate("home")}
+        />
+      )}
+
+      {isExpertMode && (
+        <button
+          onClick={() => setIsDrawerOpen(true)}
+          className="fixed top-4 left-4 z-30 p-2 rounded-full bg-background-sub text-text-light shadow-lg"
+          aria-label="사이드바 열기"
+        >
+          <MenuIcon className="w-6 h-6" />
+        </button>
+      )}
 
       {isResultMode ? (
         <div
@@ -59,7 +74,7 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({
         />
       )}
 
-      <main className="pt-14 p-4">{children}</main>
+      <main className={isExpertMode ? "p-4" : "pt-14 p-4"}>{children}</main>
     </div>
   );
 };

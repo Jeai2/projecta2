@@ -1,7 +1,7 @@
 // src/CurrentPageContent.tsx (새 파일)
 
-import { HeroSection } from "./components/ui/desktop/HeroSection";
-import { ContentGrid } from "./components/ui/desktop/ContentGrid";
+import { GeneralHome } from "./components/home/GeneralHome";
+import { ExpertDashboard } from "./components/home/ExpertDashboard";
 import CoupleGungapPage from "./pages/CoupleGungapPage";
 import FortuneArchivePage from "./pages/FortuneArchivePage";
 import InquiryPage from "./pages/InquiryPage";
@@ -10,50 +10,27 @@ import { ProfilePage } from "./pages/ProfilePage";
 import SinnyeonUnsePage from "./pages/SinnyeonUnsePage";
 import TodayFortunePage from "./pages/TodayFortunePage";
 import MansePage from "./pages/MansePage";
+import { useUiStore } from "./store/uiStore";
 
-const cardItems = [
-  {
-    imageUrl: "https://placehold.co/600x400/1B1F2A/ffffff?text=Astrology",
-    title: "Astrology",
-    description: "Astrology studies celestial bodies...",
-    views: "122.8K",
-    likes: "10.4K",
-  },
-  {
-    imageUrl: "https://placehold.co/600x400/1B1F2A/ffffff?text=Tarot+Reading",
-    title: "Tarot Reading",
-    description: "Tarot uses cards for insights into...",
-    views: "54K",
-    likes: "21.1K",
-  },
-  {
-    imageUrl: "https://placehold.co/600x400/1B1F2A/ffffff?text=Physiognomy",
-    title: "Physiognomy",
-    description: "Physiognomy assesses character...",
-    views: "23.6K",
-    likes: "42K",
-  },
-];
-
-const HomePageContent = () => (
-  <>
-    <HeroSection
-      title="DON'T LET THE FUTURE SURPRISE YOU!"
-      buttonText="BOOK YOUR READING"
-      imageUrl="https://placehold.co/1200x400/0B1F2A/ffffff?text=HERO+IMAGE"
-    />
-    <ContentGrid items={cardItems} />
-  </>
-);
+const HomePageContent = ({
+  isExpertMode,
+  onNavigate,
+}: {
+  isExpertMode: boolean;
+  onNavigate: (page: string) => void;
+}) => (isExpertMode ? <ExpertDashboard /> : <GeneralHome onNavigate={onNavigate} />);
 
 interface CurrentPageContentProps {
   currentPage: string;
+  onNavigate: (page: string) => void;
 }
 
 export const CurrentPageContent = ({
   currentPage,
+  onNavigate,
 }: CurrentPageContentProps) => {
   console.log("CurrentPageContent: 현재 페이지", currentPage);
+  const { isExpertMode } = useUiStore();
 
   if (currentPage === "jonghap") return <JonghapSajuPage />;
   if (currentPage === "profile") return <ProfilePage />;
@@ -66,5 +43,5 @@ export const CurrentPageContent = ({
     console.log("CurrentPageContent: MansePage 렌더링");
     return <MansePage />;
   }
-  return <HomePageContent />;
+  return <HomePageContent isExpertMode={isExpertMode} onNavigate={onNavigate} />;
 };

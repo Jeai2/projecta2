@@ -19,6 +19,9 @@ export interface WangseResult {
     weightedTotal: number; // 가중치 적용 총점
     baseScore: number; // 기본 점수 (÷4 후)
     ganyjidongBonus: number; // 간여지동 보너스
+    ohaengCounts?: Record<string, number>; // 오행 카운트
+    sameOhaengCount?: number; // 일간과 같은 오행 개수
+    supportOhaengCount?: number; // 일간을 생해주는 오행 개수
   };
   analysis: string; // 분석 설명
 }
@@ -296,6 +299,52 @@ function calculateSimplePenalties(): number {
   return 0;
 }
 
+function calculateOhaengRelationCounts(
+  dayGanOhaeng: string,
+  pillars: { year: string; month: string; day: string; hour: string }
+): {
+  ohaengCounts: Record<string, number>;
+  sameOhaengCount: number;
+  supportOhaengCount: number;
+} {
+  const ohaengCounts: Record<string, number> = {
+    木: 0,
+    火: 0,
+    土: 0,
+    金: 0,
+    水: 0,
+  };
+  let sameOhaengCount = 0;
+  let supportOhaengCount = 0;
+
+  const pillarPositions = [
+    { gan: pillars.year[0], ji: pillars.year[1] },
+    { gan: pillars.month[0], ji: pillars.month[1] },
+    { gan: pillars.day[0], ji: pillars.day[1] },
+    { gan: pillars.hour[0], ji: pillars.hour[1] },
+  ];
+
+  for (const pillar of pillarPositions) {
+    const ganOhaeng = GAN_TO_OHAENG[pillar.gan];
+    const jiOhaeng = JI_TO_OHAENG[pillar.ji];
+
+    if (ganOhaeng) {
+      ohaengCounts[ganOhaeng]++;
+      if (ganOhaeng === dayGanOhaeng) sameOhaengCount++;
+      else if (isSupportingOhaeng(dayGanOhaeng, ganOhaeng))
+        supportOhaengCount++;
+    }
+
+    if (jiOhaeng) {
+      ohaengCounts[jiOhaeng]++;
+      if (jiOhaeng === dayGanOhaeng) sameOhaengCount++;
+      else if (isSupportingOhaeng(dayGanOhaeng, jiOhaeng)) supportOhaengCount++;
+    }
+  }
+
+  return { ohaengCounts, sameOhaengCount, supportOhaengCount };
+}
+
 /**
  * 버전2: 새로운 오행 기반 신강신약 계산 함수
  */
@@ -327,6 +376,10 @@ export function calculateNewWangseStrength(
   // 5. 보너스 계산
   const ganyjidongBonus = calculateSimpleGanyjidongBonus(dayGanOhaeng, pillars);
   const jijiHapBonus = calculateSimpleJijiHapBonus();
+  const ohaengRelationCounts = calculateOhaengRelationCounts(
+    dayGanOhaeng,
+    pillars
+  );
 
   // 6. 삭감 계산
   const penalties = calculateSimplePenalties();
@@ -371,6 +424,9 @@ export function calculateNewWangseStrength(
       weightedTotal: baseScore,
       baseScore: baseScore,
       ganyjidongBonus: ganyjidongBonus,
+      ohaengCounts: ohaengRelationCounts.ohaengCounts,
+      sameOhaengCount: ohaengRelationCounts.sameOhaengCount,
+      supportOhaengCount: ohaengRelationCounts.supportOhaengCount,
     },
     analysis: `신강신약 ${level} (${finalScore.toFixed(1)}점)`,
   };

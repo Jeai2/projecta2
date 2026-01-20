@@ -54,6 +54,7 @@ const TodayFortunePage = () => {
           </span>
         </>
       }
+      contentWrapperClassName="p-0 bg-transparent"
     >
       {/* ✅ 5. 조건부 렌더링: 
         fortuneResult에 데이터가 없으면(초기 상태) 입력 폼을,

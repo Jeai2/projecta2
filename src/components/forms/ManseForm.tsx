@@ -104,81 +104,81 @@ export const ManseForm = () => {
   };
 
   return (
-    <Card className="max-w-2xl mx-auto border-none bg-transparent shadow-none backdrop-blur-none">
-      <CardContent>
+    <Card className="max-w-2xl mx-auto border border-gray-200 bg-white shadow-lg rounded-3xl">
+      <CardContent className="p-8 sm:p-10">
         <form onSubmit={handleFormSubmit} className="space-y-6">
           {/* 1. 이름 작성칸 */}
-          <div className="space-y-3">
-            <Label className="text-text-light font-semibold">이름</Label>
+          <div className="space-y-2">
+            <Label className="text-gray-600 font-semibold">이름</Label>
             <Input
               type="text"
-              placeholder="이름을 입력해주세요"
+              placeholder="예: 홍길동"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="bg-background-main border-border-muted"
+              className="bg-gray-50 border-gray-200 rounded-2xl"
             />
           </div>
 
           {/* 2. 성별 및 양력/음력 */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-3">
-              <Label className="text-text-light font-semibold">성별</Label>
+            <div className="space-y-2">
+              <Label className="text-gray-600 font-semibold">성별</Label>
               <RadioGroup
                 value={gender}
                 onValueChange={(value) => setGender(value as "M" | "W")}
-                className="flex gap-6 pt-2"
+                className="grid grid-cols-2 gap-3"
               >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="M" id="manse-male" />
-                  <Label htmlFor="manse-male" className="text-text-light">
+                <Label htmlFor="manse-male" className="cursor-pointer">
+                  <div className="flex items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-gray-50 py-3 text-gray-700 data-[state=checked]:bg-slate-800 data-[state=checked]:text-white">
+                    <RadioGroupItem value="M" id="manse-male" />
                     남성
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="W" id="manse-female" />
-                  <Label htmlFor="manse-female" className="text-text-light">
+                  </div>
+                </Label>
+                <Label htmlFor="manse-female" className="cursor-pointer">
+                  <div className="flex items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-gray-50 py-3 text-gray-700 data-[state=checked]:bg-slate-800 data-[state=checked]:text-white">
+                    <RadioGroupItem value="W" id="manse-female" />
                     여성
-                  </Label>
-                </div>
+                  </div>
+                </Label>
               </RadioGroup>
             </div>
 
-            <div className="space-y-3">
-              <Label className="text-text-light font-semibold">양력/음력</Label>
+            <div className="space-y-2">
+              <Label className="text-gray-600 font-semibold">양력/음력</Label>
               <RadioGroup
                 value={calendarType}
                 onValueChange={setCalendarType}
-                className="flex gap-6 pt-2"
+                className="grid grid-cols-2 gap-3"
               >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="solar" id="manse-solar" />
-                  <Label htmlFor="manse-solar" className="text-text-light">
+                <Label htmlFor="manse-solar" className="cursor-pointer">
+                  <div className="flex items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-gray-50 py-3 text-gray-700 data-[state=checked]:bg-slate-800 data-[state=checked]:text-white">
+                    <RadioGroupItem value="solar" id="manse-solar" />
                     양력
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="lunar" id="manse-lunar" />
-                  <Label htmlFor="manse-lunar" className="text-text-light">
+                  </div>
+                </Label>
+                <Label htmlFor="manse-lunar" className="cursor-pointer">
+                  <div className="flex items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-gray-50 py-3 text-gray-700 data-[state=checked]:bg-slate-800 data-[state=checked]:text-white">
+                    <RadioGroupItem value="lunar" id="manse-lunar" />
                     음력
-                  </Label>
-                </div>
+                  </div>
+                </Label>
               </RadioGroup>
             </div>
           </div>
 
           {/* 3. 생년월일시 */}
-          <div className="space-y-3">
-            <Label className="text-text-light font-semibold">생년월일시</Label>
+          <div className="space-y-2">
+            <Label className="text-gray-600 font-semibold">생년월일시</Label>
             <Input
               type="text"
               placeholder=" YYYYMMDD 또는 YYYYMMDDHHMM"
               value={formatBirthDateTime(birthDateTime)}
               onChange={(e) => handleBirthDateTimeChange(e.target.value)}
-              className="bg-background-main border-border-muted text-center font-mono text-lg tracking-wider"
+              className="bg-gray-50 border-gray-200 rounded-2xl text-center font-mono text-lg tracking-wider"
               maxLength={15} // 띄어쓰기 포함해서 15자리
             />
-            <p className="text-xs text-text-muted">
-              💡 8자리 또는 12자리로 입력하세요.
+            <p className="text-xs text-gray-500">
+              💡 생시(生時)를 모른다면 생략해주세요.
             </p>
             <div className="text-xs text-accent-gold">
               📝 형식: YYYYMMDD / YYYYMMDDHHMM (시간 선택 입력)
@@ -186,8 +186,8 @@ export const ManseForm = () => {
           </div>
 
           {/* 5. 출생지 (선택사항) */}
-          <div className="space-y-3">
-            <Label className="text-text-light font-semibold">
+          <div className="space-y-2">
+            <Label className="text-gray-600 font-semibold">
               출생지 (선택사항)
             </Label>
             <Input
@@ -195,9 +195,9 @@ export const ManseForm = () => {
               placeholder="출생지를 입력해주세요 (예: 서울, 부산)"
               value={birthPlace}
               onChange={(e) => setBirthPlace(e.target.value)}
-              className="bg-background-main border-border-muted"
+              className="bg-gray-50 border-gray-200 rounded-2xl"
             />
-            <p className="text-xs text-text-muted">
+            <p className="text-xs text-gray-500">
               💡 출생지는 정확한 사주 계산에 도움이 됩니다.
             </p>
           </div>
@@ -206,7 +206,7 @@ export const ManseForm = () => {
           <div className="pt-4">
             <Button
               type="submit"
-              className="w-full bg-accent-gold hover:bg-accent-gold/80 text-white font-semibold py-3"
+              className="w-full bg-slate-800 hover:bg-slate-700 text-white font-semibold py-3 rounded-2xl"
               size="lg"
               disabled={isLoading}
             >
@@ -216,23 +216,9 @@ export const ManseForm = () => {
                   만세력 계산 중...
                 </span>
               ) : (
-                "만세력 보러가기"
+                "분석 시작하기"
               )}
             </Button>
-            {/* 저장된 만세력 보기 버튼 */}
-            <div className="mt-3">
-              <Button
-                type="button"
-                className="w-full bg-accent-gold hover:bg-accent-gold/80 text-white font-semibold py-3"
-                size="lg"
-                onClick={() => {
-                  // TODO: 저장소/보관함 페이지로 이동 또는 모달 열기
-                  console.log("만세력 불러오기 클릭");
-                }}
-              >
-                만세력 불러오기
-              </Button>
-            </div>
           </div>
 
           {/* 오류 메시지 */}

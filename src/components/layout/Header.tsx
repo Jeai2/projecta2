@@ -1,102 +1,77 @@
 // 트랜스포머 Header: 모바일 + 데스크톱 통합, onLogoClick 기능 추가
 import { useState } from "react";
-import { MenuIcon, XIcon } from "../ui/common/Icons";
+import { MenuIcon } from "../ui/common/Icons";
+import { DrawerMenuMobile } from "../ui/mobile/DrawerMenuMobile";
+import { mainMenuItems, premiumMenuItems } from "@/config/menuConfig";
+import { Search } from "lucide-react";
 
-const menuItems = [
-  "종합사주",
-  "신년운세",
-  "이성운세",
-  "재물운세",
-  "커플궁합",
-  "오늘의 운세",
-];
+interface HeaderProps {
+  onLogoClick?: () => void;
+  onNavigate: (page: string) => void;
+  currentPage: string;
+}
 
-const DrawerMenuMobile = ({
-  isOpen,
-  onClose,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-}) => (
-  <div
-    className={`fixed inset-0 z-40 transition-opacity duration-300 lg:hidden ${
-      isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-    }`}
-    aria-hidden={!isOpen}
-    role="dialog"
-  >
-    <div className="absolute inset-0 bg-black/60" onClick={onClose}></div>
-    <nav
-      className={`absolute top-0 right-0 h-full w-[280px] bg-background-sub shadow-lg transform transition-transform duration-300 ease-in-out ${
-        isOpen ? "translate-x-0" : "translate-x-full"
-      }`}
-    >
-      <div className="flex justify-end p-2 h-14 items-center">
-        <button
-          onClick={onClose}
-          className="p-2 text-text-light"
-          aria-label="메뉴 닫기"
-        >
-          <XIcon className="w-6 h-6" />
-        </button>
-      </div>
-      <div className="flex flex-col p-4">
-        {menuItems.map((item) => (
-          <a
-            key={item}
-            href="#"
-            className="p-3 text-lg rounded-md text-text-light hover:bg-white/10"
-          >
-            {item}
-          </a>
-        ))}
-      </div>
-    </nav>
-  </div>
-);
-
-export const Header = ({ onLogoClick }: { onLogoClick?: () => void }) => {
+export const Header = ({
+  onLogoClick,
+  onNavigate,
+  currentPage,
+}: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+  const desktopMenuItems = [...mainMenuItems, ...premiumMenuItems];
+  const handleLogoClick = onLogoClick ?? (() => onNavigate("home"));
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 flex items-center h-20 px-8 bg-background-main border-b border-white/10">
-        <div className="flex items-center justify-between w-full max-w-container mx-auto">
-          <div>
-            {onLogoClick ? (
-              <button
-                onClick={onLogoClick}
-                className="text-2xl font-bold text-text-light"
-              >
-                LOGO
-              </button>
-            ) : (
-              <a href="/" className="text-2xl font-bold text-text-light">
-                LOGO
-              </a>
-            )}
+      <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-white/80 backdrop-blur border-b border-gray-200">
+        <div className="flex items-center justify-between h-full w-full max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleLogoClick}
+              className="flex items-center gap-2 group"
+            >
+              <div className="w-8 h-8 bg-accent-gold text-white rounded flex items-center justify-center font-myeongjo font-bold text-lg">
+                S:L
+              </div>
+              <span className="font-myeongjo font-bold text-lg text-gray-800 group-hover:text-accent-gold transition">
+                사주로그
+              </span>
+            </button>
           </div>
           <nav className="hidden lg:flex items-center gap-6">
-            {menuItems.map((item) => (
-              <a
-                key={item}
-                href="#"
-                className="text-base text-text-muted hover:text-text-light transition-colors"
-              >
-                {item}
-              </a>
-            ))}
+            {desktopMenuItems.map((item) => {
+              const isActive = item.id === currentPage;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => onNavigate(item.id)}
+                  className={`text-sm font-medium transition-colors border-b-2 ${
+                    isActive
+                      ? "text-gray-900 border-accent-gold"
+                      : "text-gray-500 border-transparent hover:text-accent-gold hover:border-accent-gold"
+                  }`}
+                >
+                  <span className="py-5 inline-block">{item.name}</span>
+                </button>
+              );
+            })}
           </nav>
-          <div className="hidden lg:flex">
-            <button className="px-6 py-2 text-base rounded-md bg-accent-gold text-background-main font-semibold">
-              로그인
+          <div className="hidden lg:flex items-center gap-4">
+            <button className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200 transition">
+              <Search className="w-4 h-4" />
             </button>
+            <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-200 cursor-pointer">
+              <img
+                className="w-full h-full object-cover"
+                src="https://placehold.co/100x100/EAE7E1/333333?text=U"
+                alt="user"
+              />
+            </div>
           </div>
           <div className="lg:hidden">
             <button
               onClick={toggleMenu}
-              className="p-2 text-text-light"
+              className="p-2 text-gray-700"
               aria-label="메뉴 열기"
             >
               <MenuIcon className="w-6 h-6" />
@@ -104,7 +79,11 @@ export const Header = ({ onLogoClick }: { onLogoClick?: () => void }) => {
           </div>
         </div>
       </header>
-      <DrawerMenuMobile isOpen={isMenuOpen} onClose={toggleMenu} />
+      <DrawerMenuMobile
+        isOpen={isMenuOpen}
+        onClose={toggleMenu}
+        onNavigate={onNavigate}
+      />
       <div className="h-20" />
     </>
   );

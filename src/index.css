@@ -47,3 +47,22 @@ html {
     -moz-osx-font-smoothing: grayscale;
   }
 }
+
+@layer utilities {
+  .bg-grid-pattern {
+    background-image: linear-gradient(
+        rgba(255, 255, 255, 0.05) 1px,
+        transparent 1px
+      ),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
+  .mode-toggle-track {
+    transition: background-color 0.3s;
+  }
+
+  .mode-toggle-thumb {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}

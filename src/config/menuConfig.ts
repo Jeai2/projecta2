@@ -20,7 +20,6 @@ export interface MenuItem {
 
 // 메인 메뉴 (무료 및 주요 기능)
 export const mainMenuItems: MenuItem[] = [
-  { id: "home", name: "홈", icon: Home },
   { id: "manse", name: "만세력", icon: BookOpen },
   { id: "today", name: "오늘의 운세", icon: Clock },
   { id: "service", name: "운세서비스", icon: Star },
