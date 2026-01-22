@@ -10,6 +10,7 @@ import { ProfilePage } from "./pages/ProfilePage";
 import SinnyeonUnsePage from "./pages/SinnyeonUnsePage";
 import TodayFortunePage from "./pages/TodayFortunePage";
 import MansePage from "./pages/MansePage";
+import IljuPage from "./pages/IljuPage";
 import { useUiStore } from "./store/uiStore";
 
 const HomePageContent = ({
@@ -42,6 +43,9 @@ export const CurrentPageContent = ({
   if (currentPage === "manse") {
     console.log("CurrentPageContent: MansePage 렌더링");
     return <MansePage />;
+  }
+  if (currentPage === "ilju") {
+    return <IljuPage />;
   }
   return <HomePageContent isExpertMode={isExpertMode} onNavigate={onNavigate} />;
 };

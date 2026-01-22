@@ -13,6 +13,8 @@ import { ParamsDictionary } from "express-serve-static-core";
 import { getAiGeneratedResponse, AiGeneratedOutput } from "../ai/ai.service";
 // ✅ 오늘의 운세 서비스 import
 import { getTodayFortune } from "../services/today-fortune.service";
+// ✅ 일주론 서비스 import
+import { getIljuAnalysis } from "../services/ilju.service";
 
 // 요청(Request)으로 들어올 데이터의 형태
 interface FortuneRequestBody {
@@ -434,6 +436,48 @@ export const getTodayFortuneAPI = async (
     return res.status(500).json({
       error: true,
       message: "서버 내부 오류",
+    });
+  }
+};
+
+// 일주론 API
+export const getIljuFortune = async (
+  req: Request<
+    ParamsDictionary,
+    { error: false; data: Awaited<ReturnType<typeof getIljuAnalysis>> } | ErrorResponseBody,
+    { birthDate: string; gender: "M" | "W"; calendarType: "solar" | "lunar" }
+  >,
+  res: Response<{ error: false; data: Awaited<ReturnType<typeof getIljuAnalysis>> } | ErrorResponseBody>
+) => {
+  try {
+    const { birthDate, gender, calendarType } = req.body;
+
+    if (!birthDate || !gender || !calendarType) {
+      return res.status(400).json({
+        error: true,
+        message: "필수 정보가 누락되었습니다.",
+      });
+    }
+
+    const birthDateObject = new Date(`${birthDate}T12:00:00`);
+    if (isNaN(birthDateObject.getTime())) {
+      return res.status(400).json({
+        error: true,
+        message: "잘못된 날짜 형식입니다.",
+      });
+    }
+
+    const iljuResult = await getIljuAnalysis(birthDateObject, gender, calendarType);
+
+    return res.status(200).json({
+      error: false,
+      data: iljuResult,
+    });
+  } catch (error) {
+    console.error("[API Error] getIljuFortune Controller:", error);
+    return res.status(500).json({
+      error: true,
+      message: error instanceof Error ? error.message : "서버 내부 오류",
     });
   }
 };

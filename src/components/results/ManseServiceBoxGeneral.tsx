@@ -394,6 +394,7 @@ const ManseServiceBoxGeneral: React.FC<ManseServiceBoxGeneralProps> = ({
     sibiwunseong: string;
   }> | null>(null);
   const [loadingSewoon, setLoadingSewoon] = useState(false);
+  const [showHanja, setShowHanja] = useState(false); // 한자 표시 토글
 
   const fetchSewoonData = async (daewoonStartYear: number, dayGan: string) => {
     setLoadingSewoon(true);
@@ -446,6 +447,16 @@ const ManseServiceBoxGeneral: React.FC<ManseServiceBoxGeneralProps> = ({
               )}
             </div>
           </div>
+          <button
+            onClick={() => setShowHanja(!showHanja)}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+              showHanja
+                ? "bg-indigo-100 border-indigo-300 text-indigo-700"
+                : "bg-gray-100 border-gray-300 text-gray-600 hover:bg-gray-200"
+            }`}
+          >
+            {showHanja ? "漢字" : "한글"}
+          </button>
         </div>
       </div>
 
@@ -486,7 +497,7 @@ const ManseServiceBoxGeneral: React.FC<ManseServiceBoxGeneralProps> = ({
                 col.ganRaw
               )}`}
             >
-              {col.gan || "—"}
+              {showHanja ? (col.ganRaw || "—") : (col.gan || "—")}
             </div>
           ))}
 
@@ -500,7 +511,7 @@ const ManseServiceBoxGeneral: React.FC<ManseServiceBoxGeneralProps> = ({
                 col.jiRaw
               )}`}
             >
-              {col.ji || "—"}
+              {showHanja ? (col.jiRaw || "—") : (col.ji || "—")}
             </div>
           ))}
 
@@ -543,7 +554,7 @@ const ManseServiceBoxGeneral: React.FC<ManseServiceBoxGeneralProps> = ({
                       className="flex justify-center gap-1"
                     >
                       <span className={getOhaengColor(gan)}>
-                        {toHangulGan(gan)}
+                        {showHanja ? gan : toHangulGan(gan)}
                       </span>
                       <span className="text-gray-500">{sipsin || "-"}</span>
                     </div>
@@ -598,22 +609,28 @@ const ManseServiceBoxGeneral: React.FC<ManseServiceBoxGeneralProps> = ({
             <div className="text-xs text-gray-500 mb-1">억부/조후용신</div>
             <div className="flex flex-wrap items-center justify-center gap-2 text-xs">
               <span className="text-gray-500">억부</span>
-              <span className="rounded-full border border-indigo-200 bg-white px-2 py-0.5 text-xs font-semibold text-gray-800">
-                {formatYongsinValue(
-                  (sajuData as SajuData)?.yongsin?.allAnalyses?.find(
-                    (analysis) => analysis.name === "억부용신"
-                  )?.yongsin
-                )}
-              </span>
+              {(() => {
+                const eokbuYongsin = (sajuData as SajuData)?.yongsin?.allAnalyses?.find(
+                  (analysis) => analysis.name === "억부용신"
+                )?.yongsin;
+                return (
+                  <span className={`rounded-full border border-indigo-200 bg-white px-2 py-0.5 text-xs font-semibold ${eokbuYongsin ? getOhaengColor(eokbuYongsin) : "text-gray-800"}`}>
+                    {eokbuYongsin ? (showHanja ? eokbuYongsin : toHangulGan(eokbuYongsin)) : "—"}
+                  </span>
+                );
+              })()}
               <span className="h-3 w-px bg-indigo-200" />
               <span className="text-gray-500">조후</span>
-              <span className="rounded-full border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-700">
-                {formatYongsinValue(
-                  (sajuData as SajuData)?.yongsin?.allAnalyses?.find(
-                    (analysis) => analysis.name === "조후용신"
-                  )?.yongsin
-                )}
-              </span>
+              {(() => {
+                const johuYongsin = (sajuData as SajuData)?.yongsin?.allAnalyses?.find(
+                  (analysis) => analysis.name === "조후용신"
+                )?.yongsin;
+                return (
+                  <span className={`rounded-full border border-indigo-200 bg-white px-2 py-0.5 text-xs font-semibold ${johuYongsin ? getOhaengColor(johuYongsin) : "text-gray-800"}`}>
+                    {johuYongsin ? (showHanja ? johuYongsin : toHangulGan(johuYongsin)) : "—"}
+                  </span>
+                );
+              })()}
             </div>
           </div>
           <div className="group relative overflow-hidden rounded-xl border bg-gradient-to-br p-4 text-center shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg border-indigo-200 from-indigo-50 via-white to-indigo-100">
@@ -830,11 +847,31 @@ const ManseServiceBoxGeneral: React.FC<ManseServiceBoxGeneralProps> = ({
                 <span className="text-gray-500">공망</span>
                 <span className="font-semibold text-gray-900">
                   {(() => {
-                    const gongmangList = (
-                      sajuData as unknown as { gongmang?: string[] }
-                    ).gongmang;
-                    return gongmangList && gongmangList.length > 0
-                      ? gongmangList.join(", ")
+                    // sinsal 데이터에서 공망 찾기
+                    const sinsal = (sajuData as SajuData)?.sinsal;
+                    if (!sinsal) return "—";
+                    
+                    const gongmangSet = new Set<string>();
+                    const pillars = ["year", "month", "day", "hour"] as const;
+                    
+                    pillars.forEach((pillar) => {
+                      const pillarSinsal = sinsal[pillar];
+                      if (Array.isArray(pillarSinsal)) {
+                        pillarSinsal.forEach((item: { name?: string; elements?: Array<{ character?: string; type?: string }> }) => {
+                          if (item.name === "공망" && item.elements) {
+                            // 공망의 지지 글자 추출
+                            item.elements.forEach((el) => {
+                              if (el.type === "ji" && el.character) {
+                                gongmangSet.add(showHanja ? el.character : (JI_HANJA_TO_HANGUL[el.character] || el.character));
+                              }
+                            });
+                          }
+                        });
+                      }
+                    });
+                    
+                    return gongmangSet.size > 0 
+                      ? Array.from(gongmangSet).join(", ") 
                       : "—";
                   })()}
                 </span>
@@ -877,14 +914,14 @@ const ManseServiceBoxGeneral: React.FC<ManseServiceBoxGeneralProps> = ({
                       daewoon.ganji[0]
                     )}`}
                   >
-                    {toHangulGan(daewoon.ganji[0])}
+                    {showHanja ? daewoon.ganji[0] : toHangulGan(daewoon.ganji[0])}
                   </div>
                   <div
                     className={`text-sm font-bold mb-1 ${getOhaengColor(
                       daewoon.ganji[1]
                     )}`}
                   >
-                    {toHangulJi(daewoon.ganji[1])}
+                    {showHanja ? daewoon.ganji[1] : toHangulJi(daewoon.ganji[1])}
                   </div>
                   <div className="text-xs text-gray-500">
                     {daewoon.sipsin.ji || "-"}
@@ -925,14 +962,14 @@ const ManseServiceBoxGeneral: React.FC<ManseServiceBoxGeneralProps> = ({
                     sewoon.ganji[0]
                   )}`}
                 >
-                  {toHangulGan(sewoon.ganji[0])}
+                  {showHanja ? sewoon.ganji[0] : toHangulGan(sewoon.ganji[0])}
                 </div>
                 <div
                   className={`text-sm font-bold mb-1 ${getOhaengColor(
                     sewoon.ganji[1]
                   )}`}
                 >
-                  {toHangulJi(sewoon.ganji[1])}
+                  {showHanja ? sewoon.ganji[1] : toHangulJi(sewoon.ganji[1])}
                 </div>
                 <div className="text-xs text-gray-500">
                   {sewoon.jiSipsin || "-"}

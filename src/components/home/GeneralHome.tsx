@@ -75,6 +75,7 @@ export const GeneralHome = ({ onNavigate }: GeneralHomeProps) => {
             icon: Heart,
             iconBg: "bg-pink-50",
             iconColor: "text-pink-500",
+            onClick: () => onNavigate("ilju"),
           },
           {
             title: "내 진로 직업 찾기",
@@ -82,6 +83,7 @@ export const GeneralHome = ({ onNavigate }: GeneralHomeProps) => {
             icon: Compass,
             iconBg: "bg-blue-50",
             iconColor: "text-blue-500",
+            onClick: () => {},
           },
           {
             title: "2026년 신년운세",
@@ -89,6 +91,7 @@ export const GeneralHome = ({ onNavigate }: GeneralHomeProps) => {
             icon: Sparkles,
             iconBg: "bg-purple-50",
             iconColor: "text-purple-500",
+            onClick: () => {},
           },
           {
             title: "커플궁합",
@@ -96,6 +99,7 @@ export const GeneralHome = ({ onNavigate }: GeneralHomeProps) => {
             icon: Users,
             iconBg: "bg-emerald-50",
             iconColor: "text-emerald-500",
+            onClick: () => {},
           },
           {
             title: "종합사주",
@@ -103,12 +107,14 @@ export const GeneralHome = ({ onNavigate }: GeneralHomeProps) => {
             icon: Coins,
             iconBg: "bg-amber-50",
             iconColor: "text-amber-500",
+            onClick: () => {},
           },
         ].map((card) => {
           const Icon = card.icon;
           return (
             <div
               key={card.title}
+              onClick={card.onClick}
               className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition cursor-pointer group"
             >
               <div
