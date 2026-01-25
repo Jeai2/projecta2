@@ -28,6 +28,7 @@ interface IljuResponseData {
     dayGan: string;
     dayJi: string;
     dayGanji: string;
+    gender?: "M" | "W";
   };
 }
 
@@ -93,11 +94,11 @@ export const IljuForm: React.FC<IljuFormProps> = ({ onResult }) => {
       console.log("📥 일주론 서버에서 받은 응답 데이터:", response.data);
       
       if (onResult) {
-        onResult(response.data.data);
+        onResult({ ...response.data.data, gender });
       } else {
         // fallback: 커스텀 이벤트
         window.dispatchEvent(
-          new CustomEvent("iljuResult", { detail: response.data.data })
+          new CustomEvent("iljuResult", { detail: { ...response.data.data, gender } })
         );
       }
     } catch (err) {

@@ -14,8 +14,10 @@ import { getSajuDetails } from "./saju.service";
 export async function getIljuAnalysis(
   birthDate: Date,
   gender: "M" | "W",
-  calendarType: "solar" | "lunar"
+  // TODO: 추후 양/음력 변환 로직 연결 시 사용
+  _calendarType: "solar" | "lunar"
 ) {
+  void _calendarType;
   // 사주 데이터 가져오기 (일간, 일지 추출용)
   const sajuResult = await getSajuDetails(birthDate, gender);
 
@@ -37,8 +39,44 @@ export async function getIljuAnalysis(
       ? `${raw.personality} ${raw.tendency}`
       : raw.personality || raw.tendency || "");
 
+  const summary = raw.summary || characteristic;
+  const traits = raw.traits || {
+    base: characteristic,
+    psychological: "",
+    emotionPattern: "",
+  };
+  const careerDetail = raw.careerDetail || {
+    features: raw.career || "",
+    direction: "",
+    recommendedJobs: "",
+  };
+  const spouseDetail = raw.spouseDetail || {
+    male: {
+      traits: raw.spouse || "",
+      points: "",
+    },
+    female: {
+      traits: raw.spouse || "",
+      points: "",
+    },
+  };
+  const overallSummary =
+    raw.overallSummary ||
+    [raw.wealth, raw.health].filter(Boolean).join(" ");
+
+  const profileImageUrl =
+    gender === "M"
+      ? raw.profileImageUrlMale || raw.profileImageUrl
+      : raw.profileImageUrlFemale || raw.profileImageUrl;
+
   const iljuData = {
     name: raw.name,
+    profileImageUrl,
+    summary,
+    traits,
+    careerDetail,
+    spouseDetail,
+    overallSummary,
     characteristic,
     career: raw.career,
     spouse: raw.spouse,

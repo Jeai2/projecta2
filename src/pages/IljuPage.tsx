@@ -19,6 +19,7 @@ interface IljuResultData {
   dayGan: string;
   dayJi: string;
   dayGanji: string;
+  gender?: "M" | "W";
 }
 
 const IljuPage = () => {

@@ -2,27 +2,100 @@
 // 일주론 데이터 파일
 // 60갑자 각 일주별 특성, 진로, 배우자, 재물운, 건강 정보
 
+export interface IljuTraitDetail {
+  base: string; // 기본성향
+  psychological: string; // 심리적 특징
+  emotionPattern: string; // 감정 패턴
+}
+
+export interface JobCategory {
+  title: string;
+  description: string;
+  iconType: string; // "education", "planning", "art", "research", "business", etc.
+}
+
+export interface IljuCareerDetail {
+  features: string; // 특징
+  direction: string; // 방향
+  recommendedJobs: string; // 추천직업
+  jobCategories?: JobCategory[]; // 추천 직업 카테고리 (리뉴얼 디자인용)
+}
+
+export interface IljuSpouseGenderDetail {
+  traits: string; // 특징
+  points: string; // 포인트
+}
+
+export interface IljuSpouseDetail {
+  male: IljuSpouseGenderDetail; // 남자
+  female: IljuSpouseGenderDetail; // 여자
+}
+
 export interface IljuData {
   name: string; // 일주명 (예: "갑자")
+  profileImageUrl?: string; // 일주 프로필 이미지 (png/jpg)
+  profileImageUrlMale?: string; // 남성 프로필 이미지
+  profileImageUrlFemale?: string; // 여성 프로필 이미지
+  summary?: string; // 한마디 요약
+  traits?: IljuTraitDetail; // 특징 상세
+  careerDetail?: IljuCareerDetail; // 진로와 직업
+  spouseDetail?: IljuSpouseDetail; // 배우자
+  overallSummary?: string; // 전체 요약
   /** 특성 (성격+성향 통합). legacy: personality+tendency 있는 경우 서비스에서 합쳐서 사용 */
-  characteristic: string;
+  characteristic?: string;
   personality?: string; // 구 legacy 필드 (tendency와 함께 characteristic으로 통합 시 사용)
-  tendency?: string;   // 구 legacy 필드
-  career: string;
-  spouse: string;
-  wealth: string;
-  health: string;
+  tendency?: string; // 구 legacy 필드
+  career?: string;
+  spouse?: string;
+  wealth?: string;
+  health?: string;
 }
 
 // 60갑자 일주론 데이터
 export const ILJU_DATA: Record<string, IljuData> = {
   甲子: {
     name: "갑자",
-    characteristic: "뛰어난 리더십과 추진력을 갖춘 성격으로, 목표를 향해 끈기 있게 나아가는 편입니다. 적극적이고 진취적인 성향을 지니고 있어 새로운 도전을 즐기며, 변화를 두려워하지 않습니다. 일단 결정하면 끝까지 포기하지 않는 강한 의지력을 갖추고 있어, 주변 사람들에게 신뢰받는 리더 역할을 자연스럽게 맡게 됩니다. 하지만 때로는 너무 앞서나가려는 경향이 있어, 주변 상황을 고려하지 못할 수 있으니 팀워크와 소통을 중시하는 것이 중요합니다.",
-    career: "경영, 관리직, 창업, 정치, 리더십이 필요한 분야에 적합합니다. 특히 팀을 이끌고 목표를 달성하는 일에 뛰어난 능력을 발휘하며, 창의적이고 혁신적인 아이디어로 새로운 비즈니스를 만들어내는 것도 잘합니다. 중간 관리직이나 임원급 직책에서 두각을 나타낼 가능성이 높으며, 자신만의 회사를 운영하거나 독립적인 사업을 시작하는 것도 좋은 선택입니다. 다만 세부적인 관리보다는 큰 그림을 그리는 데 집중하는 것이 성공의 열쇠입니다.",
-    spouse: "배우자와의 조화를 중시하며, 상호 존중하는 관계를 유지하는 것을 좋아합니다. 강한 리더십을 가졌지만, 가정에서는 부드러운 면모를 보이며 배우자의 의견을 귀 기울여 듣습니다. 함께 성장하고 발전하는 것을 추구하며, 서로의 꿈과 목표를 응원하는 파트너십을 원합니다. 다만 때로는 자신의 의견을 너무 강하게 밀어붙일 수 있어, 배우자와의 대화와 타협이 중요합니다.",
-    wealth: "계획적인 재물 관리로 안정적인 재정을 구축할 수 있는 능력을 가지고 있습니다. 큰 목표를 향해 단계적으로 재물을 모으는 것을 좋아하며, 투자에도 전략적 접근을 합니다. 다만 리스크가 큰 투자보다는 장기적으로 안정적인 수익을 낼 수 있는 투자를 선호합니다. 또한 자신의 리더십을 활용해 사업을 통해 큰 재물을 얻을 가능성도 있습니다.",
-    health: "수기(水氣)가 강하므로 신장과 방광 건강에 주의가 필요합니다. 특히 추운 날씨나 찬 음식을 섭취할 때 주의해야 하며, 평소 충분한 수분 섭취와 따뜻한 음식을 먹는 것이 좋습니다. 또한 스트레스 관리도 중요한데, 너무 무리하지 않고 적절한 휴식을 취하는 것이 건강을 지키는 데 도움이 됩니다.",
+    profileImageUrlMale: "/ghabjam.png",
+    profileImageUrlFemale: "/ghabjaw.png",
+    summary: "겉은 차분하지만, 속엔 누구보다 큰 갈망을 품은 사람",
+    traits: {
+      base: "똑똑하고 말 잘하는 모습과 차분하고 이성적인 모습 그리고 신뢰가 가는 묘한 분위기를 가짐. 통찰력이 있어, 눈치가 빠르고 상황 파악 능력이 뛰어남. 혼자만의 시간이 필수이나, 너무 외로워지면 급격히 무너짐.",
+      psychological: "보이지 않는 세게, 철학·예술·종교 등에 관심이 많음. 기본적으로 생각이 많고, 사람·일·관계에 쉽게 정을 붙이고 쉽게 못 놓음. 남의 속을 잘 읽지만 티 안내는 편임.",
+      emotionPattern: "시작은 잘 하는데, 끝에서 지침. 목표가 커서 스스로에게 실망을 잘함. 감정을 쌓아두더 터지거나, 스스로가 더 인내함. 주변에서 도움을 많이 받음. 자신의 실패에 남탓을 하고 싶어하기도 함.",
+    },
+    careerDetail: {
+      features: "아이디어가 많고 혼자 몰입할 수 있을 때 최고의 성능 발현. 조직 안에도 나만의 영역이 있어야 함. ",
+      direction: "돈만 보고 선택하면 오래 일을 못하며, 너무 자유도가 높아도 쉽게 흐트러짐. 내 이름과 책임이 걸린 일이어야 집중력이 유지됨.",
+      recommendedJobs: "상담, 교육, 교칭, 연구, 기획, 글쓰기, 콘텐츠 기획, 브랜딩, 예술, 음악, 디자인, 프리랜서, 1인 브랜드, 자격증 기반 전문가.",
+      jobCategories: [
+        { title: "교육 및 멘토링", description: "지식을 전달하는 일", iconType: "education" },
+        { title: "기획 및 전략", description: "새로운 판을 짜는 일", iconType: "planning" },
+        { title: "크리에이티브", description: "무에서 유를 창조하는 일", iconType: "art" },
+        { title: "전문가 및 연구", description: "깊이 있는 통찰이 필요한 일", iconType: "research" },
+      ],
+    },
+    spouseDetail: {
+      male: {
+        traits: "책임감 있고 추진력이 강한 배우자를 선호합니다.",
+        points: "대화와 타협의 균형을 잡는 것이 중요합니다.",
+      },
+      female: {
+        traits: "신뢰와 존중을 바탕으로 함께 성장하는 관계를 원합니다.",
+        points: "강한 의지 표현을 부드럽게 전달하면 안정적입니다.",
+      },
+    },
+    overallSummary:
+      "리더형 기질이 강해 성취력이 높으나, 팀워크와 소통을 의식하면 더 큰 성장을 이룹니다.",
+    characteristic:
+      "뛰어난 리더십과 추진력을 갖춘 성격으로, 목표를 향해 끈기 있게 나아가는 편입니다. 적극적이고 진취적인 성향을 지니고 있어 새로운 도전을 즐기며, 변화를 두려워하지 않습니다. 일단 결정하면 끝까지 포기하지 않는 강한 의지력을 갖추고 있어, 주변 사람들에게 신뢰받는 리더 역할을 자연스럽게 맡게 됩니다. 하지만 때로는 너무 앞서나가려는 경향이 있어, 주변 상황을 고려하지 못할 수 있으니 팀워크와 소통을 중시하는 것이 중요합니다.",
+    career:
+      "경영, 관리직, 창업, 정치, 리더십이 필요한 분야에 적합합니다. 특히 팀을 이끌고 목표를 달성하는 일에 뛰어난 능력을 발휘하며, 창의적이고 혁신적인 아이디어로 새로운 비즈니스를 만들어내는 것도 잘합니다. 중간 관리직이나 임원급 직책에서 두각을 나타낼 가능성이 높으며, 자신만의 회사를 운영하거나 독립적인 사업을 시작하는 것도 좋은 선택입니다. 다만 세부적인 관리보다는 큰 그림을 그리는 데 집중하는 것이 성공의 열쇠입니다.",
+    spouse:
+      "배우자와의 조화를 중시하며, 상호 존중하는 관계를 유지하는 것을 좋아합니다. 강한 리더십을 가졌지만, 가정에서는 부드러운 면모를 보이며 배우자의 의견을 귀 기울여 듣습니다. 함께 성장하고 발전하는 것을 추구하며, 서로의 꿈과 목표를 응원하는 파트너십을 원합니다. 다만 때로는 자신의 의견을 너무 강하게 밀어붙일 수 있어, 배우자와의 대화와 타협이 중요합니다.",
+    wealth:
+      "계획적인 재물 관리로 안정적인 재정을 구축할 수 있는 능력을 가지고 있습니다. 큰 목표를 향해 단계적으로 재물을 모으는 것을 좋아하며, 투자에도 전략적 접근을 합니다. 다만 리스크가 큰 투자보다는 장기적으로 안정적인 수익을 낼 수 있는 투자를 선호합니다. 또한 자신의 리더십을 활용해 사업을 통해 큰 재물을 얻을 가능성도 있습니다.",
+    health:
+      "수기(水氣)가 강하므로 신장과 방광 건강에 주의가 필요합니다. 특히 추운 날씨나 찬 음식을 섭취할 때 주의해야 하며, 평소 충분한 수분 섭취와 따뜻한 음식을 먹는 것이 좋습니다. 또한 스트레스 관리도 중요한데, 너무 무리하지 않고 적절한 휴식을 취하는 것이 건강을 지키는 데 도움이 됩니다.",
   },
   乙丑: {
     name: "을축",
@@ -164,6 +237,29 @@ export const ILJU_DATA: Record<string, IljuData> = {
   },
   辛巳: {
     name: "신사",
+    summary: "섬세함과 완벽주의가 조화를 이루는 일주.",
+    traits: {
+      base: "디테일에 강하고 기준이 분명해 완성도를 중요하게 여깁니다.",
+      psychological: "스스로의 기준에 엄격해 만족감을 얻기까지 시간이 걸립니다.",
+      emotionPattern: "섬세한 감정 반응을 보이며, 평가에 민감해질 수 있습니다.",
+    },
+    careerDetail: {
+      features: "정밀함과 미적 감각을 동시에 요구하는 분야에 강합니다.",
+      direction: "품질과 완성도를 높이는 역할에서 성취가 큽니다.",
+      recommendedJobs: "보석, 금속공예, 정밀기계, 회계, 세무, 품질관리",
+    },
+    spouseDetail: {
+      male: {
+        traits: "세심함과 안정감을 가진 배우자를 선호합니다.",
+        points: "기대치가 높아질수록 유연한 소통이 필요합니다.",
+      },
+      female: {
+        traits: "정성스러운 배려와 세밀한 교감을 중시합니다.",
+        points: "완벽함보다 편안함을 우선하면 관계가 좋아집니다.",
+      },
+    },
+    overallSummary:
+      "정밀함과 미적 감각이 강점이며, 기준을 유연하게 조절하면 만족도가 높아집니다.",
     characteristic: "섬세하고 완벽주의적인 성격으로, 세부사항에 주의를 기울입니다.",
     tendency: "예술적 감각과 미적 안목이 뛰어나며, 품질을 중시합니다.",
     career: "보석, 금속공예, 정밀기계, 회계, 세무, 정밀한 작업이 필요한 분야에 적합합니다.",
