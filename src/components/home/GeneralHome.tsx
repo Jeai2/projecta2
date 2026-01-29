@@ -83,7 +83,7 @@ export const GeneralHome = ({ onNavigate }: GeneralHomeProps) => {
             icon: Compass,
             iconBg: "bg-blue-50",
             iconColor: "text-blue-500",
-            onClick: () => {},
+            onClick: () => onNavigate("career"),
           },
           {
             title: "2026년 신년운세",

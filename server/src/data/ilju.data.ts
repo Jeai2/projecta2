@@ -24,11 +24,24 @@ export interface IljuCareerDetail {
 export interface IljuSpouseGenderDetail {
   traits: string; // 특징
   points: string; // 포인트
+  traitsLabel?: string; // 특징 라벨(예: "배우자의 핵심 성향") - 일주별로 커스터마이징 가능
+  pointsLabel?: string; // 포인트 라벨(예: "관계 안정을 위한 포인트") - 일주별로 커스터마이징 가능
 }
 
 export interface IljuSpouseDetail {
   male: IljuSpouseGenderDetail; // 남자
   female: IljuSpouseGenderDetail; // 여자
+}
+
+// 연애 성향 상세
+export interface IljuLoveGenderDetail {
+  style: string; // 연애 스타일 / 연애할 때 모습
+  needs: string; // 연애에서 중요한 포인트 / 조언
+}
+
+export interface IljuLoveDetail {
+  male: IljuLoveGenderDetail;   // 남자 연애 성향
+  female: IljuLoveGenderDetail; // 여자 연애 성향
 }
 
 export interface IljuData {
@@ -40,6 +53,7 @@ export interface IljuData {
   traits?: IljuTraitDetail; // 특징 상세
   careerDetail?: IljuCareerDetail; // 진로와 직업
   spouseDetail?: IljuSpouseDetail; // 배우자
+  loveDetail?: IljuLoveDetail; // 연애 성향
   overallSummary?: string; // 전체 요약
   /** 특성 (성격+성향 통합). legacy: personality+tendency 있는 경우 서비스에서 합쳐서 사용 */
   characteristic?: string;
@@ -59,7 +73,7 @@ export const ILJU_DATA: Record<string, IljuData> = {
     profileImageUrlFemale: "/ghabjaw.png",
     summary: "겉은 차분하지만, 속엔 누구보다 큰 갈망을 품은 사람",
     traits: {
-      base: "똑똑하고 말 잘하는 모습과 차분하고 이성적인 모습 그리고 신뢰가 가는 묘한 분위기를 가짐. 통찰력이 있어, 눈치가 빠르고 상황 파악 능력이 뛰어남. 혼자만의 시간이 필수이나, 너무 외로워지면 급격히 무너짐.",
+      base: "말이 또렷하고 똑똑해 보이지만, 동시에 차분하고 이성적인 태도로 신뢰를 준다. 상황을 읽는 감각이 뛰어나 통찰력이 있고, 눈치가 빠르다. 혼자만의 시간이 필요하며, 외로움이 깊어지면 급격히 무너진다.",
       psychological: "보이지 않는 세게, 철학·예술·종교 등에 관심이 많음. 기본적으로 생각이 많고, 사람·일·관계에 쉽게 정을 붙이고 쉽게 못 놓음. 남의 속을 잘 읽지만 티 안내는 편임.",
       emotionPattern: "시작은 잘 하는데, 끝에서 지침. 목표가 커서 스스로에게 실망을 잘함. 감정을 쌓아두더 터지거나, 스스로가 더 인내함. 주변에서 도움을 많이 받음. 자신의 실패에 남탓을 하고 싶어하기도 함.",
     },
@@ -74,18 +88,32 @@ export const ILJU_DATA: Record<string, IljuData> = {
         { title: "전문가 및 연구", description: "깊이 있는 통찰이 필요한 일", iconType: "research" },
       ],
     },
-    spouseDetail: {
+    loveDetail: {
       male: {
-        traits: "책임감 있고 추진력이 강한 배우자를 선호합니다.",
-        points: "대화와 타협의 균형을 잡는 것이 중요합니다.",
+        style: "총명하며, 이성에게 인기가 많으나 아닌 척 하며, 호기심이 많다. 엄마와 같이 간섭하는 엄마나 누이 등이 있을 수 있고, 결혼이 늦어진다. ",
+        needs: "현실적이고 정서적 독립이 있는 이성을 원하며, 자신만의 기준에 의해 연애를 진행하길 원한다. 지적 교류를 좋아하며 정서적으로 안정된 사람, 배울점이 있는 사람을 좋아한다. ",
       },
       female: {
-        traits: "신뢰와 존중을 바탕으로 함께 성장하는 관계를 원합니다.",
-        points: "강한 의지 표현을 부드럽게 전달하면 안정적입니다.",
+        style: "단정하며 순수하고 밝은 외모와 총명함이 매력으로 이성에게 있기가 있으나, 의도치 않는 구설에 얽힐 수 있다. 평판이 좋은 만큼, 알게 모르게 좋아하는 남성들이 숨어있다.",
+        needs: "배울점이 있고, 따뜻하고, 현실감각 있는 사람과 감정 표현이 분명한 사람과 연애를 진행하길 원한다. 나를 해석하는 사람보다 들어주는 사람을 좋아하며, 나의 기준에 어긋나면 조용히 점점 멀어진다.",
+      },
+    },
+    spouseDetail: {
+      male: {
+        traits: "총명한 배우자, 내조의 여왕",
+        points: "배우자 영역의 안정감",
+        traitsLabel: "정서적으로 안정되고 현실 감각이 좋은 배우자이며, 잔소리는 많지만 나에게 최선을 다하는 배우자.",
+        pointsLabel: "나를 최우선으로 생각하지만, 배우자 영역이 약하면, 참견을 일삼는다.",
+      },
+      female: {
+        traits: "안정형 배우자, 자상한 배우자",
+        points: "배우자 영역의 안정감",
+        traitsLabel: "나를 도와주고 편안하게 만들어주며, 배울점이 많은 배우자.",
+        pointsLabel: "남편덕으로 의식주를 해결할 수 있으나, 배우자 영역이 약하면, 사사건건 간섭과 의심을 한다.",
       },
     },
     overallSummary:
-      "리더형 기질이 강해 성취력이 높으나, 팀워크와 소통을 의식하면 더 큰 성장을 이룹니다.",
+      "생각이 깊은 만큼, 마음 관리가 중요하고, 혼자서 버티는 힘이 강한 만큼,“따뜻한 환경과과 감정 배출구”가 삶의 질을 결정하는 타입.“머리 좋은데 마음은 잘 얼어붙는 사람”이라,그래서 더 따뜻한 선택이 필요하다.",
     characteristic:
       "뛰어난 리더십과 추진력을 갖춘 성격으로, 목표를 향해 끈기 있게 나아가는 편입니다. 적극적이고 진취적인 성향을 지니고 있어 새로운 도전을 즐기며, 변화를 두려워하지 않습니다. 일단 결정하면 끝까지 포기하지 않는 강한 의지력을 갖추고 있어, 주변 사람들에게 신뢰받는 리더 역할을 자연스럽게 맡게 됩니다. 하지만 때로는 너무 앞서나가려는 경향이 있어, 주변 상황을 고려하지 못할 수 있으니 팀워크와 소통을 중시하는 것이 중요합니다.",
     career:

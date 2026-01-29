@@ -60,6 +60,9 @@ export async function getIljuAnalysis(
       points: "",
     },
   };
+
+  // 연애 성향: 없으면 spouse/characteristic 등을 기반으로 이후 확장 가능
+  const loveDetail = raw.loveDetail;
   const overallSummary =
     raw.overallSummary ||
     [raw.wealth, raw.health].filter(Boolean).join(" ");
@@ -76,6 +79,7 @@ export async function getIljuAnalysis(
     traits,
     careerDetail,
     spouseDetail,
+    loveDetail,
     overallSummary,
     characteristic,
     career: raw.career,

@@ -11,6 +11,7 @@ import SinnyeonUnsePage from "./pages/SinnyeonUnsePage";
 import TodayFortunePage from "./pages/TodayFortunePage";
 import MansePage from "./pages/MansePage";
 import IljuPage from "./pages/IljuPage";
+import CareerPage from "./pages/CareerPage";
 import { useUiStore } from "./store/uiStore";
 
 const HomePageContent = ({
@@ -46,6 +47,9 @@ export const CurrentPageContent = ({
   }
   if (currentPage === "ilju") {
     return <IljuPage />;
+  }
+  if (currentPage === "career") {
+    return <CareerPage />;
   }
   return <HomePageContent isExpertMode={isExpertMode} onNavigate={onNavigate} />;
 };

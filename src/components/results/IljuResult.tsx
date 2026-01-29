@@ -27,10 +27,24 @@ interface IljuResultData {
       male: {
         traits: string;
         points: string;
+        traitsLabel?: string;
+        pointsLabel?: string;
       };
       female: {
         traits: string;
         points: string;
+        traitsLabel?: string;
+        pointsLabel?: string;
+      };
+    };
+    loveDetail?: {
+      male: {
+        style: string;
+        needs: string;
+      };
+      female: {
+        style: string;
+        needs: string;
       };
     };
     overallSummary?: string;
@@ -53,10 +67,12 @@ interface IljuResultProps {
 
 export const IljuResult: React.FC<IljuResultProps> = ({ iljuData, onReset }) => {
   const { iljuData: data, dayGan, dayJi, dayGanji, gender } = iljuData;
+  const spouseKey = gender === "W" ? "female" : "male";
+  const spouseDetail = data.spouseDetail?.[spouseKey];
+  const loveDetail = data.loveDetail?.[spouseKey];
   const [activeCareerTab, setActiveCareerTab] = useState<"features" | "direction" | "recommendedJobs">("features");
 
-  const spouseData =
-    gender === "W" ? data.spouseDetail?.female : data.spouseDetail?.male;
+  const spouseData = spouseDetail;
   const hanjaToOhaeng: Record<string, string> = {
     甲: "木",
     乙: "木",
@@ -299,46 +315,77 @@ export const IljuResult: React.FC<IljuResultProps> = ({ iljuData, onReset }) => 
             </div>
           </div>
 
-          {/* 배우자 - 리뉴얼 디자인 */}
-          <div className="rounded-[2.5rem] border border-[#E6D9CB] bg-white shadow-[0_10px_24px_rgba(0,0,0,0.05)] overflow-hidden">
-            {/* 상단 이미지 영역 (임시) */}
-            <div className="h-64 sm:h-80 overflow-hidden">
-              <img
-                src="https://images.unsplash.com/photo-1516733725897-1aa73b87c8e8?auto=format&fit=crop&q=80&w=800"
-                alt="Love and Life Vibe"
-                className="w-full h-full object-cover"
-              />
+          {/* 연애 성향 박스 */}
+          <div className="rounded-3xl border border-[#E6D9CB] bg-white p-6 shadow-[0_10px_24px_rgba(0,0,0,0.05)]">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-[#E29BA8]">💗</span>
+              <h3 className="text-lg font-semibold text-[#4b433a]">연애</h3>
             </div>
+            <div className="mt-2 space-y-4 text-sm sm:text-base text-[#5E564C] leading-relaxed">
+              <div className="rounded-2xl border border-[#F3D6DC] bg-[#FFF7F9] px-4 py-3">
+                <p className="text-xs font-semibold text-[#C27A8A] mb-1">나의 연애</p>
+                <p>{loveDetail?.style || "-"}</p>
+              </div>
+              <div className="rounded-2xl border border-[#F3D6DC] bg-[#FFF7F9] px-4 py-3">
+                <p className="text-xs font-semibold text-[#C27A8A] mb-1">이런 사람을 원해요</p>
+                <p>{loveDetail?.needs || "-"}</p>
+              </div>
+            </div>
+          </div>
 
-            {/* 하단 콘텐츠 영역 */}
-            <div className="p-8 space-y-8">
-              {/* 성향 정보 */}
-              <div className="flex items-center gap-5">
-                <div className="w-14 h-14 rounded-full bg-[#F7F3ED] flex items-center justify-center flex-shrink-0">
-                  <svg className="w-6 h-6 text-[#8FA197]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </div>
-                <div className="space-y-1">
-                  <h4 className="text-lg font-bold text-[#4b433a] leading-tight">
-                    {spouseData?.traits || data.spouse || "-"}
-                  </h4>
-                  <p className="text-[#9A9084] text-sm font-medium">배우자의 핵심 성향</p>
-                </div>
+          {/* 배우자 - 리뉴얼 디자인 (이미지 | 내용 가로 배치) */}
+          <div className="rounded-[2.5rem] border border-[#E6D9CB] bg-white shadow-[0_10px_24px_rgba(0,0,0,0.05)] overflow-hidden">
+            {/* 제목 영역 */}
+            <div className="px-8 pt-8 pb-4">
+              <div className="flex items-center gap-2">
+                <span className="text-[#E29BA8]">💕</span>
+                <h3 className="text-lg font-semibold text-[#4b433a]">미래의 배우자</h3>
+              </div>
+            </div>
+            <div className="flex flex-col md:flex-row items-stretch">
+              {/* 이미지 영역 */}
+              <div className="md:w-2/5 h-48 md:h-auto overflow-hidden">
+                <img
+                  src={gender === "M" ? "/FSW.png" : "/FSM.png"}
+                  alt="미래의 배우자"
+                  className="w-full h-full object-cover"
+                />
               </div>
 
-              {/* 포인트 정보 */}
-              <div className="flex items-center gap-5">
-                <div className="w-14 h-14 rounded-full bg-[#F7F3ED] flex items-center justify-center flex-shrink-0">
-                  <svg className="w-6 h-6 text-[#8FA197]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <path d="M12 3v1m0 16v1m9-9h-1M4 11H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m11.314 11.314l.707.707M12 8a4 4 0 100 8 4 4 0 000-8z" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
+              {/* 콘텐츠 영역 */}
+              <div className="md:w-3/5 p-8 space-y-8 flex flex-col justify-center">
+                {/* 성향 정보 */}
+                <div className="flex items-center gap-5">
+                  <div className="w-14 h-14 rounded-full bg-[#F7F3ED] flex items-center justify-center flex-shrink-0">
+                    <svg className="w-6 h-6 text-[#8FA197]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="text-lg font-bold text-[#4b433a] leading-tight">
+                      {spouseData?.traits || data.spouse || "-"}
+                    </h4>
+                    <p className="text-[#9A9084] text-sm font-medium">
+                      {spouseData?.traitsLabel || "배우자의 핵심 성향"}
+                    </p>
+                  </div>
                 </div>
-                <div className="space-y-1">
-                  <h4 className="text-lg font-bold text-[#4b433a] leading-tight">
-                    {spouseData?.points || "-"}
-                  </h4>
-                  <p className="text-[#9A9084] text-sm font-medium">관계 안정을 위한 포인트</p>
+
+                {/* 포인트 정보 */}
+                <div className="flex items-center gap-5">
+                  <div className="w-14 h-14 rounded-full bg-[#F7F3ED] flex items-center justify-center flex-shrink-0">
+                    <svg className="w-6 h-6 text-[#8FA197]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <path d="M12 3v1m0 16v1m9-9h-1M4 11H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m11.314 11.314l.707.707M12 8a4 4 0 100 8 4 4 0 000-8z" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="text-lg font-bold text-[#4b433a] leading-tight">
+                      {spouseData?.points || "-"}
+                    </h4>
+                    <p className="text-[#9A9084] text-sm font-medium">
+                      {spouseData?.pointsLabel || "관계 안정을 위한 포인트"}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -348,9 +395,8 @@ export const IljuResult: React.FC<IljuResultProps> = ({ iljuData, onReset }) => 
           <div className="rounded-3xl border border-[#E6D9CB] bg-white p-6 shadow-[0_10px_24px_rgba(0,0,0,0.05)]">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold text-[#4b433a]">전체 요약</h3>
-              <span className="text-sm text-[#9A9084]">핵심</span>
             </div>
-            <p className="mt-4 text-[#5E564C] leading-relaxed text-sm sm:text-base">
+            <p className="mt-4 text-[#5E564C] leading-relaxed text-sm sm:text-base whitespace-pre-line">
               {data.overallSummary || [data.wealth, data.health].filter(Boolean).join(" ") || "-"}
             </p>
           </div>

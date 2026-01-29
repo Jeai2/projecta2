@@ -38,6 +38,7 @@ const IljuPage = () => {
       title="일주론"
       description="일주로 보는 나의 성격과 운명"
       contentWrapperClassName="p-0 bg-transparent"
+      hideHeader
     >
       {iljuResult ? (
         <IljuResult iljuData={iljuResult} onReset={handleReset} />

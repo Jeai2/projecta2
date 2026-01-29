@@ -9,6 +9,7 @@ interface FortunePageLayoutProps {
   description: React.ReactNode; // 설명 부분에는 줄바꿈(<br/>) 등이 들어갈 수 있도록 ReactNode 타입을 사용
   children: React.ReactNode; // 정보 입력 폼 등, 이 레이아웃이 감쌀 내용
   contentWrapperClassName?: string;
+  hideHeader?: boolean; // 일부 페이지(예: 일주론)에서 상단 타이틀/설명을 숨기기 위한 옵션
 }
 
 /**
@@ -21,6 +22,7 @@ export const FortunePageLayout: React.FC<FortunePageLayoutProps> = ({
   description,
   children,
   contentWrapperClassName = "bg-background-sub p-6 sm:p-8 rounded-2xl",
+  hideHeader = false,
 }) => {
   return (
     <div className="w-full max-w-4xl mx-auto px-4 py-8 sm:py-12">
@@ -35,13 +37,15 @@ export const FortunePageLayout: React.FC<FortunePageLayoutProps> = ({
         </div>
       )}
 
-      {/* 2. 중단: 설명 */}
-      <div className="text-center mb-10">
-        <h1 className="text-h1-xl sm:text-4xl font-bold text-text-light">
-          {title}
-        </h1>
-        <p className="text-body-md text-text-muted mt-3">{description}</p>
-      </div>
+      {/* 2. 중단: 설명 (옵션에 따라 숨김 처리) */}
+      {!hideHeader && (
+        <div className="text-center mb-10">
+          <h1 className="text-h1-xl sm:text-4xl font-bold text-text-light">
+            {title}
+          </h1>
+          <p className="text-body-md text-text-muted mt-3">{description}</p>
+        </div>
+      )}
 
       {/* 3. 말단: 정보 입력 폼 등 메인 콘텐츠 */}
       <div className={contentWrapperClassName}>{children}</div>

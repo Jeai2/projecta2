@@ -481,3 +481,119 @@ export const getIljuFortune = async (
     });
   }
 };
+
+// 진로 직업 찾기 API
+export const getCareerAnalysis = async (
+  req: Request<
+    ParamsDictionary,
+    { error: false; data: any } | ErrorResponseBody,
+    { name?: string; birthDate: string; gender: "M" | "W"; calendarType: "solar" | "lunar"; birthTime?: string }
+  >,
+  res: Response<{ error: false; data: any } | ErrorResponseBody>
+) => {
+  try {
+    const { name, birthDate, gender, calendarType, birthTime } = req.body;
+
+    if (!birthDate || !gender || !calendarType) {
+      return res.status(400).json({
+        error: true,
+        message: "필수 정보가 누락되었습니다.",
+      });
+    }
+
+    const birthDateObject = new Date(`${birthDate}T${birthTime || "12:00"}:00`);
+    if (isNaN(birthDateObject.getTime())) {
+      return res.status(400).json({
+        error: true,
+        message: "잘못된 날짜/시간 형식입니다.",
+      });
+    }
+
+    // 사주 계산
+    const { getSajuDetails } = await import("../services/saju.service");
+    const sajuResult = await getSajuDetails(birthDateObject, gender);
+
+    // 진로 에너지 타입 결정
+    const { determineCareerEnergy } = await import("../services/career-energy.service");
+    const energyResult = determineCareerEnergy(
+      birthDateObject,
+      sajuResult.sajuData.pillars.month.ji,
+      {
+        year: sajuResult.sajuData.pillars.year.gan,
+        month: sajuResult.sajuData.pillars.month.gan,
+        day: sajuResult.sajuData.pillars.day.gan,
+        hour: sajuResult.sajuData.pillars.hour.gan,
+      }
+    );
+
+    // 임시 더미 데이터 (추후 실제 데이터로 교체)
+    const careerResult = {
+      name: name || "1",
+      energyType: energyResult.energyData.modifier,
+      energyDescription: energyResult.energyData.description,
+      keywords: energyResult.energyData.keywords,
+      energyOhaeng: energyResult.energyData.ohaeng,
+      imageUrl: energyResult.energyData.imageUrl, // 이미지 URL 포함
+      jobCategories: [
+        {
+          title: "교육 및 기획",
+          professions: "선생님, 강사, 기획자, 컨설턴트",
+          icon: "education",
+        },
+        {
+          title: "창작 및 예술",
+          professions: "디자이너, 작가, 콘텐츠 크리에이터",
+          icon: "art",
+        },
+        {
+          title: "생태 및 스타트업",
+          professions: "조경사, 생명공학, 스타트업 창업",
+          icon: "startup",
+        },
+        {
+          title: "전문직",
+          professions: "변호사, 출판인, 언론인",
+          icon: "professional",
+        },
+      ],
+      successTip: "새로운 시작을 두려워하지 마세요. 당신의 창의적인 발상이 세상을 바꾸는 씨앗이 될 것입니다.",
+      jobSatisfaction: 88,
+      suitabilityData: [
+        {
+          category: "창의성/기획",
+          characteristics: "아이디어 뱅크, 미래 지향",
+          suitability: 95,
+        },
+        {
+          category: "조율/관리",
+          characteristics: "중개인, 안정적 토대",
+          suitability: 40,
+        },
+        {
+          category: "기술/전문성",
+          characteristics: "논리적 판단, 결단력",
+          suitability: 65,
+        },
+      ],
+      // 디버깅 정보 (선택적)
+      debug: {
+        source: energyResult.source,
+        saryeongGan: energyResult.saryeongGan,
+        dangnyeongGan: energyResult.dangnyeongGan,
+        saryeongInPillars: energyResult.saryeongInPillars,
+        dangnyeongInPillars: energyResult.dangnyeongInPillars,
+      },
+    };
+
+    return res.status(200).json({
+      error: false,
+      data: careerResult,
+    });
+  } catch (error) {
+    console.error("[API Error] getCareerAnalysis Controller:", error);
+    return res.status(500).json({
+      error: true,
+      message: error instanceof Error ? error.message : "서버 내부 오류",
+    });
+  }
+};
