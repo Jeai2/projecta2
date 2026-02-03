@@ -6,8 +6,39 @@ import { FortunePageLayout } from "@/components/layout/FortunePageLayout";
 import { CareerForm } from "@/components/forms/CareerForm";
 import { CareerResult } from "@/components/results/CareerResult";
 
+interface OhaengChartData {
+  data: {
+    label: string;
+    value: number;
+    count: number;
+    ohaeng: "木" | "火" | "土" | "金" | "水";
+  }[];
+  total: number;
+  breakdown: {
+    gan: {
+      木: number;
+      火: number;
+      土: number;
+      金: number;
+      水: number;
+      total: number;
+    };
+    ji: {
+      木: number;
+      火: number;
+      土: number;
+      金: number;
+      水: number;
+      total: number;
+    };
+  };
+}
+
 interface CareerResultData {
   name: string;
+  gender?: "M" | "W";
+  jobLegacyMale?: { label: string; careerTitle: string; careerDescription: string } | null;
+  jobLegacyFemale?: { label: string; careerTitle: string; careerDescription: string } | null;
   energyType: string;
   energyDescription: string;
   keywords: string[];
@@ -24,10 +55,13 @@ interface CareerResultData {
     characteristics: string;
     suitability: number;
   }[];
+  ohaengChart?: OhaengChartData | null;
 }
 
 const CareerPage = () => {
-  const [careerResult, setCareerResult] = useState<CareerResultData | null>(null);
+  const [careerResult, setCareerResult] = useState<CareerResultData | null>(
+    null,
+  );
 
   const handleResult = (result: CareerResultData) => {
     setCareerResult(result);
@@ -40,7 +74,7 @@ const CareerPage = () => {
   return (
     <FortunePageLayout
       title="내 진로 직업 찾기"
-      description="나에게 맞는 진로와 직업 방향"
+      description="21세기 맞춤 진로 방향성"
       contentWrapperClassName="p-0 bg-transparent"
     >
       {careerResult ? (

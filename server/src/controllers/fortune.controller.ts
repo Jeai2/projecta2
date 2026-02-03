@@ -56,7 +56,7 @@ export const getTodaysFortune = async (
     SuccessResponseBody | ErrorResponseBody,
     FortuneRequestBody
   >,
-  res: Response<SuccessResponseBody | ErrorResponseBody>
+  res: Response<SuccessResponseBody | ErrorResponseBody>,
 ) => {
   console.log("🚀 getTodaysFortune Controller 호출됨!");
   try {
@@ -89,7 +89,7 @@ export const getTodaysFortune = async (
 
     // ✅ 3. 계산된 사주 해석에서 '화의론 프롬프트'를 추출하여 AI 서비스를 호출합니다.
     const aiResponse = await getAiGeneratedResponse(
-      sajuResult.interpretation.hwaEuiPrompt
+      sajuResult.interpretation.hwaEuiPrompt,
     );
 
     // ✅ 4. 최종 응답 객체에 AI 결과(`aiResponse`)를 포함시킵니다.
@@ -125,7 +125,7 @@ export const getManseFortune = async (
     SuccessResponseBody | ErrorResponseBody,
     FortuneRequestBody
   >,
-  res: Response<SuccessResponseBody | ErrorResponseBody>
+  res: Response<SuccessResponseBody | ErrorResponseBody>,
 ) => {
   console.log("🚀 getManseFortune Controller 호출됨!");
   try {
@@ -199,7 +199,7 @@ export const getManseFortune = async (
     // 디버깅: 실제 응답 데이터 확인
     console.log(
       "🔍 백엔드 응답 데이터:",
-      JSON.stringify(finalResponse, null, 2)
+      JSON.stringify(finalResponse, null, 2),
     );
 
     return res.status(200).json(finalResponse);
@@ -221,7 +221,7 @@ export const getSewoonForDaewoonAPI = async (
     unknown,
     { daewoonStartYear: string; dayGan: string }
   >,
-  res: Response
+  res: Response,
 ) => {
   try {
     const { daewoonStartYear, dayGan } = req.query;
@@ -268,7 +268,7 @@ export const getWoolwoonForYearAPI = async (
     unknown,
     { year: string; dayGan: string }
   >,
-  res: Response
+  res: Response,
 ) => {
   try {
     const { year, dayGan } = req.query;
@@ -315,7 +315,7 @@ export const getDaewoonRelationshipsAPI = async (
     unknown,
     { daewoonGanji: string; sajuPillars: string }
   >,
-  res: Response
+  res: Response,
 ) => {
   try {
     const { daewoonGanji, sajuPillars } = req.query;
@@ -357,7 +357,7 @@ export const getSewoonRelationshipsAPI = async (
     unknown,
     { sewoonGanji: string; daewoonGanji: string; sajuPillars: string }
   >,
-  res: Response
+  res: Response,
 ) => {
   try {
     const { sewoonGanji, daewoonGanji, sajuPillars } = req.query;
@@ -377,7 +377,7 @@ export const getSewoonRelationshipsAPI = async (
       pillars,
       daewoonGanji,
       sewoonGanji,
-      "M" // gender는 기본값으로 M 사용
+      "M", // gender는 기본값으로 M 사용
     );
 
     return res.status(200).json({
@@ -399,7 +399,7 @@ export const getSewoonRelationshipsAPI = async (
 // ✅ 오늘의 운세 API 엔드포인트 (일진 기반)
 export const getTodayFortuneAPI = async (
   req: Request<ParamsDictionary, any, FortuneRequestBody>,
-  res: Response
+  res: Response,
 ) => {
   try {
     const { name, birthDate, gender, calendarType, birthTime, birthPlace } =
@@ -444,10 +444,14 @@ export const getTodayFortuneAPI = async (
 export const getIljuFortune = async (
   req: Request<
     ParamsDictionary,
-    { error: false; data: Awaited<ReturnType<typeof getIljuAnalysis>> } | ErrorResponseBody,
+    | { error: false; data: Awaited<ReturnType<typeof getIljuAnalysis>> }
+    | ErrorResponseBody,
     { birthDate: string; gender: "M" | "W"; calendarType: "solar" | "lunar" }
   >,
-  res: Response<{ error: false; data: Awaited<ReturnType<typeof getIljuAnalysis>> } | ErrorResponseBody>
+  res: Response<
+    | { error: false; data: Awaited<ReturnType<typeof getIljuAnalysis>> }
+    | ErrorResponseBody
+  >,
 ) => {
   try {
     const { birthDate, gender, calendarType } = req.body;
@@ -467,7 +471,11 @@ export const getIljuFortune = async (
       });
     }
 
-    const iljuResult = await getIljuAnalysis(birthDateObject, gender, calendarType);
+    const iljuResult = await getIljuAnalysis(
+      birthDateObject,
+      gender,
+      calendarType,
+    );
 
     return res.status(200).json({
       error: false,
@@ -482,14 +490,198 @@ export const getIljuFortune = async (
   }
 };
 
+// 오행 그래프 데이터 API
+export const getOhaengChart = async (
+  req: Request<
+    ParamsDictionary,
+    { error: false; data: any } | ErrorResponseBody,
+    {
+      birthDate: string;
+      gender: "M" | "W";
+      calendarType: "solar" | "lunar";
+      birthTime?: string;
+      includeJijanggan?: boolean;
+    }
+  >,
+  res: Response<{ error: false; data: any } | ErrorResponseBody>,
+) => {
+  try {
+    const { birthDate, gender, calendarType, birthTime, includeJijanggan } =
+      req.body;
+
+    if (!birthDate || !gender || !calendarType) {
+      return res.status(400).json({
+        error: true,
+        message: "필수 정보가 누락되었습니다.",
+      });
+    }
+
+    const birthDateObject = new Date(`${birthDate}T${birthTime || "12:00"}:00`);
+    if (isNaN(birthDateObject.getTime())) {
+      return res.status(400).json({
+        error: true,
+        message: "잘못된 날짜/시간 형식입니다.",
+      });
+    }
+
+    // 사주 계산
+    const { getSajuDetails } = await import("../services/saju.service");
+    const sajuResult = await getSajuDetails(birthDateObject, gender);
+
+    // 오행 그래프 데이터 계산
+    const { calculateOhaengChart } =
+      await import("../services/ohaeng-chart.service");
+    const chartData = calculateOhaengChart(sajuResult.sajuData, {
+      includeJijanggan: includeJijanggan ?? false,
+      normalization: "percentage",
+    });
+
+    // 일간 (선버스트 색상 + 삼합/방합 보너스용)
+    const dayGan =
+      sajuResult.sajuData.pillars?.day?.gan ?? null;
+
+    // 일간 제외 7위치 십신 개수 + 삼합(반합)/방합(3개 만족) 왕지 십신 보너스
+    const { getSipsinCountWithSamhapBanghap, getSipsinCountExcludingDayGan } =
+      await import("../services/sipsin.service");
+    const pillars = sajuResult.sajuData.pillars;
+    const sipsinCount =
+      dayGan != null
+        ? getSipsinCountWithSamhapBanghap(
+            sajuResult.sajuData.sipsin,
+            {
+              year: { ji: pillars.year.ji ?? null },
+              month: { ji: pillars.month.ji ?? null },
+              day: { ji: pillars.day.ji ?? null },
+              hour: { ji: pillars.hour.ji ?? null },
+            },
+            dayGan
+          )
+        : getSipsinCountExcludingDayGan(sajuResult.sajuData.sipsin);
+
+    // 유저가 보유한 신살 목록 + 직무 능력 텍스트 (커리어 페이지 배지용)
+    const { SINSAL_INTERPRETATION } = await import(
+      "../data/interpretation/sinsal"
+    );
+    // 12신살·rules 등에서 쓰는 짧은 이름 → interpretation 키(살 접미사 등) 정규화 → 동일 신살 중복 제거
+    const SINSAL_NAME_TO_INTERPRETATION_KEY: Record<string, string> = {
+      화개: "화개살",
+      반안: "반안살",
+      역마: "역마살",
+      망신: "망신살",
+      장성: "장성살",
+      육해: "육해살",
+    };
+    const toInterpretationKey = (name: string) =>
+      SINSAL_NAME_TO_INTERPRETATION_KEY[name] ?? name;
+    const toCapabilities = (names: Set<string>) =>
+      Array.from(names).map((interpretationKey) => {
+        const def = SINSAL_INTERPRETATION[interpretationKey];
+        return {
+          name: interpretationKey,
+          modalDisplayName: def?.modalDisplayName ?? undefined,
+          careerTitle: def?.careerTitle ?? interpretationKey,
+          careerDescription: def?.careerDescription ?? "",
+          careerImageUrl: def?.careerImageUrl ?? undefined,
+          potentialAbility:
+            def?.potentialAbility ?? def?.careerTitle ?? interpretationKey,
+          expertOpinion:
+            def?.expertOpinion ?? def?.careerDescription ?? "",
+          luckyAction:
+            def?.luckyAction ?? "이 신살의 특성을 활용한 행동을 추천합니다.",
+        };
+      });
+
+    // 12신살: 년지/월지(및 일지) 기준 — 해당 지지의 삼합으로 맵을 정하고, 년·월·일·시 네 지지를 각각 조회한 결과 (중복 1개만)
+    const { SINSAL_12_MAP, getSamhapGroup } = await import("../data/sinsal");
+    const yearJi = pillars.year?.ji ?? "";
+    const monthJi = pillars.month?.ji ?? "";
+    const dayJi = pillars.day?.ji ?? "";
+    const hourJi = pillars.hour?.ji ?? "";
+    const allFourJi = [yearJi, monthJi, dayJi, hourJi] as const;
+
+    const add12SinsalByBaseJi = (baseJi: string, keys: Set<string>) => {
+      const group = getSamhapGroup(baseJi);
+      if (!group) return;
+      const ruleSet = SINSAL_12_MAP[group];
+      for (const ji of allFourJi) {
+        const name = ruleSet?.[ji];
+        if (name) keys.add(toInterpretationKey(name));
+      }
+    };
+
+    // 40세까지: 년지 기준 4개 + 월지 기준 4개 + pillar(년·월) 기타 신살, 동일 신살 1개만
+    const sinsalKeysUnder40 = new Set<string>();
+    add12SinsalByBaseJi(yearJi, sinsalKeysUnder40);
+    add12SinsalByBaseJi(monthJi, sinsalKeysUnder40);
+    for (const key of ["year", "month"] as const) {
+      const hits = pillars[key]?.sinsal ?? [];
+      for (const hit of hits) {
+        if (hit?.name) sinsalKeysUnder40.add(toInterpretationKey(hit.name));
+      }
+    }
+
+    // 40세 이후: 년지·월지·일지 기준 각 4개 + pillar(년·월·일) 기타 신살, 동일 신살 1개만
+    const sinsalKeysOver40 = new Set<string>();
+    add12SinsalByBaseJi(yearJi, sinsalKeysOver40);
+    add12SinsalByBaseJi(monthJi, sinsalKeysOver40);
+    add12SinsalByBaseJi(dayJi, sinsalKeysOver40);
+    for (const key of ["year", "month", "day"] as const) {
+      const hits = pillars[key]?.sinsal ?? [];
+      for (const hit of hits) {
+        if (hit?.name) sinsalKeysOver40.add(toInterpretationKey(hit.name));
+      }
+    }
+
+    const sinsalCapabilitiesUnder40 = toCapabilities(sinsalKeysUnder40);
+    const sinsalCapabilitiesOver40 = toCapabilities(sinsalKeysOver40);
+
+    // 만 나이 계산 (오늘 기준): 40세 미만이면 년·월 기준만, 40세 이상이면 년·월·일 기준 표시
+    const today = new Date();
+    let currentAge = today.getFullYear() - birthDateObject.getFullYear();
+    if (
+      today.getMonth() < birthDateObject.getMonth() ||
+      (today.getMonth() === birthDateObject.getMonth() &&
+        today.getDate() < birthDateObject.getDate())
+    ) {
+      currentAge -= 1;
+    }
+    const isOver40 = currentAge >= 40;
+
+    return res.status(200).json({
+      error: false,
+      data: {
+        ...chartData,
+        sipsinCount,
+        dayGan,
+        currentAge,
+        isOver40,
+        sinsalCapabilitiesUnder40,
+        sinsalCapabilitiesOver40,
+      },
+    });
+  } catch (error) {
+    console.error("[API Error] getOhaengChart Controller:", error);
+    return res.status(500).json({
+      error: true,
+      message: error instanceof Error ? error.message : "서버 내부 오류",
+    });
+  }
+};
+
 // 진로 직업 찾기 API
 export const getCareerAnalysis = async (
   req: Request<
     ParamsDictionary,
     { error: false; data: any } | ErrorResponseBody,
-    { name?: string; birthDate: string; gender: "M" | "W"; calendarType: "solar" | "lunar"; birthTime?: string }
+    {
+      name?: string;
+      birthDate: string;
+      gender: "M" | "W";
+      calendarType: "solar" | "lunar";
+      birthTime?: string;
+    }
   >,
-  res: Response<{ error: false; data: any } | ErrorResponseBody>
+  res: Response<{ error: false; data: any } | ErrorResponseBody>,
 ) => {
   try {
     const { name, birthDate, gender, calendarType, birthTime } = req.body;
@@ -513,8 +705,47 @@ export const getCareerAnalysis = async (
     const { getSajuDetails } = await import("../services/saju.service");
     const sajuResult = await getSajuDetails(birthDateObject, gender);
 
+    // 당사주 유산(직군): 년지 + 음력 생월(1–12) + 성별 → 남/여 각각 직군 매칭
+    // 음력 생월: 음력 입력 시 생일 월 사용, 양력 입력 시 양→음 변환 후 월 사용
+    let lunarMonth: number;
+    if (calendarType === "lunar") {
+      lunarMonth = birthDateObject.getMonth() + 1; // JS month 0–11 → 1–12
+    } else {
+      try {
+        const KoreanLunarCalendar = (
+          await import("korean-lunar-calendar")
+        ).default;
+        const calendar = new KoreanLunarCalendar();
+        calendar.setSolarDate(
+          birthDateObject.getFullYear(),
+          birthDateObject.getMonth() + 1,
+          birthDateObject.getDate()
+        );
+        const lunar = calendar.getLunarCalendar();
+        lunarMonth = lunar?.month ?? birthDateObject.getMonth() + 1;
+      } catch {
+        const { jiToMonthNumber } = await import("../data/job-map.data");
+        lunarMonth = jiToMonthNumber(
+          sajuResult.sajuData.pillars.month.ji as Parameters<
+            typeof jiToMonthNumber
+          >[0]
+        );
+      }
+    }
+
+    const { getJobLegacyByGender } = await import(
+      "../services/job-legacy.service"
+    );
+    const pillars = sajuResult.sajuData.pillars;
+    const jobLegacy = getJobLegacyByGender(
+      pillars.year.gan,
+      pillars.year.ji,
+      lunarMonth
+    );
+
     // 진로 에너지 타입 결정
-    const { determineCareerEnergy } = await import("../services/career-energy.service");
+    const { determineCareerEnergy } =
+      await import("../services/career-energy.service");
     const energyResult = determineCareerEnergy(
       birthDateObject,
       sajuResult.sajuData.pillars.month.ji,
@@ -523,12 +754,15 @@ export const getCareerAnalysis = async (
         month: sajuResult.sajuData.pillars.month.gan,
         day: sajuResult.sajuData.pillars.day.gan,
         hour: sajuResult.sajuData.pillars.hour.gan,
-      }
+      },
     );
 
     // 임시 더미 데이터 (추후 실제 데이터로 교체)
     const careerResult = {
       name: name || "1",
+      gender,
+      jobLegacyMale: jobLegacy.male,
+      jobLegacyFemale: jobLegacy.female,
       energyType: energyResult.energyData.modifier,
       energyDescription: energyResult.energyData.description,
       keywords: energyResult.energyData.keywords,
@@ -556,7 +790,8 @@ export const getCareerAnalysis = async (
           icon: "professional",
         },
       ],
-      successTip: "새로운 시작을 두려워하지 마세요. 당신의 창의적인 발상이 세상을 바꾸는 씨앗이 될 것입니다.",
+      successTip:
+        "새로운 시작을 두려워하지 마세요. 당신의 창의적인 발상이 세상을 바꾸는 씨앗이 될 것입니다.",
       jobSatisfaction: 88,
       suitabilityData: [
         {

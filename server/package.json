@@ -15,7 +15,8 @@
     "@google/generative-ai": "^0.24.1",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
-    "express": "^4.19.2"
+    "express": "^4.19.2",
+    "korean-lunar-calendar": "^0.3.6"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",

@@ -3,7 +3,7 @@
 export const SINSAL_12_MAP: { [key: string]: { [key: string]: string } } = {
   寅午戌: {
     寅: "지살",
-    卯: "연살",
+    卯: "년살",
     辰: "월살",
     巳: "망신",
     午: "장성",
@@ -17,7 +17,7 @@ export const SINSAL_12_MAP: { [key: string]: { [key: string]: string } } = {
   },
   巳酉丑: {
     巳: "지살",
-    午: "연살",
+    午: "년살",
     未: "월살",
     申: "망신",
     酉: "장성",
@@ -31,7 +31,7 @@ export const SINSAL_12_MAP: { [key: string]: { [key: string]: string } } = {
   },
   申子辰: {
     申: "지살",
-    酉: "연살",
+    酉: "년살",
     戌: "월살",
     亥: "망신",
     子: "장성",
@@ -45,7 +45,7 @@ export const SINSAL_12_MAP: { [key: string]: { [key: string]: string } } = {
   },
   亥卯未: {
     亥: "지살",
-    子: "연살",
+    子: "년살",
     丑: "월살",
     寅: "망신",
     卯: "장성",

@@ -99,3 +99,148 @@ export const getSipsinWithScores = (
     },
   };
 };
+
+/** 십신 이름 10가지 (일간 제외 집계용) */
+const SIPSIN_NAMES = [
+  "비견",
+  "겁재",
+  "식신",
+  "상관",
+  "편재",
+  "정재",
+  "편관",
+  "정관",
+  "편인",
+  "정인",
+] as const;
+
+export type SipsinCount = Record<(typeof SIPSIN_NAMES)[number], number>;
+
+/**
+ * 사주원국에서 일간을 제외한 7개 위치(년간, 년지, 월간, 월지, 일지, 시간, 시지)의
+ * 십신 개수를 집계한다. 선버스트 등 시각화용.
+ */
+export const getSipsinCountExcludingDayGan = (sipsin: {
+  year: { gan: string | null; ji: string | null };
+  month: { gan: string | null; ji: string | null };
+  day: { gan: string | null; ji: string | null };
+  hour: { gan: string | null; ji: string | null };
+}): SipsinCount => {
+  const count: Record<string, number> = {};
+  SIPSIN_NAMES.forEach((name) => {
+    count[name] = 0;
+  });
+
+  const add = (name: string | null) => {
+    if (name && name !== "본원" && name in count) {
+      count[name] += 1;
+    }
+  };
+
+  add(sipsin.year.gan);
+  add(sipsin.year.ji);
+  add(sipsin.month.gan);
+  add(sipsin.month.ji);
+  add(sipsin.day.ji);
+  add(sipsin.hour.gan);
+  add(sipsin.hour.ji);
+
+  return count as SipsinCount;
+};
+
+// 삼합/방합용: 오행 → 왕지(子午卯酉) 매핑 (십신은 왕지 십신을 따름)
+const OHAENG_TO_WANGJI: Record<string, string> = {
+  木: "卯",
+  火: "午",
+  金: "酉",
+  水: "子",
+};
+
+// 삼합 그룹 유니크 (지지 3개, 합화 오행) — 반합(2개 이상) 시 보너스
+const SAMHAP_GROUPS: { jis: [string, string, string]; result: string }[] = [
+  { jis: ["寅", "午", "戌"], result: "火" },
+  { jis: ["亥", "卯", "未"], result: "木" },
+  { jis: ["巳", "酉", "丑"], result: "金" },
+  { jis: ["申", "子", "辰"], result: "水" },
+];
+
+// 방합 그룹 유니크 (지지 3개, 합화 오행) — 3개 모두 있을 때만 보너스
+const BANGHAP_GROUPS: { jis: [string, string, string]; result: string }[] = [
+  { jis: ["寅", "卯", "辰"], result: "木" },
+  { jis: ["巳", "午", "未"], result: "火" },
+  { jis: ["申", "酉", "戌"], result: "金" },
+  { jis: ["亥", "子", "丑"], result: "水" },
+];
+
+/**
+ * 삼합(반합 포함)·방합(3개 만족 시)으로 인한 왕지(子午卯酉) 십신 보너스를 계산한다.
+ * - 삼합: 2개 이상 있으면 반합으로 인정, 해당 합화 오행의 왕지 십신 +1
+ * - 방합: 3개 모두 있을 때만 해당 합화 오행의 왕지 십신 +1
+ */
+export const getSipsinBonusFromSamhapBanghap = (
+  pillars: {
+    year: { ji: string | null };
+    month: { ji: string | null };
+    day: { ji: string | null };
+    hour: { ji: string | null };
+  },
+  dayGan: string
+): SipsinCount => {
+  const count: Record<string, number> = {};
+  SIPSIN_NAMES.forEach((name) => {
+    count[name] = 0;
+  });
+
+  const allJis = [
+    pillars.year.ji,
+    pillars.month.ji,
+    pillars.day.ji,
+    pillars.hour.ji,
+  ].filter((ji): ji is string => ji != null && ji !== "");
+  const jiSet = new Set(allJis);
+
+  const addWangjiSipsin = (ohaeng: string) => {
+    const wangji = OHAENG_TO_WANGJI[ohaeng];
+    if (!wangji) return;
+    const tableE = (SIPSIN_TABLE as { e?: Record<string, Record<string, string>> }).e;
+    const sipsinName = tableE?.[dayGan]?.[wangji];
+    if (sipsinName && sipsinName in count) {
+      count[sipsinName] += 1;
+    }
+  };
+
+  // 삼합: 반합(2개 이상)이면 해당 합화 오행의 왕지 십신 +1
+  for (const { jis, result } of SAMHAP_GROUPS) {
+    const present = jis.filter((ji) => jiSet.has(ji)).length;
+    if (present >= 2) {
+      addWangjiSipsin(result);
+    }
+  }
+
+  // 방합: 3개 모두 있을 때만 해당 합화 오행의 왕지 십신 +1
+  for (const { jis, result } of BANGHAP_GROUPS) {
+    const allPresent = jis.every((ji) => jiSet.has(ji));
+    if (allPresent) {
+      addWangjiSipsin(result);
+    }
+  }
+
+  return count as SipsinCount;
+};
+
+/**
+ * 일간 제외 7위치 십신 개수 + 삼합/방합 보너스를 합산한다.
+ */
+export const getSipsinCountWithSamhapBanghap = (
+  sipsin: Parameters<typeof getSipsinCountExcludingDayGan>[0],
+  pillars: Parameters<typeof getSipsinBonusFromSamhapBanghap>[0],
+  dayGan: string
+): SipsinCount => {
+  const base = getSipsinCountExcludingDayGan(sipsin);
+  const bonus = getSipsinBonusFromSamhapBanghap(pillars, dayGan);
+  const result: Record<string, number> = {};
+  SIPSIN_NAMES.forEach((name) => {
+    result[name] = base[name] + bonus[name];
+  });
+  return result as SipsinCount;
+};

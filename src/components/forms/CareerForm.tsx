@@ -38,7 +38,7 @@ export const CareerForm: React.FC<CareerFormProps> = ({ onResult }) => {
       return `${value.slice(0, 4)} ${value.slice(4, 6)} ${value.slice(6)}`;
     return `${value.slice(0, 4)} ${value.slice(4, 6)} ${value.slice(
       6,
-      8
+      8,
     )} ${value.slice(8)}`;
   };
 
@@ -76,16 +76,31 @@ export const CareerForm: React.FC<CareerFormProps> = ({ onResult }) => {
 
     try {
       console.log("📤 진로 분석 요청 데이터:", requestBody);
-      const response = await axios.post("/api/fortune/career", requestBody);
-      console.log("📥 진로 분석 응답 데이터:", response.data);
 
-      if (response.data.error) {
-        setApiError(response.data.message || "오류가 발생했습니다.");
+      // 진로 분석과 오행 그래프 데이터를 동시에 요청
+      const [careerResponse, ohaengResponse] = await Promise.all([
+        axios.post("/api/fortune/career", requestBody),
+        axios.post("/api/fortune/ohaeng-chart", requestBody),
+      ]);
+
+      console.log("📥 진로 분석 응답 데이터:", careerResponse.data);
+      console.log("📥 오행 그래프 응답 데이터:", ohaengResponse.data);
+
+      if (careerResponse.data.error) {
+        setApiError(careerResponse.data.message || "오류가 발생했습니다.");
         setIsLoading(false);
         return;
       }
 
-      onResult(response.data.data);
+      // 오행 그래프 데이터가 있으면 결과에 포함
+      const result = {
+        ...careerResponse.data.data,
+        ohaengChart: ohaengResponse.data.error
+          ? null
+          : ohaengResponse.data.data,
+      };
+
+      onResult(result);
     } catch (err) {
       if (axios.isAxiosError(err) && err.response) {
         setApiError(err.response.data.message || "오류가 발생했습니다.");
@@ -142,7 +157,9 @@ export const CareerForm: React.FC<CareerFormProps> = ({ onResult }) => {
               <Label className="text-gray-600 font-semibold">양력/음력</Label>
               <RadioGroup
                 value={calendarType}
-                onValueChange={(value) => setCalendarType(value as "solar" | "lunar")}
+                onValueChange={(value) =>
+                  setCalendarType(value as "solar" | "lunar")
+                }
                 className="grid grid-cols-2 gap-3"
               >
                 <Label htmlFor="career-solar" className="cursor-pointer">
