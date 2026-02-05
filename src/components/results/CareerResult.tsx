@@ -24,6 +24,11 @@ import {
   type SipsinCount,
 } from "@/components/results/CareerSunburstChart";
 import { XIcon } from "@/components/ui/common/Icons";
+import {
+  DAY_GAN_MODAL_PROFILES,
+  type DayGanModalProfile,
+  type MonthGroup,
+} from "@/data/dayGanModalProfiles";
 
 interface OhaengChartData {
   data: {
@@ -483,6 +488,9 @@ export const CareerResult: React.FC<CareerResultProps> = ({
   const [jobLegacyModal, setJobLegacyModal] = useState<JobLegacyItem | null>(
     null
   );
+  const [dayGanProfile, setDayGanProfile] = useState<DayGanModalProfile | null>(
+    null
+  );
 
   const ohaengTextColor: Record<string, string> = {
     木: "text-green-600",
@@ -762,22 +770,22 @@ export const CareerResult: React.FC<CareerResultProps> = ({
             </div>
           </div>
 
-          {/* 당사주 유산 (사주 성별에 따라 해당 1개만 노출, 성공 적합도 박스와 비슷한 디자인) */}
-          {(() => {
-            const legacy =
-              result.gender === "W"
-                ? result.jobLegacyFemale
-                : result.jobLegacyMale;
-            if (legacy == null) return null;
-            const rootSymbol =
-              legacy.resultJi && legacy.resultOheng
-                ? `${legacy.resultJi}${legacy.resultOheng}`
-                : legacy.label;
-            return (
-              <div className="mb-6 flex justify-start md:justify-start">
+          {/* 당사주 유산 + 요약 정보 (한 줄에 배치) */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            {(() => {
+              const legacy =
+                result.gender === "W"
+                  ? result.jobLegacyFemale
+                  : result.jobLegacyMale;
+              if (legacy == null) return null;
+              const rootSymbol =
+                legacy.resultJi && legacy.resultOheng
+                  ? `${legacy.resultJi}${legacy.resultOheng}`
+                  : legacy.label;
+              return (
                 <button
                   type="button"
-                  className="bg-amber-50 rounded-xl p-6 border border-amber-200 cursor-pointer w-full md:w-[363px] text-left"
+                  className="bg-amber-50 rounded-xl p-6 border border-amber-200 cursor-pointer w-full text-left"
                   onClick={() => setJobLegacyModal(legacy)}
                 >
                   <div className="text-sm text-amber-700 mb-2">전승(傳承)</div>
@@ -785,16 +793,35 @@ export const CareerResult: React.FC<CareerResultProps> = ({
                     {rootSymbol}
                   </div>
                 </button>
+              );
+            })()}
+            <button
+              type="button"
+              className="bg-amber-50 rounded-xl p-6 border border-amber-200 cursor-pointer w-full text-left"
+              onClick={() => {
+                const gan = result.ohaengChart?.dayGan;
+                if (!gan) {
+                  setDayGanProfile(null);
+                  return;
+                }
+                // TODO: 백엔드에서 월 그룹 정보를 내려주면,
+                //       해당 값을 사용해 dayGan + monthGroup 조합으로 정확히 찾습니다.
+                const monthGroup: MonthGroup = "자축월";
+                const profile = DAY_GAN_MODAL_PROFILES.find(
+                  (p) => p.dayGan === gan && p.monthGroup === monthGroup
+                );
+                if (!profile) {
+                  setDayGanProfile(null);
+                  return;
+                }
+                setDayGanProfile(profile);
+              }}
+            >
+              <div className="text-sm text-amber-700 mb-2">일간 직능</div>
+              <div className="text-4xl font-bold text-amber-800">
+                {result.ohaengChart?.dayGan ?? "-"}
               </div>
-            );
-          })()}
-
-          {/* 요약 정보 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div className="bg-amber-50 rounded-xl p-6 border border-amber-200">
-              <div className="text-sm text-amber-700 mb-2">성공 적합도</div>
-              <div className="text-4xl font-bold text-amber-800">92%</div>
-            </div>
+            </button>
             <div className="bg-blue-50 rounded-xl p-6 border border-blue-200">
               <div className="text-sm text-blue-700 mb-2">핵심 속성</div>
               <div className="text-xl font-bold text-blue-800">
@@ -1173,6 +1200,93 @@ export const CareerResult: React.FC<CareerResultProps> = ({
                     </p>
                   </section>
                 )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 일간 모달: 일간별 data.ts에서 내용 참조 */}
+      <AnimatePresence>
+        {dayGanProfile && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            onClick={() => setDayGanProfile(null)}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-6"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="daygan-modal-title"
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 4 }}
+              transition={{ duration: 0.18 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-2xl border border-gray-200 shadow-lg w-full max-w-xl overflow-hidden"
+            >
+              <div className="px-8 py-8 relative space-y-6">
+                <button
+                  type="button"
+                  onClick={() => setDayGanProfile(null)}
+                  className="absolute top-6 right-6 text-gray-400 hover:text-gray-600 p-1 rounded"
+                  aria-label="닫기"
+                >
+                  <XIcon className="w-4 h-4" aria-hidden />
+                </button>
+
+                <p className="text-xs text-gray-400" aria-hidden>
+                  일간 분석
+                </p>
+                <h3
+                  id="daygan-modal-title"
+                  className="text-xl font-bold text-gray-900 leading-tight"
+                >
+                  {dayGanProfile.coreTitle}
+                </h3>
+
+                <section className="space-y-3 text-sm text-gray-700 leading-relaxed">
+                  <p>{dayGanProfile.coreOneLiner}</p>
+                  <p>
+                    <span className="font-semibold text-gray-900">상태</span>:{" "}
+                    {dayGanProfile.state}
+                  </p>
+                  <p>
+                    <span className="font-semibold text-gray-900">
+                      필수 조건
+                    </span>
+                    : {dayGanProfile.condition}
+                  </p>
+                  <p>
+                    <span className="font-semibold text-gray-900">성향</span>:{" "}
+                    {dayGanProfile.tendency}
+                  </p>
+                </section>
+
+                <section className="space-y-3">
+                  <h4 className="text-sm font-semibold text-gray-900">
+                    🛠 핵심 직능 (Key Competencies)
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-gray-700">
+                    {dayGanProfile.competencies.map((comp, idx) => (
+                      <div
+                        key={idx}
+                        className="border border-gray-200 rounded-xl p-3"
+                      >
+                        <p className="text-xs font-semibold text-gray-500 mb-1">
+                          {comp.category}
+                        </p>
+                        <p className="font-semibold text-gray-900 mb-1">
+                          {comp.name}
+                        </p>
+                        <p className="leading-relaxed">{comp.description}</p>
+                      </div>
+                    ))}
+                  </div>
+                </section>
               </div>
             </motion.div>
           </motion.div>
