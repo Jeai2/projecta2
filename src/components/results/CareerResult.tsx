@@ -29,6 +29,19 @@ import {
   type DayGanModalProfile,
   type MonthGroup,
 } from "@/data/dayGanModalProfiles";
+import { FloatingPillarsWidget } from "@/components/layout/FloatingPillarsWidget";
+
+/** 당령(천간) → 당령배합 base 문자열 */
+const DANGNYEONG_BASE: Record<string, string> = {
+  계: "신계갑병기",
+  갑: "신계갑병기",
+  을: "계을병무경",
+  병: "계을병무경",
+  정: "을정기경임",
+  경: "을정기경임",
+  신: "정무신임갑",
+  임: "정무신임갑",
+};
 
 interface OhaengChartData {
   data: {
@@ -84,6 +97,33 @@ interface CareerResultData {
     professions: string;
     icon: string;
   }[];
+  // 만세력 네 기둥(년/월/일/시) 요약 (예: "甲子")
+  pillarsSummary?: {
+    year: string;
+    month: string;
+    day: string;
+    hour: string;
+  };
+  // 각 기둥의 천간 오행 (木火土金水)
+  pillarsOhaengSummary?: {
+    year: string;
+    month: string;
+    day: string;
+    hour: string;
+  };
+  // 현재 대운 (간지/시작 나이/시작 연도)
+  currentDaewoon?: {
+    ganji: string;
+    age: number;
+    year: number;
+  } | null;
+  debug?: {
+    source?: string;
+    saryeongGan?: string;
+    dangnyeongGan?: string;
+    saryeongInPillars?: boolean;
+    dangnyeongInPillars?: boolean;
+  };
   successTip: string;
   jobSatisfaction: number;
   suitabilityData: {
@@ -564,6 +604,11 @@ export const CareerResult: React.FC<CareerResultProps> = ({
 
   return (
     <>
+      {/* 만세력 네 기둥(년/월/일/시) 플로팅 위젯 */}
+      <FloatingPillarsWidget
+        pillars={result.pillarsSummary}
+        daewoonGanji={result.currentDaewoon?.ganji ?? null}
+      />
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 space-y-8">
         {/* 1. 타고난 기운 섹션 */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
@@ -789,7 +834,7 @@ export const CareerResult: React.FC<CareerResultProps> = ({
                   onClick={() => setJobLegacyModal(legacy)}
                 >
                   <div className="text-sm text-amber-700 mb-2">전승(傳承)</div>
-                  <div className="text-2xl font-bold text-amber-800 mb-1">
+                  <div className="text-4xl font-bold text-amber-800">
                     {rootSymbol}
                   </div>
                 </button>
@@ -804,9 +849,30 @@ export const CareerResult: React.FC<CareerResultProps> = ({
                   setDayGanProfile(null);
                   return;
                 }
-                // TODO: 백엔드에서 월 그룹 정보를 내려주면,
-                //       해당 값을 사용해 dayGan + monthGroup 조합으로 정확히 찾습니다.
-                const monthGroup: MonthGroup = "자축월";
+                // 당령(당령 천간) → 월 그룹 매핑
+                const dang = result.debug?.dangnyeongGan;
+                const dangToMonthGroup: Partial<Record<string, MonthGroup>> = {
+                  해자월: "해자월",
+                  자축월: "자축월",
+                  인묘월: "인묘월",
+                  묘진월: "묘진월",
+                  사오월: "사오월",
+                  오미월: "오미월",
+                  신유월: "신유월",
+                  유술월: "유술월",
+                  // 당령 한글 → 월군 매핑
+                  임: "해자월",
+                  계: "자축월",
+                  갑: "인묘월",
+                  을: "묘진월",
+                  병: "사오월",
+                  정: "오미월",
+                  경: "신유월",
+                  신: "유술월",
+                };
+                const monthGroup: MonthGroup =
+                  (dang && dangToMonthGroup[dang]) || "자축월";
+
                 const profile = DAY_GAN_MODAL_PROFILES.find(
                   (p) => p.dayGan === gan && p.monthGroup === monthGroup
                 );
@@ -823,10 +889,17 @@ export const CareerResult: React.FC<CareerResultProps> = ({
               </div>
             </button>
             <div className="bg-blue-50 rounded-xl p-6 border border-blue-200">
-              <div className="text-sm text-blue-700 mb-2">핵심 속성</div>
-              <div className="text-xl font-bold text-blue-800">
-                벽갑인화 (나무와 불)
-              </div>
+              <div className="text-sm text-blue-700 mb-2">잠재력 배합</div>
+              {(() => {
+                const dang = result.debug?.dangnyeongGan;
+                const base = dang ? DANGNYEONG_BASE[dang] : null;
+                if (!base) return null;
+                return (
+                  <div className="text-4xl font-bold text-blue-800">
+                    {base}
+                  </div>
+                );
+              })()}
             </div>
           </div>
 

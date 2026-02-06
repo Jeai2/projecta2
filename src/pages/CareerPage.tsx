@@ -48,6 +48,26 @@ interface CareerResultData {
     professions: string;
     icon: string;
   }[];
+  // 만세력 네 기둥(년/월/일/시) 요약 (예: "甲子")
+  pillarsSummary?: {
+    year: string;
+    month: string;
+    day: string;
+    hour: string;
+  };
+  // 각 기둥의 천간 오행 (木火土金水)
+  pillarsOhaengSummary?: {
+    year: string;
+    month: string;
+    day: string;
+    hour: string;
+  };
+  // 현재 대운 (간지/시작 나이/시작 연도)
+  currentDaewoon?: {
+    ganji: string;
+    age: number;
+    year: number;
+  } | null;
   successTip: string;
   jobSatisfaction: number;
   suitabilityData: {

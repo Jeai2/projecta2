@@ -1,4 +1,14 @@
-export type DayGan = "甲" | "乙" | "丙" | "丁" | "戊" | "己" | "庚" | "辛" | "壬" | "癸";
+export type DayGan =
+  | "甲"
+  | "乙"
+  | "丙"
+  | "丁"
+  | "戊"
+  | "己"
+  | "庚"
+  | "辛"
+  | "壬"
+  | "癸";
 
 // 자축월~해자월 8개 군
 export type MonthGroup =
@@ -32,7 +42,7 @@ export const DAY_GAN_MODAL_PROFILES: DayGanModalProfile[] = [
   {
     dayGan: "甲",
     monthGroup: "자축월",
-    coreTitle: "🌳 갑목일간의 본질 (샘플)",
+    coreTitle: "🌳 갑목일간의 본질",
     coreOneLiner: "갑목일간 자축월에 대한 블라블라 설명입니다.",
     state: "갑목일간의 상태에 대한 블라블라 설명입니다.",
     condition: "갑목일간이 힘을 쓰기 위한 조건에 대한 블라블라 설명입니다.",
@@ -65,7 +75,7 @@ export const DAY_GAN_MODAL_PROFILES: DayGanModalProfile[] = [
     monthGroup: "인묘월",
     coreTitle: "🌳 인묘월(寅卯月) 갑목의 본질 (Core Nature)",
     coreOneLiner:
-      '땅 위로 솟아올라 본격적인 성장을 시작하며, 경쟁의 기틀을 잡는 유망주',
+      "땅 위로 솟아올라 본격적인 성장을 시작하며, 경쟁의 기틀을 잡는 유망주",
     state:
       "본격적으로 줄기를 뻗고 지엽을 펼치려는 시기이나, 아직은 내실(품질)을 먼저 기르는 것이 우선인 단계입니다.",
     condition:
@@ -220,8 +230,7 @@ export const DAY_GAN_MODAL_PROFILES: DayGanModalProfile[] = [
     dayGan: "甲",
     monthGroup: "신유월",
     coreTitle: "🌳 신유월(申酉月) 갑목의 본질 (Core Nature)",
-    coreOneLiner:
-      "스스로를 단련하여 최고의 가치를 만들어내는 고숙련 전문가",
+    coreOneLiner: "스스로를 단련하여 최고의 가치를 만들어내는 고숙련 전문가",
     state:
       "나무로서의 성장은 끝났으며, 경금(庚金, 도끼)으로 쪼개고 정화(丁火, 불)로 제련하여 쓰임새 있는 재목이 되어야 하는 시기입니다.",
     condition:
@@ -421,8 +430,7 @@ export const DAY_GAN_MODAL_PROFILES: DayGanModalProfile[] = [
     dayGan: "乙",
     monthGroup: "묘진월",
     coreTitle: "🌿 묘진월(卯辰月) 을목의 본질 (Core Nature)",
-    coreOneLiner:
-      "무성한 생명력을 다듬어 시장을 지배하는 실무형 리더",
+    coreOneLiner: "무성한 생명력을 다듬어 시장을 지배하는 실무형 리더",
     state:
       "스스로 무성해지는 시기(특히 진월)로, 가지를 뻗어 시장(경금)을 점유하고 지배자가 되려는 야망이 꿈트는 때입니다.",
     condition:
@@ -499,8 +507,7 @@ export const DAY_GAN_MODAL_PROFILES: DayGanModalProfile[] = [
     dayGan: "乙",
     monthGroup: "신유월",
     coreTitle: "🌿 신유월(申酉月) 을목의 본질 (Core Nature)",
-    coreOneLiner:
-      "자신을 제련하여 세상의 쓰임에 맞게 완성되는 고도의 기능가",
+    coreOneLiner: "자신을 제련하여 세상의 쓰임에 맞게 완성되는 고도의 기능가",
     state:
       "가을의 기운(金)이 강해지는 시기로, 더 이상의 방만한 확장은 위험하며 스스로를 정화(丁火)로 단련하고 경금(庚金)이라는 규격에 맞춰 결과물로 승부해야 하는 때입니다.",
     condition:
@@ -538,8 +545,7 @@ export const DAY_GAN_MODAL_PROFILES: DayGanModalProfile[] = [
     dayGan: "乙",
     monthGroup: "유술월",
     coreTitle: "🌿 유술월(酉戌月) 을목의 본질 (Core Nature)",
-    coreOneLiner:
-      "위기 속에서 소중한 것을 지켜내고, 유산을 보존하는 관리자",
+    coreOneLiner: "위기 속에서 소중한 것을 지켜내고, 유산을 보존하는 관리자",
     state:
       "처서와 추분을 지나며 대기는 건조해지고(정화의 작용) 밤은 차가워집니다. 수분이 마르면 형체가 무너지고, 온기가 없으면 모든 관계와 재물이 얼어붙는 절박한 시기입니다.",
     condition:
@@ -928,8 +934,7 @@ export const DAY_GAN_MODAL_PROFILES: DayGanModalProfile[] = [
     dayGan: "丁",
     monthGroup: "자축월",
     coreTitle: "🔥 자축월(子丑月) 정화의 본질 (Core Nature)",
-    coreOneLiner:
-      "원재료를 가공하여 문명의 도구를 만드는 섬세한 기술 전문가",
+    coreOneLiner: "원재료를 가공하여 문명의 도구를 만드는 섬세한 기술 전문가",
     state:
       "스스로 빛나기보다 사물을 변화시켜 가치를 창출합니다. 반드시 태울 연료(木)와 가공할 대상(金)이 필요합니다.",
     condition:
@@ -967,8 +972,7 @@ export const DAY_GAN_MODAL_PROFILES: DayGanModalProfile[] = [
     dayGan: "丁",
     monthGroup: "인묘월",
     coreTitle: "🌳 인묘월(寅卯月) 정화의 본질 (Core Nature)",
-    coreOneLiner:
-      "지식을 기술로, 감성을 예술로 승화시키는 실무형 전문가",
+    coreOneLiner: "지식을 기술로, 감성을 예술로 승화시키는 실무형 전문가",
     state:
       "나무(木)가 왕성한 시기에 불꽃을 피워야 하므로 적절한 인화(引火)가 필수입니다. 주변의 요구에 맞추느냐(甲), 나만의 독보적 기술을 갖추느냐(乙)가 인생의 방향을 결정합니다.",
     condition:
@@ -1084,8 +1088,7 @@ export const DAY_GAN_MODAL_PROFILES: DayGanModalProfile[] = [
     dayGan: "丁",
     monthGroup: "오미월",
     coreTitle: "🔥 오미월(午未月) 정화의 본질 (Core Nature)",
-    coreOneLiner:
-      "경험을 자산으로, 기술을 상품으로 바꾸는 고도의 숙련 기술자",
+    coreOneLiner: "경험을 자산으로, 기술을 상품으로 바꾸는 고도의 숙련 기술자",
     state:
       "열기가 가장 강한 시기로 자칫 자기 세계에만 갇히기 쉽습니다. 단순히 뜨거운 것이 아니라, 그 열기로 무엇을 만들어내느냐(庚)가 존재 이유를 결정합니다.",
     condition:
@@ -1240,8 +1243,7 @@ export const DAY_GAN_MODAL_PROFILES: DayGanModalProfile[] = [
     dayGan: "戊",
     monthGroup: "자축월",
     coreTitle: "⛰️ 자축월(子丑月) 무토의 본질 (Core Nature)",
-    coreOneLiner:
-      "얼어붙은 대지를 녹여 세상에 참여하려는 강력한 의지의 개척자",
+    coreOneLiner: "얼어붙은 대지를 녹여 세상에 참여하려는 강력한 의지의 개척자",
     state:
       "만물이 잠든 겨울의 대지는 스스로 움직이기 어렵습니다. 병화(丙火)라는 태양이 떠올라야 비로소 세상에 참여하고 배우려는 정체성이 확립됩니다.",
     condition:
@@ -1279,8 +1281,7 @@ export const DAY_GAN_MODAL_PROFILES: DayGanModalProfile[] = [
     dayGan: "戊",
     monthGroup: "인묘월",
     coreTitle: "⛰️ 인묘월(寅卯月) 무토의 본질 (Core Nature)",
-    coreOneLiner:
-      "상상을 현실의 설계도로 바꾸는 현명한 리더",
+    coreOneLiner: "상상을 현실의 설계도로 바꾸는 현명한 리더",
     state:
       "봄의 산과 들은 생명(木)이 가득하지만, 이를 제대로 키우려면 적절한 온기(병화)와 영양분(계수)이 필수입니다.",
     condition:
@@ -1357,8 +1358,7 @@ export const DAY_GAN_MODAL_PROFILES: DayGanModalProfile[] = [
     dayGan: "戊",
     monthGroup: "사오월",
     coreTitle: "⛰️ 사오월(巳午月) 무토의 본질 (Core Nature)",
-    coreOneLiner:
-      "뜨거운 환경을 읽어내어 새로운 능력을 창출하는 변화의 설계자",
+    coreOneLiner: "뜨거운 환경을 읽어내어 새로운 능력을 창출하는 변화의 설계자",
     state:
       "화(火) 기운이 극에 달해 환경이 급변하는 시기로, 무토는 이 뜨거운 변화를 감지하여 적절한 대응책을 제시하는 역할을 수행합니다.",
     condition:
@@ -1396,8 +1396,7 @@ export const DAY_GAN_MODAL_PROFILES: DayGanModalProfile[] = [
     dayGan: "戊",
     monthGroup: "오미월",
     coreTitle: "⛰️ 오미월(午未月) 무토의 본질 (Core Nature)",
-    coreOneLiner:
-      "세상의 변화를 읽고 타인의 니즈를 분석하는 최고의 전략가",
+    coreOneLiner: "세상의 변화를 읽고 타인의 니즈를 분석하는 최고의 전략가",
     state:
       "열기가 최고조에 달한 시기로, 무토는 수시로 변하는 환경을 관찰하고 그에 상응하는 전략을 짜야 합니다. 자기 점검을 통해 자신의 능력을 세상의 변화에 맞추는 과정이 핵심입니다.",
     condition:
@@ -1435,8 +1434,7 @@ export const DAY_GAN_MODAL_PROFILES: DayGanModalProfile[] = [
     dayGan: "戊",
     monthGroup: "신유월",
     coreTitle: "⛰️ 신유월(申酉月) 무토의 본질 (Core Nature)",
-    coreOneLiner:
-      "자존심을 내려놓고 세상의 흐름을 타는 전략적 실용주의자",
+    coreOneLiner: "자존심을 내려놓고 세상의 흐름을 타는 전략적 실용주의자",
     state:
       "금(金) 기운이 왕성하여 대지가 단단해지고 결실이 드러나는 시기로, 내가 직접 나무를 키우기보다는 이미 나온 결과물들을 어떻게 유통하고 다룰지 결정해야 합니다.",
     condition:
@@ -1474,8 +1472,7 @@ export const DAY_GAN_MODAL_PROFILES: DayGanModalProfile[] = [
     dayGan: "戊",
     monthGroup: "유술월",
     coreTitle: "⛰️ 유술월(酉戌月) 무토의 본질 (Core Nature)",
-    coreOneLiner:
-      "고객의 환부를 찾아내어 가치를 혁신하는 시장의 냉철한 분석가",
+    coreOneLiner: "고객의 환부를 찾아내어 가치를 혁신하는 시장의 냉철한 분석가",
     state:
       "가을의 완성된 제품(辛金)이 시장에 유통(壬水)되기 직전의 단계로, 무토는 이 제품이 고객에게 적합한지, 정신·마음·행동·능력에 어떤 결함(환부)이 있는지 찾아내는 진단 역량이 핵심입니다.",
     condition:
@@ -1513,8 +1510,7 @@ export const DAY_GAN_MODAL_PROFILES: DayGanModalProfile[] = [
     dayGan: "戊",
     monthGroup: "해자월",
     coreTitle: "⛰️ 해자월(亥子月) 무토의 본질 (Core Nature)",
-    coreOneLiner:
-      "도약을 위해 흐름을 멈추고 가치를 농축하는 전략적 인큐베이터",
+    coreOneLiner: "도약을 위해 흐름을 멈추고 가치를 농축하는 전략적 인큐베이터",
     state:
       "겨울의 무토(戊土)는 태양(丙火)을 가려 그늘을 만들고, 흐르는 물(壬水)을 제방으로 막아 세웁니다. 정체가 아니라 버전 2.0으로의 업그레이드를 위해 잠시 멈추고 내면의 열기와 지혜를 가두어 사용하는 축적의 시기입니다.",
     condition:
@@ -1591,8 +1587,7 @@ export const DAY_GAN_MODAL_PROFILES: DayGanModalProfile[] = [
     dayGan: "己",
     monthGroup: "인묘월",
     coreTitle: "🪴 인묘월(寅卯月) 기토의 본질 (Core Nature)",
-    coreOneLiner:
-      "위기를 기회로 바꾸는 선고후락(先苦後樂)의 준비된 리더",
+    coreOneLiner: "위기를 기회로 바꾸는 선고후락(先苦後樂)의 준비된 리더",
     state:
       "얼음이 녹아 냉해가 우려되고 홍수(壬水)의 위협이 있는 환경으로, 나를 지키는 무토(戊土)와 환경을 지키는 갑목(甲木)이 조화를 이뤄야 비로소 안정을 찾습니다.",
     condition:
@@ -1669,8 +1664,7 @@ export const DAY_GAN_MODAL_PROFILES: DayGanModalProfile[] = [
     dayGan: "己",
     monthGroup: "사오월",
     coreTitle: "🪴 사오월(巳午月) 기토의 본질 (Core Nature)",
-    coreOneLiner:
-      "변화하는 환경을 감지하여 최적의 생존 전술을 도출하는 전략가",
+    coreOneLiner: "변화하는 환경을 감지하여 최적의 생존 전술을 도출하는 전략가",
     state:
       "열기가 극에 달해 수분이 마르기 쉬운 환경으로, 기토는 이 뜨거운 변화를 가장 먼저 알아차리고 이에 상응하는 전술을 짜야 합니다.",
     condition:
@@ -1708,8 +1702,7 @@ export const DAY_GAN_MODAL_PROFILES: DayGanModalProfile[] = [
     dayGan: "己",
     monthGroup: "오미월",
     coreTitle: "⛰️ 오미월(午未月) 기토의 본질 (Core Nature)",
-    coreOneLiner:
-      "나와 세상을 동시에 꿰뚫어 보는 정교한 마케팅 전문가",
+    coreOneLiner: "나와 세상을 동시에 꿰뚫어 보는 정교한 마케팅 전문가",
     state:
       "만물이 화려하게 꽃피운 뒤 결실을 준비하는 시기로, 기토는 이 뜨거운 환경 속에서 자기 점검(自己 點檢)을 수행합니다. 내가 가진 자산이 시장에서 어떤 가치를 지니는지 가장 냉철하게 판단하는 시기입니다.",
     condition:
@@ -1747,8 +1740,7 @@ export const DAY_GAN_MODAL_PROFILES: DayGanModalProfile[] = [
     dayGan: "己",
     monthGroup: "신유월",
     coreTitle: "🪴 신유월(申酉月) 기토의 본질 (Core Nature)",
-    coreOneLiner:
-      "나를 변화시켜 세상의 요구에 응답하는 일류 브랜드의 터전",
+    coreOneLiner: "나를 변화시켜 세상의 요구에 응답하는 일류 브랜드의 터전",
     state:
       "결실이 완성되고 경쟁이 치열해지는 가을의 대지입니다. 단순히 씨를 뿌리는 땅이 아니라, 완성된 가치(金)를 유통(壬水)하고 경쟁(辛金)에서 승리해야 하는 고부가가치 상업 부지입니다.",
     condition:
@@ -1825,8 +1817,7 @@ export const DAY_GAN_MODAL_PROFILES: DayGanModalProfile[] = [
     dayGan: "己",
     monthGroup: "해자월",
     coreTitle: "🪴 해자월(亥子月) 기토의 본질 (Core Nature)",
-    coreOneLiner:
-      "보이지 않는 곳에서 승패를 결정짓는 전략의 마스터",
+    coreOneLiner: "보이지 않는 곳에서 승패를 결정짓는 전략의 마스터",
     state:
       "만물이 잠든 겨울, 기토는 수기(水)를 다스려 토양의 질을 유지(疏土)해야 합니다. 土 없이 丙火만 있으면 겉은 화려하나 실속(木)이 썩거나 마를 수 있으니 주의가 필요합니다.",
     condition:
@@ -1864,8 +1855,7 @@ export const DAY_GAN_MODAL_PROFILES: DayGanModalProfile[] = [
     dayGan: "庚",
     monthGroup: "자축월",
     coreTitle: "❄️ 자축월(子丑月) 경금의 본질 (Core Nature)",
-    coreOneLiner:
-      "현실에 뿌리박은 연구로 세상을 적시는 마르지 않는 샘물",
+    coreOneLiner: "현실에 뿌리박은 연구로 세상을 적시는 마르지 않는 샘물",
     state:
       "한겨울의 추위 속에서 자신을 보호하고 온기를 유지하며 지식을 정립해야 합니다. 이때 土가 없으면 현실성 없는 망상에 그치기 쉽고, 丙火가 없으면 자신의 능력을 펼칠 유리한 환경을 만나기 어렵습니다.",
     condition:
@@ -1981,8 +1971,7 @@ export const DAY_GAN_MODAL_PROFILES: DayGanModalProfile[] = [
     dayGan: "庚",
     monthGroup: "사오월",
     coreTitle: "☀️ 사오월(巳午月) 경금의 본질 (Core Nature)",
-    coreOneLiner:
-      "타오르는 열기를 식히고 생명을 키우는 지혜의 샘",
+    coreOneLiner: "타오르는 열기를 식히고 생명을 키우는 지혜의 샘",
     state:
       "사오월의 경금은 金生水를 통해 세상을 적시는 '수원' 역할을 해야 합니다. 이는 선택이 아닌 타고난 의무이며, 자신이 배운 것(癸水)을 현장에서 아낌없이 사용해야 가치를 인정받습니다.",
     condition:
@@ -2020,8 +2009,7 @@ export const DAY_GAN_MODAL_PROFILES: DayGanModalProfile[] = [
     dayGan: "庚",
     monthGroup: "오미월",
     coreTitle: "⚒️ 오미월(午未月) 경금의 본질 (Core Nature)",
-    coreOneLiner:
-      "혼란스러운 열기를 뚫고 본질을 찾아내는 고귀한 심판자",
+    coreOneLiner: "혼란스러운 열기를 뚫고 본질을 찾아내는 고귀한 심판자",
     state:
       "열기가 극에 달한 시기입니다. 火가 너무 강하면 판단력이 흐려져 무모한 행동을 하거나 공과 사를 구분하지 못하기 쉽습니다. 이때 경금은 벽갑(劈甲)을 통해 환경을 정리하고 가치를 부각합니다.",
     condition:
@@ -2059,8 +2047,7 @@ export const DAY_GAN_MODAL_PROFILES: DayGanModalProfile[] = [
     dayGan: "庚",
     monthGroup: "신유월",
     coreTitle: "⛰️ 신유월(申酉月) 경금의 본질 (Core Nature)",
-    coreOneLiner:
-      "이론을 넘어 실체로 증명하는 결과 중심의 마스터",
+    coreOneLiner: "이론을 넘어 실체로 증명하는 결과 중심의 마스터",
     state:
       "인묘월이 '돈 버는 법'을 가르치는 무형의 단계라면, 신유월은 이미 '살아온 내력(경험)'이 물건이나 화폐로 치환된 실물 경제의 단계입니다.",
     condition:
@@ -2098,8 +2085,7 @@ export const DAY_GAN_MODAL_PROFILES: DayGanModalProfile[] = [
     dayGan: "庚",
     monthGroup: "유술월",
     coreTitle: "⛰️ 유술월(酉戌月) 경금의 본질 (Core Nature)",
-    coreOneLiner:
-      "평생의 업(業)을 보석으로 정제하여 영원히 남기는 마스터",
+    coreOneLiner: "평생의 업(業)을 보석으로 정제하여 영원히 남기는 마스터",
     state:
       "만물이 견고하게 굳어지는 가을의 끝자락입니다. 경금은 이제 새로운 일을 벌이기보다, 살아온 날들을 정리하여 탄탄하게 저장해야 하는 시기입니다.",
     condition:
@@ -2410,8 +2396,7 @@ export const DAY_GAN_MODAL_PROFILES: DayGanModalProfile[] = [
     dayGan: "辛",
     monthGroup: "유술월",
     coreTitle: "💎 유술월(酉戌月) 신금의 본질 (Core Nature)",
-    coreOneLiner:
-      "고향에 돌아온 왕, 풍요 속의 완벽을 기하는 최종 감찰관",
+    coreOneLiner: "고향에 돌아온 왕, 풍요 속의 완벽을 기하는 최종 감찰관",
     state:
       "신금이 가장 힘을 받는 시기로, 자신감이 넘치고 주인공이 되고자 하는 욕구가 강합니다. 하지만 이 시기에는 단순히 '나 잘났다'고 말하는 것이 아니라, 실질적인 상품 가치를 내놓아야 시장에서 생존할 수 있습니다.",
     condition:
@@ -2605,8 +2590,7 @@ export const DAY_GAN_MODAL_PROFILES: DayGanModalProfile[] = [
     dayGan: "壬",
     monthGroup: "사오월",
     coreTitle: "🌊 사오월(巳午月) 임수의 본질 (Core Nature)",
-    coreOneLiner:
-      "열기 속의 냉철한 이성, 최고의 가치를 골라내는 안목의 소유자",
+    coreOneLiner: "열기 속의 냉철한 이성, 최고의 가치를 골라내는 안목의 소유자",
     state:
       "만물이 밖으로 나가 활동하는 시기입니다. 임수는 여기서 '멈춤'과 '대비'의 메시지를 던집니다. 단순히 흐르는 것이 아니라, 지금의 열띤 활동을 잠시 멈추고 미래를 위한 옥석 가리기에 집중해야 하는 시기입니다.",
     condition:
@@ -2878,8 +2862,7 @@ export const DAY_GAN_MODAL_PROFILES: DayGanModalProfile[] = [
     dayGan: "癸",
     monthGroup: "묘진월",
     coreTitle: "💧 묘진월(卯辰月) 계수의 본질 (Core Nature)",
-    coreOneLiner:
-      "내면의 성장을 사회적 결실로 꽃피우는 정교한 생명 설계자",
+    coreOneLiner: "내면의 성장을 사회적 결실로 꽃피우는 정교한 생명 설계자",
     state:
       "을목(乙木)이 지천에 깔린 봄날, 계수는 자칫 지나친 습기로 인해 자신을 잃거나 정체될 위험이 있습니다. 이때 경금(庚金)은 자기 계발의 동력이 되고, 병화(丙火)는 그 지식을 세상에 선보일 화려한 무대가 됩니다.",
     condition:
@@ -3109,4 +3092,3 @@ export const DAY_GAN_MODAL_PROFILES: DayGanModalProfile[] = [
     ],
   },
 ];
-

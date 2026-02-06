@@ -737,6 +737,17 @@ export const getCareerAnalysis = async (
       "../services/job-legacy.service"
     );
     const pillars = sajuResult.sajuData.pillars;
+    const daewoonList = sajuResult.sajuData.daewoonFull;
+    // 만세력(Manse) 페이지와 동일한 기준으로 현재 대운을 계산
+    let currentDaewoon = null as typeof sajuResult.sajuData.currentDaewoon;
+    if (daewoonList && daewoonList.length > 0) {
+      const currentYear = new Date().getFullYear();
+      const birthYear = birthDateObject.getFullYear();
+      const currentAge = currentYear - birthYear;
+      const currentDaewoonIndex = Math.floor((currentAge - 9) / 10);
+      currentDaewoon =
+        daewoonList[currentDaewoonIndex] ?? daewoonList[daewoonList.length - 1] ?? null;
+    }
     const jobLegacy = getJobLegacyByGender(
       pillars.year.gan,
       pillars.year.ji,
@@ -810,6 +821,28 @@ export const getCareerAnalysis = async (
           suitability: 65,
         },
       ],
+      // 만세력 네 기둥(년/월/일/시) 요약
+      pillarsSummary: {
+        year: `${pillars.year.gan}${pillars.year.ji}`,
+        month: `${pillars.month.gan}${pillars.month.ji}`,
+        day: `${pillars.day.gan}${pillars.day.ji}`,
+        hour: `${pillars.hour.gan}${pillars.hour.ji}`,
+      },
+      // 각 기둥의 천간 오행 (木火土金水)
+      pillarsOhaengSummary: {
+        year: pillars.year.ganOhaeng,
+        month: pillars.month.ganOhaeng,
+        day: pillars.day.ganOhaeng,
+        hour: pillars.hour.ganOhaeng,
+      },
+      // 현재 대운 정보 (간지/나이/년)
+      currentDaewoon: currentDaewoon
+        ? {
+            ganji: currentDaewoon.ganji,
+            age: currentDaewoon.age,
+            year: currentDaewoon.year,
+          }
+        : null,
       // 디버깅 정보 (선택적)
       debug: {
         source: energyResult.source,
