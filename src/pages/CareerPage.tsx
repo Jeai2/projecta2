@@ -48,6 +48,20 @@ interface CareerResultData {
     professions: string;
     icon: string;
   }[];
+  // 십이운성 봉법
+  pillarsSibiwunseong?: {
+    year: string;
+    month: string;
+    day: string;
+    hour: string;
+  };
+  // 십이운성 거법
+  pillarsSibiwunseongGeopbeop?: {
+    year: string;
+    month: string;
+    day: string;
+    hour: string;
+  } | null;
   // 만세력 네 기둥(년/월/일/시) 요약 (예: "甲子")
   pillarsSummary?: {
     year: string;

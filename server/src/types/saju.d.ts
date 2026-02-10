@@ -13,6 +13,8 @@ export interface PillarData {
   ganSipsin: string | null;
   jiSipsin: string | null;
   sibiwunseong: string;
+  /** 십이운성 거법(去法): 해당 기둥의 천간→지지 매칭 */
+  sibiwunseongGeopbeop?: string;
   sinsal: SinsalHit[];
 }
 
@@ -72,6 +74,13 @@ export interface SajuData {
     hour: { gan: string | null; ji: string | null };
   };
   sibiwunseong: { year: string; month: string; day: string; hour: string };
+  /** 십이운성 거법(去法) */
+  sibiwunseongGeopbeop?: {
+    year: string;
+    month: string;
+    day: string;
+    hour: string;
+  };
   sinsal: import("../services/sinsal.service").SinsalResult; // ✅ sinsal.service의 결과 타입을 직접 사용
   napeum: NapeumResult;
   jijanggan: { year: string[]; month: string[]; day: string[]; hour: string[] }; // ✅ 지장간 데이터 추가

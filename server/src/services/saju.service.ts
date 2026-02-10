@@ -1,7 +1,10 @@
 // server/src/services/saju.service.ts (최종 완성본)
 
 import { getSipsin } from "./sipsin.service";
-import { getSibiwunseong } from "./sibiwunseong.service";
+import {
+  getSibiwunseong,
+  getSibiwunseongGeopbeop,
+} from "./sibiwunseong.service";
 import { getDaewoon } from "./daewoon.service";
 import { getSewoonForYear } from "./sewoon.service";
 import { getAllWoolwoonForYear } from "./woolwoon.service";
@@ -168,6 +171,7 @@ export const getSajuDetails = async (
 
   const sipsin = getSipsin(dayGan, pillars);
   const sibiwunseong = getSibiwunseong(dayGan, pillars);
+  const sibiwunseongGeopbeop = getSibiwunseongGeopbeop(pillars);
   const sinsal = getAllSinsals(pillars, gender);
   const napeum = getNapeumFromPillars(pillars);
 
@@ -260,6 +264,7 @@ export const getSajuDetails = async (
         ganSipsin: sipsin.year.gan,
         jiSipsin: sipsin.year.ji,
         sibiwunseong: sibiwunseong.year,
+        sibiwunseongGeopbeop: sibiwunseongGeopbeop.year,
         sinsal: sinsal.year,
       },
       month: {
@@ -270,6 +275,7 @@ export const getSajuDetails = async (
         ganSipsin: sipsin.month.gan,
         jiSipsin: sipsin.month.ji,
         sibiwunseong: sibiwunseong.month,
+        sibiwunseongGeopbeop: sibiwunseongGeopbeop.month,
         sinsal: sinsal.month,
       },
       day: {
@@ -280,6 +286,7 @@ export const getSajuDetails = async (
         ganSipsin: sipsin.day.gan,
         jiSipsin: sipsin.day.ji,
         sibiwunseong: sibiwunseong.day,
+        sibiwunseongGeopbeop: sibiwunseongGeopbeop.day,
         sinsal: sinsal.day,
       },
       hour: {
@@ -290,11 +297,13 @@ export const getSajuDetails = async (
         ganSipsin: sipsin.hour.gan,
         jiSipsin: sipsin.hour.ji,
         sibiwunseong: sibiwunseong.hour,
+        sibiwunseongGeopbeop: sibiwunseongGeopbeop.hour,
         sinsal: sinsal.hour,
       },
     },
     sipsin,
     sibiwunseong,
+    sibiwunseongGeopbeop,
     sinsal,
     napeum,
     jijanggan, // ✅ 지장간 데이터 추가

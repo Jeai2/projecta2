@@ -35,11 +35,11 @@ export const FloatingPillarsWidget: React.FC<FloatingPillarsWidgetProps> = ({
         <div className="bg-slate-900/85 text-white rounded-2xl shadow-xl backdrop-blur px-4 py-3">
           <div className="flex items-end gap-4">
             <div className="flex flex-col text-[10px] text-slate-300 leading-tight gap-1">
-              <span>년</span>
-              <span>월</span>
-              <span>일</span>
-              <span>시</span>
-              <span>운</span>
+              <span>년주</span>
+              <span>월주</span>
+              <span>일주</span>
+              <span>시주</span>
+              <span>대운</span>
             </div>
             <div className="flex flex-col text-2xl font-semibold leading-tight gap-1">
               <span>{year ?? "-"}</span>
@@ -56,11 +56,12 @@ export const FloatingPillarsWidget: React.FC<FloatingPillarsWidgetProps> = ({
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
         className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-slate-900/90 text-slate-100 shadow-lg backdrop-blur hover:bg-slate-800 transition-colors text-xs"
-        aria-label={isOpen ? "만세력 플로팅 패널 접기" : "만세력 플로팅 패널 펼치기"}
+        aria-label={
+          isOpen ? "만세력 플로팅 패널 접기" : "만세력 플로팅 패널 펼치기"
+        }
       >
-        {isOpen ? "접기" : "년월일시"}
+        {isOpen ? "접기" : "만세력"}
       </button>
     </div>
   );
 };
-

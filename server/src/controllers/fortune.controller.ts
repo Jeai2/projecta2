@@ -843,6 +843,23 @@ export const getCareerAnalysis = async (
             year: currentDaewoon.year,
           }
         : null,
+      // 십이운성 봉법 (년/월/일/시 각 기둥, 일간 기준)
+      pillarsSibiwunseong: {
+        year: pillars.year.sibiwunseong ?? "",
+        month: pillars.month.sibiwunseong ?? "",
+        day: pillars.day.sibiwunseong ?? "",
+        hour: pillars.hour.sibiwunseong ?? "",
+      },
+      // 십이운성 거법 (년/월/일/시 각 기둥, 기둥별 천간→지지)
+      pillarsSibiwunseongGeopbeop:
+        sajuResult.sajuData.sibiwunseongGeopbeop
+          ? {
+              year: sajuResult.sajuData.sibiwunseongGeopbeop.year ?? "",
+              month: sajuResult.sajuData.sibiwunseongGeopbeop.month ?? "",
+              day: sajuResult.sajuData.sibiwunseongGeopbeop.day ?? "",
+              hour: sajuResult.sajuData.sibiwunseongGeopbeop.hour ?? "",
+            }
+          : null,
       // 디버깅 정보 (선택적)
       debug: {
         source: energyResult.source,

@@ -1,28 +1,58 @@
 // src/services/sibiwunseong.service.ts
 // jjhome 만세력 엔진 - 십이운성 계산 서비스
-// 사주의 각 지지가 일간을 기준으로 어떤 에너지 단계에 있는지를 계산한다.
+// 봉법: 일간 기준 각 기둥의 지지 → 십이운성
+// 거법: 각 기둥의 천간→해당 기둥의 지지 → 십이운성
 
-import { SIBIWUNSEONG_TABLE } from '../data/saju.data';
+import {
+  SIBIWUNSEONG_TABLE,
+  SIBIWUNSEONG_GEOPBEOP_TABLE,
+} from '../data/saju.data';
+
+type PillarsGanji = { year: string; month: string; day: string; hour: string };
 
 /**
- * 사주팔자 각 기둥의 십이운성을 계산한다.
+ * 십이운성 봉법(封法): 일간을 기준으로 각 기둥의 지지만 보고 십이운성을 구한다.
  * @param dayGan 일간 (기준점)
- * @param pillars 사주팔자 객체
- * @returns 각 기둥별 지지의 십이운성
+ * @param pillars 사주팔자 간지 (년월일시 각 "간지" 2글자)
+ * @returns 각 기둥별 십이운성
  */
-export const getSibiwunseong = (dayGan: string, pillars: { year: string, month: string, day: string, hour: string }) => {
-  // 지지(한글자)를 받아 십이운성을 찾아 반환하는 내부 함수
+export const getSibiwunseong = (
+  dayGan: string,
+  pillars: PillarsGanji
+): { year: string; month: string; day: string; hour: string } => {
   const calc = (ji: string): string => {
-    // 지지 글자가 없거나 유효하지 않으면 빈 문자열 반환
     if (!ji) return '';
-    // SIBIWUNSEONG_TABLE에서 일간과 지지를 키로 값을 찾음
     return SIBIWUNSEONG_TABLE[dayGan]?.[ji] || '';
   };
 
   return {
-    year:  calc(pillars.year[1]),
+    year: calc(pillars.year[1]),
     month: calc(pillars.month[1]),
-    day:   calc(pillars.day[1]),
-    hour:  calc(pillars.hour[1]),
+    day: calc(pillars.day[1]),
+    hour: calc(pillars.hour[1]),
+  };
+};
+
+/**
+ * 십이운성 거법(去法): 각 기둥의 천간→그 기둥의 지지로 매칭해 십이운성을 구한다.
+ * 년주: 년간→년지, 월주: 월간→월지, 일주: 일간→일지, 시주: 시간→시지
+ * @param pillars 사주팔자 간지 (년월일시 각 "간지" 2글자)
+ * @returns 각 기둥별 십이운성
+ */
+export const getSibiwunseongGeopbeop = (
+  pillars: PillarsGanji
+): { year: string; month: string; day: string; hour: string } => {
+  const calc = (ganji: string): string => {
+    if (!ganji || ganji.length < 2) return '';
+    const gan = ganji[0];
+    const ji = ganji[1];
+    return SIBIWUNSEONG_GEOPBEOP_TABLE[gan]?.[ji] || '';
+  };
+
+  return {
+    year: calc(pillars.year),
+    month: calc(pillars.month),
+    day: calc(pillars.day),
+    hour: calc(pillars.hour),
   };
 };

@@ -43,6 +43,18 @@ const DANGNYEONG_BASE: Record<string, string> = {
   임: "정무신임갑",
 };
 
+/** 사주원국 오행 비율 1개 이하일 때 표기할 부족한 오행 환경 설명 */
+const DEFICIENT_OHAENG_WORK_STYLE: Record<
+  "木" | "火" | "土" | "金" | "水",
+  string
+> = {
+  金: "기준이 딱 정해진 일에서 정확하게 판단하고 결과 내는 게 편한 환경",
+  水: "사람·정보·일이 계속 오가며 상황에 따라 유연하게 움직여야 하는 환경",
+  木: "사람이나 일의 가능성을 키워가며, 시간이 지나면서 성장이 보이는 환경",
+  火: "가만히 조용한 곳보다, 눈에 보이게 드러나고 에너지를 계속 써야 하는 환경",
+  土: "앞에서 튀는 곳보다, 전체를 안정적으로 굴리고 관리해야 하는 환경",
+};
+
 interface OhaengChartData {
   data: {
     label: string;
@@ -116,6 +128,20 @@ interface CareerResultData {
     ganji: string;
     age: number;
     year: number;
+  } | null;
+  // 십이운성 봉법 (년/월/일/시 각 기둥)
+  pillarsSibiwunseong?: {
+    year: string;
+    month: string;
+    day: string;
+    hour: string;
+  };
+  // 십이운성 거법 (년/월/일/시 각 기둥)
+  pillarsSibiwunseongGeopbeop?: {
+    year: string;
+    month: string;
+    day: string;
+    hour: string;
   } | null;
   debug?: {
     source?: string;
@@ -815,7 +841,65 @@ export const CareerResult: React.FC<CareerResultProps> = ({
             </div>
           </div>
 
-          {/* 당사주 유산 + 요약 정보 (한 줄에 배치) */}
+          {/* 십이운성 봉법·거법 (신살 능력과 동일한 크기·스타일, 상단 배치) */}
+          {(result.pillarsSibiwunseong || result.pillarsSibiwunseongGeopbeop) && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-6">
+              <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+                <h4 className="text-lg font-bold text-gray-800 mb-4">
+                  십이운성
+                  <span className="ml-2 text-xs font-normal text-gray-500">
+                    Sibiwunseong
+                  </span>
+                </h4>
+                <div className="space-y-4">
+                  {result.pillarsSibiwunseong && (
+                    <div>
+                      <p className="text-xs font-medium text-gray-500 mb-2">
+                        봉법 (일간 기준)
+                      </p>
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div className="font-medium text-gray-700">
+                          년주 <span className="text-gray-900">{result.pillarsSibiwunseong.year || "－"}</span>
+                        </div>
+                        <div className="font-medium text-gray-700">
+                          월주 <span className="text-gray-900">{result.pillarsSibiwunseong.month || "－"}</span>
+                        </div>
+                        <div className="font-medium text-gray-700">
+                          일주 <span className="text-gray-900">{result.pillarsSibiwunseong.day || "－"}</span>
+                        </div>
+                        <div className="font-medium text-gray-700">
+                          시주 <span className="text-gray-900">{result.pillarsSibiwunseong.hour || "－"}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {result.pillarsSibiwunseongGeopbeop && (
+                    <div>
+                      <p className="text-xs font-medium text-gray-500 mb-2">
+                        거법 (기둥별 간→지)
+                      </p>
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div className="font-medium text-gray-700">
+                          년주 <span className="text-gray-900">{result.pillarsSibiwunseongGeopbeop.year || "－"}</span>
+                        </div>
+                        <div className="font-medium text-gray-700">
+                          월주 <span className="text-gray-900">{result.pillarsSibiwunseongGeopbeop.month || "－"}</span>
+                        </div>
+                        <div className="font-medium text-gray-700">
+                          일주 <span className="text-gray-900">{result.pillarsSibiwunseongGeopbeop.day || "－"}</span>
+                        </div>
+                        <div className="font-medium text-gray-700">
+                          시주 <span className="text-gray-900">{result.pillarsSibiwunseongGeopbeop.hour || "－"}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 당사주 유산 + 요약 정보 (전승 | 일간 직능 | 잠재력 배합) */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             {(() => {
               const legacy =
@@ -833,7 +917,9 @@ export const CareerResult: React.FC<CareerResultProps> = ({
                   className="bg-amber-50 rounded-xl p-6 border border-amber-200 cursor-pointer w-full text-left"
                   onClick={() => setJobLegacyModal(legacy)}
                 >
-                  <div className="text-sm text-amber-700 mb-2">전승(傳承)</div>
+                  <div className="text-sm text-amber-700 mb-2">
+                    전승(傳承) <span className="ml-2 text-xs font-normal text-gray-500">Heritage</span>
+                  </div>
                   <div className="text-4xl font-bold text-amber-800">
                     {rootSymbol}
                   </div>
@@ -883,13 +969,17 @@ export const CareerResult: React.FC<CareerResultProps> = ({
                 setDayGanProfile(profile);
               }}
             >
-              <div className="text-sm text-amber-700 mb-2">일간 직능</div>
+              <div className="text-sm text-amber-700 mb-2">
+              일간 직능 <span className="ml-2 text-xs font-normal text-gray-500">Day Master</span>
+            </div>
               <div className="text-4xl font-bold text-amber-800">
                 {result.ohaengChart?.dayGan ?? "-"}
               </div>
             </button>
             <div className="bg-blue-50 rounded-xl p-6 border border-blue-200">
-              <div className="text-sm text-blue-700 mb-2">잠재력 배합</div>
+              <div className="text-sm text-blue-700 mb-2">
+              잠재력 배합 <span className="ml-2 text-xs font-normal text-gray-500">Potential Base</span>
+            </div>
               {(() => {
                 const dang = result.debug?.dangnyeongGan;
                 const base = dang ? DANGNYEONG_BASE[dang] : null;
@@ -903,32 +993,54 @@ export const CareerResult: React.FC<CareerResultProps> = ({
             </div>
           </div>
 
-          {/* 분석 소견 및 추가 정보 */}
+          {/* 추가 정보 섹션 */}
           <div className="space-y-4">
-            <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
-              <h5 className="text-base font-bold text-gray-800 mb-3">
-                분석 소견
-              </h5>
-              <p className="text-sm text-gray-700 leading-relaxed">
-                당신의 명조는 木, 火의 기운이 조화롭게 흐르고 있습니다. 이는
-                새로운 가치를 창조하고 외부에 널리 알리는 '전략적 메신저'의
-                자질이 매우 높음을 의미합니다.
-              </p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-white rounded-lg p-4 border border-gray-200">
-                <div className="text-xs text-gray-500 mb-1">
-                  BEST WORK STYLE
-                </div>
-                <div className="text-base font-semibold text-gray-800">
-                  자유로운 창작 환경
-                </div>
-              </div>
-              <div className="bg-white rounded-lg p-4 border border-gray-200">
-                <div className="text-xs text-gray-500 mb-1">LUCK TIMING</div>
-                <div className="text-base font-semibold text-gray-800">
-                  2026년 하반기
-                </div>
+            <div className="bg-white rounded-xl p-5 border border-gray-200">
+              <div className="text-xs text-gray-500 mb-2">BEST WORK STYLE</div>
+              <div className="text-sm leading-relaxed text-gray-800">
+                {(() => {
+                  const breakdown = result.ohaengChart?.breakdown;
+                  const ohaengList: ("木" | "火" | "土" | "金" | "水")[] = [
+                    "木",
+                    "火",
+                    "土",
+                    "金",
+                    "水",
+                  ];
+                  if (!breakdown?.gan || !breakdown?.ji) {
+                    return (
+                      <span className="font-medium">
+                        자유로운 창작 환경
+                      </span>
+                    );
+                  }
+                  const deficient = ohaengList.filter((o) => {
+                    const total =
+                      (breakdown.gan[o] ?? 0) + (breakdown.ji[o] ?? 0);
+                    return total <= 1;
+                  });
+                  if (deficient.length === 0) {
+                    return (
+                      <span className="font-medium">
+                        자유로운 창작 환경
+                      </span>
+                    );
+                  }
+                  return (
+                    <ul className="space-y-2 list-none">
+                      {deficient.map((o) => (
+                        <li key={o} className="flex flex-wrap gap-1">
+                          <span className="font-semibold shrink-0">
+                            {o}의 환경
+                          </span>
+                          <span className="text-gray-700">
+                            – {DEFICIENT_OHAENG_WORK_STYLE[o]}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  );
+                })()}
               </div>
             </div>
           </div>
