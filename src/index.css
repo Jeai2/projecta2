@@ -65,4 +65,23 @@ html {
   .mode-toggle-thumb {
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
+
+  /* 십이운성 운성 원 — 색상을 CSS 변수(--pulse-rgb)로 주입하는 호흡 애니메이션 */
+  .sibiwun-pulse {
+    --pulse-rgb: 129, 140, 248; /* fallback: indigo */
+    animation: sibiwun-pulse-keyframes 3.6s ease-in-out infinite;
+    will-change: transform, box-shadow;
+  }
+
+  @keyframes sibiwun-pulse-keyframes {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 rgba(var(--pulse-rgb), 0.18);
+      transform: scale(1);
+    }
+    50% {
+      box-shadow: 0 0 0 8px rgba(var(--pulse-rgb), 0.10);
+      transform: scale(1.05);
+    }
+  }
 }

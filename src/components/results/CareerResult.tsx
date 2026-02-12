@@ -30,6 +30,7 @@ import {
   type MonthGroup,
 } from "@/data/dayGanModalProfiles";
 import { FloatingPillarsWidget } from "@/components/layout/FloatingPillarsWidget";
+import { sibiwunseongDescriptions } from "@/data/sibiwunseongDescriptions";
 
 /** 당령(천간) → 당령배합 base 문자열 */
 const DANGNYEONG_BASE: Record<string, string> = {
@@ -841,59 +842,104 @@ export const CareerResult: React.FC<CareerResultProps> = ({
             </div>
           </div>
 
-          {/* 십이운성 봉법·거법 (신살 능력과 동일한 크기·스타일, 상단 배치) */}
+          {/* 십이운성 봉법·거법 */}
           {(result.pillarsSibiwunseong || result.pillarsSibiwunseongGeopbeop) && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-6">
+            <div className="mb-6">
               <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
-                <h4 className="text-lg font-bold text-gray-800 mb-4">
+                <h4 className="text-lg font-bold text-gray-800 mb-1">
                   십이운성
                   <span className="ml-2 text-xs font-normal text-gray-500">
                     Sibiwunseong
                   </span>
                 </h4>
-                <div className="space-y-4">
-                  {result.pillarsSibiwunseong && (
-                    <div>
-                      <p className="text-xs font-medium text-gray-500 mb-2">
-                        봉법 (일간 기준)
-                      </p>
-                      <div className="grid grid-cols-2 gap-3 text-sm">
-                        <div className="font-medium text-gray-700">
-                          년주 <span className="text-gray-900">{result.pillarsSibiwunseong.year || "－"}</span>
+                <p className="text-xs text-gray-500 mb-5">
+                  사주 네 기둥의 에너지 흐름을 12단계로 표현한 생명 주기 지표입니다.
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* 봉법 */}
+                  {result.pillarsSibiwunseong && (() => {
+                    const val = result.pillarsSibiwunseong!.month || "－";
+                    const desc = sibiwunseongDescriptions[val];
+                    const rgb = desc?.bongbeopRgb || "129, 140, 248";
+                    return (
+                      <div className="flex items-start gap-4">
+                        <div className="flex flex-col items-center gap-1 shrink-0">
+                          <div
+                            className="w-16 h-16 rounded-full border-2 flex items-center justify-center text-base font-bold bg-white sibiwun-pulse"
+                            style={{
+                              "--pulse-rgb": rgb,
+                              borderColor: `rgba(${rgb}, 0.35)`,
+                              color: `rgba(${rgb}, 1)`,
+                            } as React.CSSProperties}
+                          >
+                            {val}
+                          </div>
+                          <span
+                            className="text-[10px] font-medium mt-0.5"
+                            style={{ color: `rgba(${rgb}, 0.6)` }}
+                          >
+                            봉법 월주
+                          </span>
                         </div>
-                        <div className="font-medium text-gray-700">
-                          월주 <span className="text-gray-900">{result.pillarsSibiwunseong.month || "－"}</span>
-                        </div>
-                        <div className="font-medium text-gray-700">
-                          일주 <span className="text-gray-900">{result.pillarsSibiwunseong.day || "－"}</span>
-                        </div>
-                        <div className="font-medium text-gray-700">
-                          시주 <span className="text-gray-900">{result.pillarsSibiwunseong.hour || "－"}</span>
+                        <div className="pt-1">
+                          <p className="text-sm font-semibold text-gray-800 mb-1">
+                            봉법(逢法) — 일간 기준
+                            {desc && (
+                              <span className="ml-1.5 text-xs font-normal text-gray-400">
+                                {desc.hanja} · {desc.keyword}
+                              </span>
+                            )}
+                          </p>
+                          <p className="text-xs leading-relaxed text-gray-600">
+                            {desc?.bongbeop || "해석 데이터가 아직 등록되지 않았습니다."}
+                          </p>
                         </div>
                       </div>
-                    </div>
-                  )}
-                  {result.pillarsSibiwunseongGeopbeop && (
-                    <div>
-                      <p className="text-xs font-medium text-gray-500 mb-2">
-                        거법 (기둥별 간→지)
-                      </p>
-                      <div className="grid grid-cols-2 gap-3 text-sm">
-                        <div className="font-medium text-gray-700">
-                          년주 <span className="text-gray-900">{result.pillarsSibiwunseongGeopbeop.year || "－"}</span>
+                    );
+                  })()}
+
+                  {/* 거법 */}
+                  {result.pillarsSibiwunseongGeopbeop && (() => {
+                    const val = result.pillarsSibiwunseongGeopbeop!.month || "－";
+                    const desc = sibiwunseongDescriptions[val];
+                    const rgb = desc?.geopbeopRgb || "245, 158, 11";
+                    return (
+                      <div className="flex items-start gap-4">
+                        <div className="flex flex-col items-center gap-1 shrink-0">
+                          <div
+                            className="w-16 h-16 rounded-full border-2 flex items-center justify-center text-base font-bold bg-white sibiwun-pulse"
+                            style={{
+                              "--pulse-rgb": rgb,
+                              borderColor: `rgba(${rgb}, 0.35)`,
+                              color: `rgba(${rgb}, 1)`,
+                            } as React.CSSProperties}
+                          >
+                            {val}
+                          </div>
+                          <span
+                            className="text-[10px] font-medium mt-0.5"
+                            style={{ color: `rgba(${rgb}, 0.6)` }}
+                          >
+                            거법 월주
+                          </span>
                         </div>
-                        <div className="font-medium text-gray-700">
-                          월주 <span className="text-gray-900">{result.pillarsSibiwunseongGeopbeop.month || "－"}</span>
-                        </div>
-                        <div className="font-medium text-gray-700">
-                          일주 <span className="text-gray-900">{result.pillarsSibiwunseongGeopbeop.day || "－"}</span>
-                        </div>
-                        <div className="font-medium text-gray-700">
-                          시주 <span className="text-gray-900">{result.pillarsSibiwunseongGeopbeop.hour || "－"}</span>
+                        <div className="pt-1">
+                          <p className="text-sm font-semibold text-gray-800 mb-1">
+                            거법(居法) — 기둥별 간→지
+                            {desc && (
+                              <span className="ml-1.5 text-xs font-normal text-gray-400">
+                                {desc.hanja} · {desc.keyword}
+                              </span>
+                            )}
+                          </p>
+                          <p className="text-xs leading-relaxed text-gray-600">
+                            {desc?.geopbeop || "해석 데이터가 아직 등록되지 않았습니다."}
+                          </p>
                         </div>
                       </div>
-                    </div>
-                  )}
+                    );
+                  })()}
                 </div>
               </div>
             </div>
