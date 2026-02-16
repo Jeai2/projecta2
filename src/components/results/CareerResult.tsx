@@ -550,13 +550,13 @@ export const CareerResult: React.FC<CareerResultProps> = ({
   onReset,
 }) => {
   const [sinsalModal, setSinsalModal] = useState<SinsalCapabilityItem | null>(
-    null
+    null,
   );
   const [jobLegacyModal, setJobLegacyModal] = useState<JobLegacyItem | null>(
-    null
+    null,
   );
   const [dayGanProfile, setDayGanProfile] = useState<DayGanModalProfile | null>(
-    null
+    null,
   );
 
   const ohaengTextColor: Record<string, string> = {
@@ -606,9 +606,9 @@ export const CareerResult: React.FC<CareerResultProps> = ({
         ...ohaengChartData
           .filter((item) => typeof item === "object" && "value" in item)
           .map((item) =>
-            typeof item === "object" && "value" in item ? item.value : 0
+            typeof item === "object" && "value" in item ? item.value : 0,
           ),
-        1 // 최소 1로 보장하여 0으로 나누기 방지
+        1, // 최소 1로 보장하여 0으로 나누기 방지
       );
 
       // 최대값을 70%로 스케일링하고 나머지도 비례 조정
@@ -843,103 +843,113 @@ export const CareerResult: React.FC<CareerResultProps> = ({
           </div>
 
           {/* 십이운성 봉법·거법 */}
-          {(result.pillarsSibiwunseong || result.pillarsSibiwunseongGeopbeop) && (
+          {(result.pillarsSibiwunseong ||
+            result.pillarsSibiwunseongGeopbeop) && (
             <div className="mb-6">
               <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
                 <h4 className="text-lg font-bold text-gray-800 mb-1">
                   십이운성
                   <span className="ml-2 text-xs font-normal text-gray-500">
-                    Sibiwunseong
+                    12 Stages of Cycle
                   </span>
                 </h4>
                 <p className="text-xs text-gray-500 mb-5">
-                  사주 네 기둥의 에너지 흐름을 12단계로 표현한 생명 주기 지표입니다.
+                  에너지 흐름으로 보는 상태
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* 봉법 */}
-                  {result.pillarsSibiwunseong && (() => {
-                    const val = result.pillarsSibiwunseong!.month || "－";
-                    const desc = sibiwunseongDescriptions[val];
-                    const rgb = desc?.bongbeopRgb || "129, 140, 248";
-                    return (
-                      <div className="flex items-start gap-4">
-                        <div className="flex flex-col items-center gap-1 shrink-0">
-                          <div
-                            className="w-16 h-16 rounded-full border-2 flex items-center justify-center text-base font-bold bg-white sibiwun-pulse"
-                            style={{
-                              "--pulse-rgb": rgb,
-                              borderColor: `rgba(${rgb}, 0.35)`,
-                              color: `rgba(${rgb}, 1)`,
-                            } as React.CSSProperties}
-                          >
-                            {val}
+                  {result.pillarsSibiwunseong &&
+                    (() => {
+                      const val = result.pillarsSibiwunseong!.month || "－";
+                      const desc = sibiwunseongDescriptions[val];
+                      const rgb = desc?.bongbeopRgb || "129, 140, 248";
+                      return (
+                        <div className="flex items-start gap-4">
+                          <div className="flex flex-col items-center gap-1 shrink-0">
+                            <div
+                              className="w-16 h-16 rounded-full border-2 flex items-center justify-center text-base font-bold bg-white sibiwun-pulse"
+                              style={
+                                {
+                                  "--pulse-rgb": rgb,
+                                  borderColor: `rgba(${rgb}, 0.35)`,
+                                  color: `rgba(${rgb}, 1)`,
+                                } as React.CSSProperties
+                              }
+                            >
+                              {val}
+                            </div>
+                            <span
+                              className="text-[10px] font-medium mt-0.5"
+                              style={{ color: `rgba(${rgb}, 0.6)` }}
+                            >
+                              일간(日干)
+                            </span>
                           </div>
-                          <span
-                            className="text-[10px] font-medium mt-0.5"
-                            style={{ color: `rgba(${rgb}, 0.6)` }}
-                          >
-                            봉법 월주
-                          </span>
+                          <div className="pt-1">
+                            <p className="text-sm font-semibold text-gray-800 mb-1">
+                              개인적인 컨디션
+                              {desc && (
+                                <span className="ml-1.5 text-xs font-normal text-gray-400">
+                                  {desc.hanja} · {desc.keyword}
+                                </span>
+                              )}
+                            </p>
+                            <p className="text-xs leading-relaxed text-gray-600">
+                              {desc?.bongbeop ||
+                                "해석 데이터가 아직 등록되지 않았습니다."}
+                            </p>
+                          </div>
                         </div>
-                        <div className="pt-1">
-                          <p className="text-sm font-semibold text-gray-800 mb-1">
-                            봉법(逢法) — 일간 기준
-                            {desc && (
-                              <span className="ml-1.5 text-xs font-normal text-gray-400">
-                                {desc.hanja} · {desc.keyword}
-                              </span>
-                            )}
-                          </p>
-                          <p className="text-xs leading-relaxed text-gray-600">
-                            {desc?.bongbeop || "해석 데이터가 아직 등록되지 않았습니다."}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })()}
+                      );
+                    })()}
 
                   {/* 거법 */}
-                  {result.pillarsSibiwunseongGeopbeop && (() => {
-                    const val = result.pillarsSibiwunseongGeopbeop!.month || "－";
-                    const desc = sibiwunseongDescriptions[val];
-                    const rgb = desc?.geopbeopRgb || "245, 158, 11";
-                    return (
-                      <div className="flex items-start gap-4">
-                        <div className="flex flex-col items-center gap-1 shrink-0">
-                          <div
-                            className="w-16 h-16 rounded-full border-2 flex items-center justify-center text-base font-bold bg-white sibiwun-pulse"
-                            style={{
-                              "--pulse-rgb": rgb,
-                              borderColor: `rgba(${rgb}, 0.35)`,
-                              color: `rgba(${rgb}, 1)`,
-                            } as React.CSSProperties}
-                          >
-                            {val}
+                  {result.pillarsSibiwunseongGeopbeop &&
+                    (() => {
+                      const val =
+                        result.pillarsSibiwunseongGeopbeop!.month || "－";
+                      const desc = sibiwunseongDescriptions[val];
+                      const rgb = desc?.geopbeopRgb || "245, 158, 11";
+                      return (
+                        <div className="flex items-start gap-4">
+                          <div className="flex flex-col items-center gap-1 shrink-0">
+                            <div
+                              className="w-16 h-16 rounded-full border-2 flex items-center justify-center text-base font-bold bg-white sibiwun-pulse"
+                              style={
+                                {
+                                  "--pulse-rgb": rgb,
+                                  borderColor: `rgba(${rgb}, 0.35)`,
+                                  color: `rgba(${rgb}, 1)`,
+                                } as React.CSSProperties
+                              }
+                            >
+                              {val}
+                            </div>
+                            <span
+                              className="text-[10px] font-medium mt-0.5"
+                              style={{ color: `rgba(${rgb}, 0.6)` }}
+                            >
+                              월간(月干)
+                            </span>
                           </div>
-                          <span
-                            className="text-[10px] font-medium mt-0.5"
-                            style={{ color: `rgba(${rgb}, 0.6)` }}
-                          >
-                            거법 월주
-                          </span>
+                          <div className="pt-1">
+                            <p className="text-sm font-semibold text-gray-800 mb-1">
+                              사회적인 컨디션
+                              {desc && (
+                                <span className="ml-1.5 text-xs font-normal text-gray-400">
+                                  {desc.hanja} · {desc.keyword}
+                                </span>
+                              )}
+                            </p>
+                            <p className="text-xs leading-relaxed text-gray-600">
+                              {desc?.geopbeop ||
+                                "해석 데이터가 아직 등록되지 않았습니다."}
+                            </p>
+                          </div>
                         </div>
-                        <div className="pt-1">
-                          <p className="text-sm font-semibold text-gray-800 mb-1">
-                            거법(居法) — 기둥별 간→지
-                            {desc && (
-                              <span className="ml-1.5 text-xs font-normal text-gray-400">
-                                {desc.hanja} · {desc.keyword}
-                              </span>
-                            )}
-                          </p>
-                          <p className="text-xs leading-relaxed text-gray-600">
-                            {desc?.geopbeop || "해석 데이터가 아직 등록되지 않았습니다."}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })()}
+                      );
+                    })()}
                 </div>
               </div>
             </div>
@@ -964,7 +974,10 @@ export const CareerResult: React.FC<CareerResultProps> = ({
                   onClick={() => setJobLegacyModal(legacy)}
                 >
                   <div className="text-sm text-amber-700 mb-2">
-                    전승(傳承) <span className="ml-2 text-xs font-normal text-gray-500">Heritage</span>
+                    전승(傳承){" "}
+                    <span className="ml-2 text-xs font-normal text-gray-500">
+                      Heritage
+                    </span>
                   </div>
                   <div className="text-4xl font-bold text-amber-800">
                     {rootSymbol}
@@ -1006,7 +1019,7 @@ export const CareerResult: React.FC<CareerResultProps> = ({
                   (dang && dangToMonthGroup[dang]) || "자축월";
 
                 const profile = DAY_GAN_MODAL_PROFILES.find(
-                  (p) => p.dayGan === gan && p.monthGroup === monthGroup
+                  (p) => p.dayGan === gan && p.monthGroup === monthGroup,
                 );
                 if (!profile) {
                   setDayGanProfile(null);
@@ -1016,24 +1029,28 @@ export const CareerResult: React.FC<CareerResultProps> = ({
               }}
             >
               <div className="text-sm text-amber-700 mb-2">
-              일간 직능 <span className="ml-2 text-xs font-normal text-gray-500">Day Master</span>
-            </div>
+                일간 직능{" "}
+                <span className="ml-2 text-xs font-normal text-gray-500">
+                  Day Master
+                </span>
+              </div>
               <div className="text-4xl font-bold text-amber-800">
                 {result.ohaengChart?.dayGan ?? "-"}
               </div>
             </button>
             <div className="bg-blue-50 rounded-xl p-6 border border-blue-200">
               <div className="text-sm text-blue-700 mb-2">
-              잠재력 배합 <span className="ml-2 text-xs font-normal text-gray-500">Potential Base</span>
-            </div>
+                잠재력 배합{" "}
+                <span className="ml-2 text-xs font-normal text-gray-500">
+                  Potential Base
+                </span>
+              </div>
               {(() => {
                 const dang = result.debug?.dangnyeongGan;
                 const base = dang ? DANGNYEONG_BASE[dang] : null;
                 if (!base) return null;
                 return (
-                  <div className="text-4xl font-bold text-blue-800">
-                    {base}
-                  </div>
+                  <div className="text-4xl font-bold text-blue-800">{base}</div>
                 );
               })()}
             </div>
@@ -1055,9 +1072,7 @@ export const CareerResult: React.FC<CareerResultProps> = ({
                   ];
                   if (!breakdown?.gan || !breakdown?.ji) {
                     return (
-                      <span className="font-medium">
-                        자유로운 창작 환경
-                      </span>
+                      <span className="font-medium">자유로운 창작 환경</span>
                     );
                   }
                   const deficient = ohaengList.filter((o) => {
@@ -1067,9 +1082,7 @@ export const CareerResult: React.FC<CareerResultProps> = ({
                   });
                   if (deficient.length === 0) {
                     return (
-                      <span className="font-medium">
-                        자유로운 창작 환경
-                      </span>
+                      <span className="font-medium">자유로운 창작 환경</span>
                     );
                   }
                   return (
