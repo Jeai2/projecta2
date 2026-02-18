@@ -712,7 +712,7 @@ export const CareerResult: React.FC<CareerResultProps> = ({
             <div className="flex items-center justify-between mb-2">
               <div>
                 <h3 className="text-2xl font-bold text-gray-800">
-                  {result.name}님의 통합 지표
+                  {result.name}님의 천부운용(天賦運用)
                 </h3>
               </div>
             </div>
@@ -722,7 +722,7 @@ export const CareerResult: React.FC<CareerResultProps> = ({
             {/* 왼쪽: 5원소 밸런스 지수 (레이더 차트) */}
             <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
               <h4 className="text-lg font-bold text-gray-800 mb-4">
-                천부운용(天賦運用)
+                오행
                 <span className="ml-2 text-xs font-normal text-gray-500">
                   Innate Capability
                 </span>
@@ -1105,7 +1105,34 @@ export const CareerResult: React.FC<CareerResultProps> = ({
           </div>
         </div>
 
-        {/* 3. 추천 직업 분야 */}
+        {/* 3. 성공을 위한 조언 */}
+        <div className="bg-gray-800 rounded-2xl border border-gray-700 shadow-sm p-8 text-white">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
+              <span className="text-xl">💡</span>
+            </div>
+            <h3 className="text-xl font-bold">성공을 위한 조언</h3>
+          </div>
+          <p className="text-white/90 text-base leading-relaxed mb-6">
+            {result.successTip}
+          </p>
+          <div className="pt-4 border-t border-white/20">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-white/80">직무 만족도 예상</span>
+              <span className="text-lg font-bold">
+                {result.jobSatisfaction}%
+              </span>
+            </div>
+            <div className="w-full bg-white/20 rounded-full h-3 overflow-hidden">
+              <div
+                className="bg-white h-full rounded-full transition-all"
+                style={{ width: `${result.jobSatisfaction}%` }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* 추천 직업 분야 */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
           <div className="flex items-center gap-2 mb-6">
             <span className="text-2xl">⭐</span>
@@ -1132,33 +1159,6 @@ export const CareerResult: React.FC<CareerResultProps> = ({
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-
-        {/* 3. 성공을 위한 조언 */}
-        <div className="bg-gray-800 rounded-2xl border border-gray-700 shadow-sm p-8 text-white">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
-              <span className="text-xl">💡</span>
-            </div>
-            <h3 className="text-xl font-bold">성공을 위한 조언</h3>
-          </div>
-          <p className="text-white/90 text-base leading-relaxed mb-6">
-            {result.successTip}
-          </p>
-          <div className="pt-4 border-t border-white/20">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-white/80">직무 만족도 예상</span>
-              <span className="text-lg font-bold">
-                {result.jobSatisfaction}%
-              </span>
-            </div>
-            <div className="w-full bg-white/20 rounded-full h-3 overflow-hidden">
-              <div
-                className="bg-white h-full rounded-full transition-all"
-                style={{ width: `${result.jobSatisfaction}%` }}
-              />
-            </div>
           </div>
         </div>
 
