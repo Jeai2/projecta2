@@ -66,6 +66,8 @@ export interface OhaengChartData {
  */
 export interface OhaengChartOptions {
   includeJijanggan?: boolean; // 지장간 포함 여부
+  /** true면 시주 제외, 년월일 6글자만 사용 */
+  excludeHour?: boolean;
   weights?: {
     gan?: number; // 천간 가중치 (기본값: 1.0)
     ji?: number; // 지지 가중치 (기본값: 1.0)
@@ -88,9 +90,14 @@ export function calculateOhaengChart(
 ): OhaengChartData {
   const {
     includeJijanggan = false,
+    excludeHour = false,
     weights = {},
     normalization = "percentage",
   } = options;
+
+  const pillarKeys = excludeHour
+    ? (["year", "month", "day"] as const)
+    : (["year", "month", "day", "hour"] as const);
 
   const ganWeight = weights.gan ?? 1.0;
   const jiWeight = weights.ji ?? 1.0;
@@ -109,8 +116,9 @@ export function calculateOhaengChart(
     total: 0,
   };
 
-  Object.values(sajuData.pillars).forEach((pillar) => {
-    if (pillar.ganOhaeng) {
+  pillarKeys.forEach((key) => {
+    const pillar = sajuData.pillars[key];
+    if (pillar?.ganOhaeng) {
       ganOhaengCount[pillar.ganOhaeng as keyof OhaengCount]++;
       ganOhaengCount.total++;
     }
@@ -126,17 +134,15 @@ export function calculateOhaengChart(
     total: 0,
   };
 
-  // 원국 지지들 수집
-  const allJis = [
-    sajuData.pillars.year.ji,
-    sajuData.pillars.month.ji,
-    sajuData.pillars.day.ji,
-    sajuData.pillars.hour.ji,
-  ].filter(Boolean);
+  // 원국 지지들 수집 (시주 제외 시 3개)
+  const allJis = pillarKeys
+    .map((key) => sajuData.pillars[key]?.ji)
+    .filter(Boolean);
   const jiSet = new Set(allJis);
 
   // 각 지지의 오행 계산 (본래 오행 + 삼합/방합 합화 오행)
-  Object.values(sajuData.pillars).forEach((pillar) => {
+  pillarKeys.forEach((key) => {
+    const pillar = sajuData.pillars[key];
     if (!pillar.ji || !pillar.jiOhaeng) return;
 
     const ji = pillar.ji;
@@ -194,22 +200,20 @@ export function calculateOhaengChart(
     };
 
     // 원국 천간들의 오행 수집 (통근 확인용)
-    const allGanOhaengs = [
-      sajuData.pillars.year.ganOhaeng,
-      sajuData.pillars.month.ganOhaeng,
-      sajuData.pillars.day.ganOhaeng,
-      sajuData.pillars.hour.ganOhaeng,
-    ].filter(Boolean) as string[];
+    const allGanOhaengs = pillarKeys
+      .map((key) => sajuData.pillars[key]?.ganOhaeng)
+      .filter(Boolean) as string[];
 
     // 각 지지별로 지장간 처리
-    Object.entries(sajuData.pillars).forEach(([position, pillar]) => {
-      if (!pillar.ji) return;
+    pillarKeys.forEach((key) => {
+      const pillar = sajuData.pillars[key];
+      if (!pillar?.ji) return;
 
       const ji = pillar.ji;
       let jijangganGans: string[] = [];
 
       // 월지는 월률분야 (기존 JIJANGGAN_DATA), 나머지는 인원용사
-      if (position === "month") {
+      if (key === "month") {
         // 월지: 월률분야 사용 (기존 데이터)
         const jijangganData = JIJANGGAN_DATA[ji];
         if (jijangganData) {
@@ -255,13 +259,14 @@ export function calculateOhaengChart(
   });
 
   // 지지 가중치 적용 (월지는 추가 가중치, 삼합/방합 합화 오행 포함)
-  Object.entries(sajuData.pillars).forEach(([position, pillar]) => {
-    if (!pillar.ji || !pillar.jiOhaeng) return;
+  pillarKeys.forEach((key) => {
+    const pillar = sajuData.pillars[key];
+    if (!pillar?.ji || !pillar?.jiOhaeng) return;
 
     const ji = pillar.ji;
     const baseOhaeng = pillar.jiOhaeng;
     const weight =
-      position === "month" ? jiWeight * monthPillarWeight : jiWeight;
+      key === "month" ? jiWeight * monthPillarWeight : jiWeight;
 
     // 1. 본래 오행 가중치 적용
     weightedScores[baseOhaeng as keyof typeof weightedScores] += weight;
@@ -302,22 +307,20 @@ export function calculateOhaengChart(
   // 지장간 가중치 적용 (통근 조건 적용)
   if (includeJijanggan) {
     // 원국 천간들의 오행 수집 (통근 확인용)
-    const allGanOhaengs = [
-      sajuData.pillars.year.ganOhaeng,
-      sajuData.pillars.month.ganOhaeng,
-      sajuData.pillars.day.ganOhaeng,
-      sajuData.pillars.hour.ganOhaeng,
-    ].filter(Boolean) as string[];
+    const allGanOhaengsForWeight = pillarKeys
+      .map((k) => sajuData.pillars[k]?.ganOhaeng)
+      .filter(Boolean) as string[];
 
     // 각 지지별로 지장간 처리
-    Object.entries(sajuData.pillars).forEach(([position, pillar]) => {
-      if (!pillar.ji) return;
+    pillarKeys.forEach((key) => {
+      const pillar = sajuData.pillars[key];
+      if (!pillar?.ji) return;
 
       const ji = pillar.ji;
       let jijangganGans: string[] = [];
 
       // 월지는 월률분야 (기존 JIJANGGAN_DATA), 나머지는 인원용사
-      if (position === "month") {
+      if (key === "month") {
         // 월지: 월률분야 사용 (기존 데이터)
         const jijangganData = JIJANGGAN_DATA[ji];
         if (jijangganData) {
@@ -335,7 +338,7 @@ export function calculateOhaengChart(
         if (!ganOhaeng) return;
 
         // 통근 확인: 지장간 오행이 원국 천간 오행 중 하나와 같은지
-        const hasTonggeun = allGanOhaengs.includes(ganOhaeng);
+        const hasTonggeun = allGanOhaengsForWeight.includes(ganOhaeng);
 
         // 통근이 있는 경우만 가중치 적용 (없으면 0, 제외와 동일)
         if (hasTonggeun) {

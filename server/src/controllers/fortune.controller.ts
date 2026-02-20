@@ -516,6 +516,7 @@ export const getOhaengChart = async (
       });
     }
 
+    const hasHourInput = !!(birthTime && birthTime.trim() !== "");
     const birthDateObject = new Date(`${birthDate}T${birthTime || "12:00"}:00`);
     if (isNaN(birthDateObject.getTime())) {
       return res.status(400).json({
@@ -528,11 +529,12 @@ export const getOhaengChart = async (
     const { getSajuDetails } = await import("../services/saju.service");
     const sajuResult = await getSajuDetails(birthDateObject, gender);
 
-    // 오행 그래프 데이터 계산
+    // 오행 그래프 데이터 계산 (시주 없으면 6글자만)
     const { calculateOhaengChart } =
       await import("../services/ohaeng-chart.service");
     const chartData = calculateOhaengChart(sajuResult.sajuData, {
       includeJijanggan: includeJijanggan ?? false,
+      excludeHour: !hasHourInput,
       normalization: "percentage",
     });
 
@@ -540,23 +542,24 @@ export const getOhaengChart = async (
     const dayGan =
       sajuResult.sajuData.pillars?.day?.gan ?? null;
 
-    // 일간 제외 7위치 십신 개수 + 삼합(반합)/방합(3개 만족) 왕지 십신 보너스
+    // 일간 제외 십신 개수 (시주 없으면 5위치만)
     const { getSipsinCountWithSamhapBanghap, getSipsinCountExcludingDayGan } =
       await import("../services/sipsin.service");
     const pillars = sajuResult.sajuData.pillars;
+    const sipsinForCount = hasHourInput
+      ? sajuResult.sajuData.sipsin
+      : { ...sajuResult.sajuData.sipsin, hour: { gan: null, ji: null } };
+    const pillarsForBonus = hasHourInput
+      ? { year: { ji: pillars.year.ji ?? null }, month: { ji: pillars.month.ji ?? null }, day: { ji: pillars.day.ji ?? null }, hour: { ji: pillars.hour.ji ?? null } }
+      : { year: { ji: pillars.year.ji ?? null }, month: { ji: pillars.month.ji ?? null }, day: { ji: pillars.day.ji ?? null }, hour: { ji: null } };
     const sipsinCount =
       dayGan != null
         ? getSipsinCountWithSamhapBanghap(
-            sajuResult.sajuData.sipsin,
-            {
-              year: { ji: pillars.year.ji ?? null },
-              month: { ji: pillars.month.ji ?? null },
-              day: { ji: pillars.day.ji ?? null },
-              hour: { ji: pillars.hour.ji ?? null },
-            },
+            sipsinForCount,
+            pillarsForBonus,
             dayGan
           )
-        : getSipsinCountExcludingDayGan(sajuResult.sajuData.sipsin);
+        : getSipsinCountExcludingDayGan(sipsinForCount);
 
     // 유저가 보유한 신살 목록 + 직무 능력 텍스트 (커리어 페이지 배지용)
     const { SINSAL_INTERPRETATION } = await import(
@@ -596,8 +599,10 @@ export const getOhaengChart = async (
     const yearJi = pillars.year?.ji ?? "";
     const monthJi = pillars.month?.ji ?? "";
     const dayJi = pillars.day?.ji ?? "";
-    const hourJi = pillars.hour?.ji ?? "";
-    const allFourJi = [yearJi, monthJi, dayJi, hourJi] as const;
+    const hourJi = hasHourInput ? (pillars.hour?.ji ?? "") : "";
+    const allFourJi = hasHourInput
+      ? ([yearJi, monthJi, dayJi, hourJi] as const)
+      : ([yearJi, monthJi, dayJi] as readonly [string, string, string]);
 
     const add12SinsalByBaseJi = (baseJi: string, keys: Set<string>) => {
       const group = getSamhapGroup(baseJi);
@@ -657,6 +662,7 @@ export const getOhaengChart = async (
         isOver40,
         sinsalCapabilitiesUnder40,
         sinsalCapabilitiesOver40,
+        timeUnknown: !hasHourInput,
       },
     });
   } catch (error) {
@@ -754,21 +760,53 @@ export const getCareerAnalysis = async (
       lunarMonth
     );
 
-    // 진로 에너지 타입 결정
-    const { determineCareerEnergy } =
-      await import("../services/career-energy.service");
-    const energyResult = determineCareerEnergy(
+    // Archetype 6 (홀랜드 6유형) 점수 산출
+    const hasHourInput = !!(birthTime && birthTime.trim() !== "");
+    const timeUnknown = !hasHourInput;
+    const { calculateArchetype6 } =
+      await import("../services/archetype.service");
+    const archetypeResult = calculateArchetype6(
+      sajuResult.sajuData,
       birthDateObject,
-      sajuResult.sajuData.pillars.month.ji,
-      {
-        year: sajuResult.sajuData.pillars.year.gan,
-        month: sajuResult.sajuData.pillars.month.gan,
-        day: sajuResult.sajuData.pillars.day.gan,
-        hour: sajuResult.sajuData.pillars.hour.gan,
-      },
+      lunarMonth,
+      gender,
+      { hasHourInput },
     );
 
-    // 임시 더미 데이터 (추후 실제 데이터로 교체)
+    // 진로 에너지 타입 결정 (시주 없으면 년월일만)
+    const { determineCareerEnergy } =
+      await import("../services/career-energy.service");
+    const pillarsForEnergy = {
+      year: pillars.year.gan + (pillars.year.ji ?? ""),
+      month: pillars.month.gan + (pillars.month.ji ?? ""),
+      day: pillars.day.gan + (pillars.day.ji ?? ""),
+      ...(hasHourInput ? { hour: pillars.hour.gan + (pillars.hour.ji ?? "") } : { hour: null }),
+    };
+    const energyResult = determineCareerEnergy(
+      birthDateObject,
+      pillars.month.ji ?? "",
+      pillarsForEnergy,
+    );
+
+    // 오행 breakdown (부족한 오행 직업 추천용)
+    const { calculateOhaengChart } =
+      await import("../services/ohaeng-chart.service");
+    const ohaengChartForCareer = calculateOhaengChart(sajuResult.sajuData, {
+      includeJijanggan: false,
+      excludeHour: !hasHourInput,
+    });
+
+    // 4가지 출처별 직업 추천
+    const { buildJobRecommendations } = await import(
+      "../services/job-recommendations.service"
+    );
+    const jobRecommendationsBySource = buildJobRecommendations({
+      dangnyeongGan: energyResult.dangnyeongGan,
+      saryeongGan: energyResult.saryeongGan,
+      archetypeScores: archetypeResult.scores,
+      ohaengBreakdown: ohaengChartForCareer.breakdown,
+    });
+
     const careerResult = {
       name: name || "1",
       gender,
@@ -779,28 +817,7 @@ export const getCareerAnalysis = async (
       keywords: energyResult.energyData.keywords,
       energyOhaeng: energyResult.energyData.ohaeng,
       imageUrl: energyResult.energyData.imageUrl, // 이미지 URL 포함
-      jobCategories: [
-        {
-          title: "교육 및 기획",
-          professions: "선생님, 강사, 기획자, 컨설턴트",
-          icon: "education",
-        },
-        {
-          title: "창작 및 예술",
-          professions: "디자이너, 작가, 콘텐츠 크리에이터",
-          icon: "art",
-        },
-        {
-          title: "생태 및 스타트업",
-          professions: "조경사, 생명공학, 스타트업 창업",
-          icon: "startup",
-        },
-        {
-          title: "전문직",
-          professions: "변호사, 출판인, 언론인",
-          icon: "professional",
-        },
-      ],
+      jobRecommendationsBySource,
       successTip:
         "새로운 시작을 두려워하지 마세요. 당신의 창의적인 발상이 세상을 바꾸는 씨앗이 될 것입니다.",
       jobSatisfaction: 88,
@@ -821,19 +838,19 @@ export const getCareerAnalysis = async (
           suitability: 65,
         },
       ],
-      // 만세력 네 기둥(년/월/일/시) 요약
+      // 만세력 네 기둥(년/월/일/시) 요약 — 시주 없으면 null
       pillarsSummary: {
         year: `${pillars.year.gan}${pillars.year.ji}`,
         month: `${pillars.month.gan}${pillars.month.ji}`,
         day: `${pillars.day.gan}${pillars.day.ji}`,
-        hour: `${pillars.hour.gan}${pillars.hour.ji}`,
+        hour: timeUnknown ? null : `${pillars.hour.gan}${pillars.hour.ji}`,
       },
-      // 각 기둥의 천간 오행 (木火土金水)
+      // 각 기둥의 천간 오행 (木火土金水) — 시주 없으면 null
       pillarsOhaengSummary: {
         year: pillars.year.ganOhaeng,
         month: pillars.month.ganOhaeng,
         day: pillars.day.ganOhaeng,
-        hour: pillars.hour.ganOhaeng,
+        hour: timeUnknown ? null : pillars.hour.ganOhaeng,
       },
       // 현재 대운 정보 (간지/나이/년)
       currentDaewoon: currentDaewoon
@@ -843,23 +860,30 @@ export const getCareerAnalysis = async (
             year: currentDaewoon.year,
           }
         : null,
-      // 십이운성 봉법 (년/월/일/시 각 기둥, 일간 기준)
+      // 십이운성 봉법 (년/월/일/시 각 기둥, 일간 기준) — 시주 없으면 "-"
       pillarsSibiwunseong: {
         year: pillars.year.sibiwunseong ?? "",
         month: pillars.month.sibiwunseong ?? "",
         day: pillars.day.sibiwunseong ?? "",
-        hour: pillars.hour.sibiwunseong ?? "",
+        hour: timeUnknown ? "" : (pillars.hour.sibiwunseong ?? ""),
       },
-      // 십이운성 거법 (년/월/일/시 각 기둥, 기둥별 천간→지지)
+      // 십이운성 거법 — 시주 없으면 "-"
       pillarsSibiwunseongGeopbeop:
         sajuResult.sajuData.sibiwunseongGeopbeop
           ? {
               year: sajuResult.sajuData.sibiwunseongGeopbeop.year ?? "",
               month: sajuResult.sajuData.sibiwunseongGeopbeop.month ?? "",
               day: sajuResult.sajuData.sibiwunseongGeopbeop.day ?? "",
-              hour: sajuResult.sajuData.sibiwunseongGeopbeop.hour ?? "",
+              hour: timeUnknown ? "" : (sajuResult.sajuData.sibiwunseongGeopbeop.hour ?? ""),
             }
           : null,
+      // Archetype 6 점수 (육각형 차트용)
+      archetype: {
+        scores: archetypeResult.scores,
+        daewoonScores: archetypeResult.daewoonScores ?? undefined,
+        timeUnknown: archetypeResult.timeUnknown ?? false,
+      },
+      timeUnknown,
       // 디버깅 정보 (선택적)
       debug: {
         source: energyResult.source,
@@ -876,6 +900,37 @@ export const getCareerAnalysis = async (
     });
   } catch (error) {
     console.error("[API Error] getCareerAnalysis Controller:", error);
+    return res.status(500).json({
+      error: true,
+      message: error instanceof Error ? error.message : "서버 내부 오류",
+    });
+  }
+};
+
+// 추천 직업 질의 AI 챗봇
+export const postCareerChat = async (
+  req: Request<
+    ParamsDictionary,
+    { error: false; reply: string } | ErrorResponseBody,
+    { message: string; context: Record<string, unknown> }
+  >,
+  res: Response<{ error: false; reply: string } | ErrorResponseBody>
+) => {
+  try {
+    const { message, context } = req.body;
+    if (!message || typeof message !== "string") {
+      return res.status(400).json({
+        error: true,
+        message: "message가 필요합니다.",
+      });
+    }
+    const { getCareerChatReply } = await import(
+      "../services/career-chat.service"
+    );
+    const reply = await getCareerChatReply(message, context ?? {});
+    return res.status(200).json({ error: false, reply });
+  } catch (error) {
+    console.error("[API Error] postCareerChat:", error);
     return res.status(500).json({
       error: true,
       message: error instanceof Error ? error.message : "서버 내부 오류",

@@ -228,6 +228,64 @@ export const getSipsinBonusFromSamhapBanghap = (
   return count as SipsinCount;
 };
 
+/** 아키타입용 지지 파라미터 (대운 지지 추가 지원) */
+export type ArchetypePillarsForBonus = Parameters<
+  typeof getSipsinBonusFromSamhapBanghap
+>[0] & { daewoon?: { ji: string | null } };
+
+/**
+ * 아키타입 전용: 삼합(반합) + 방합(반방합 포함)
+ * - 삼합: 2개 이상 → 반합 인정
+ * - 방합: 2개 이상 → 반방합 인정 (아키타입만)
+ * - daewoon.ji 있으면 5지지로 삼합/방합 계산 (대운 포함 10글자 모드)
+ */
+export const getSipsinBonusFromSamhapBanghapForArchetype = (
+  pillars: ArchetypePillarsForBonus,
+  dayGan: string
+): SipsinCount => {
+  const count: Record<string, number> = {};
+  SIPSIN_NAMES.forEach((name) => {
+    count[name] = 0;
+  });
+
+  const allJis = [
+    pillars.year.ji,
+    pillars.month.ji,
+    pillars.day.ji,
+    pillars.hour.ji,
+    ...(pillars.daewoon?.ji ? [pillars.daewoon.ji] : []),
+  ].filter((ji): ji is string => ji != null && ji !== "");
+  const jiSet = new Set(allJis);
+
+  const addWangjiSipsin = (ohaeng: string) => {
+    const wangji = OHAENG_TO_WANGJI[ohaeng];
+    if (!wangji) return;
+    const tableE = (SIPSIN_TABLE as { e?: Record<string, Record<string, string>> }).e;
+    const sipsinName = tableE?.[dayGan]?.[wangji];
+    if (sipsinName && sipsinName in count) {
+      count[sipsinName] += 1;
+    }
+  };
+
+  // 삼합: 반합(2개 이상) 인정
+  for (const { jis, result } of SAMHAP_GROUPS) {
+    const present = jis.filter((ji) => jiSet.has(ji)).length;
+    if (present >= 2) {
+      addWangjiSipsin(result);
+    }
+  }
+
+  // 방합: 반방합(2개 이상) 인정 — 아키타입 전용
+  for (const { jis, result } of BANGHAP_GROUPS) {
+    const present = jis.filter((ji) => jiSet.has(ji)).length;
+    if (present >= 2) {
+      addWangjiSipsin(result);
+    }
+  }
+
+  return count as SipsinCount;
+};
+
 /**
  * 일간 제외 7위치 십신 개수 + 삼합/방합 보너스를 합산한다.
  */

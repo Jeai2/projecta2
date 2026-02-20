@@ -31,6 +31,9 @@ import {
 } from "@/data/dayGanModalProfiles";
 import { FloatingPillarsWidget } from "@/components/layout/FloatingPillarsWidget";
 import { sibiwunseongDescriptions } from "@/data/sibiwunseongDescriptions";
+import { ArchetypeChart, type ArchetypeCode } from "./ArchetypeChart";
+import { ARCHETYPE_DESCRIPTIONS } from "@/data/archetypeDescriptions";
+import { CareerChat, type CareerChatContext } from "./CareerChat";
 
 /** 당령(천간) → 당령배합 base 문자열 */
 const DANGNYEONG_BASE: Record<string, string> = {
@@ -105,11 +108,19 @@ interface CareerResultData {
   keywords: string[];
   imageUrl?: string; // 에너지 타입 이미지 URL
   energyOhaeng?: "木" | "火" | "土" | "金" | "水"; // 천간(오행) 색상용
-  jobCategories: {
+  /** @deprecated jobRecommendationsBySource 사용 */
+  jobCategories?: {
     title: string;
     professions: string;
     icon: string;
   }[];
+  /** 4가지 출처별 직업 추천 (당령, 사령, 아키타입6, 부족한 오행) */
+  jobRecommendationsBySource?: {
+    dangnyeong: { source: string; label: string; items: { title: string; professions: string; icon: string }[] };
+    saryeong: { source: string; label: string; items: { title: string; professions: string; icon: string }[] };
+    archetype: { source: string; label: string; items: { title: string; professions: string; icon: string }[] };
+    deficientOhaeng: { source: string; label: string; items: { title: string; professions: string; icon: string }[] };
+  };
   // 만세력 네 기둥(년/월/일/시) 요약 (예: "甲子")
   pillarsSummary?: {
     year: string;
@@ -151,6 +162,12 @@ interface CareerResultData {
     saryeongInPillars?: boolean;
     dangnyeongInPillars?: boolean;
   };
+  archetype?: {
+    scores: Record<"R" | "I" | "A" | "S" | "E" | "C", number>;
+    daewoonScores?: Record<"R" | "I" | "A" | "S" | "E" | "C", number>;
+    timeUnknown?: boolean;
+  };
+  timeUnknown?: boolean;
   successTip: string;
   jobSatisfaction: number;
   suitabilityData: {
@@ -555,6 +572,8 @@ export const CareerResult: React.FC<CareerResultProps> = ({
   const [jobLegacyModal, setJobLegacyModal] = useState<JobLegacyItem | null>(
     null,
   );
+  const [selectedArchetype, setSelectedArchetype] =
+    useState<ArchetypeCode | null>(null);
   const [dayGanProfile, setDayGanProfile] = useState<DayGanModalProfile | null>(
     null,
   );
@@ -716,6 +735,12 @@ export const CareerResult: React.FC<CareerResultProps> = ({
                 </h3>
               </div>
             </div>
+            {(result.timeUnknown ?? result.archetype?.timeUnknown) && (
+              <p className="text-sm text-amber-900 bg-amber-50 rounded-lg px-4 py-2 mt-2">
+                출생 시간이 입력되지 않아, 오행·십성·직무 역량은 대략적인
+                참고치입니다.
+              </p>
+            )}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-6">
@@ -1105,161 +1130,234 @@ export const CareerResult: React.FC<CareerResultProps> = ({
           </div>
         </div>
 
-        {/* 3. 성공을 위한 조언 */}
-        <div className="bg-gray-800 rounded-2xl border border-gray-700 shadow-sm p-8 text-white">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
-              <span className="text-xl">💡</span>
+        {/* 3. 커리어 아키타입 (홀랜드 육각형) — 사이버 테마 */}
+        <div className="relative overflow-hidden rounded-2xl border border-cyan-500/30 bg-slate-900 p-8 text-white shadow-[0_0_24px_rgba(34,211,238,0.08)]">
+          <div
+            className="pointer-events-none absolute inset-0 opacity-30"
+            style={{
+              backgroundImage: `
+                linear-gradient(rgba(34,211,238,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(34,211,238,0.03) 1px, transparent 1px)
+              `,
+              backgroundSize: "20px 20px",
+            }}
+          />
+          <div className="relative flex items-center gap-3 mb-6">
+            <div className="flex h-10 w-10 items-center justify-center rounded border border-cyan-400/50 bg-cyan-400/10 font-mono text-cyan-300 shadow-[0_0_12px_rgba(34,211,238,0.2)]">
+              ⬡
             </div>
-            <h3 className="text-xl font-bold">성공을 위한 조언</h3>
+            <div>
+              <h3 className="text-xl font-bold tracking-tight text-slate-100">
+                사주 아키타입6
+              </h3>
+              <p className="text-xs font-mono text-cyan-400/80">
+                SAJU ARCHETYPE 6
+              </p>
+            </div>
           </div>
-          <p className="text-white/90 text-base leading-relaxed mb-6">
-            {result.successTip}
-          </p>
-          <div className="pt-4 border-t border-white/20">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-white/80">직무 만족도 예상</span>
-              <span className="text-lg font-bold">
-                {result.jobSatisfaction}%
-              </span>
-            </div>
-            <div className="w-full bg-white/20 rounded-full h-3 overflow-hidden">
-              <div
-                className="bg-white h-full rounded-full transition-all"
-                style={{ width: `${result.jobSatisfaction}%` }}
+          {result.archetype?.scores ? (
+            <>
+              <ArchetypeChart
+                scores={result.archetype.scores}
+                daewoonScores={result.archetype.daewoonScores}
+                maxScore={1000}
+                size={320}
+                onArchetypeSelect={(code) =>
+                  setSelectedArchetype((prev) =>
+                    prev === code ? null : code
+                  )
+                }
               />
+              {result.archetype.timeUnknown && (
+                <p className="mt-4 text-center font-mono text-xs text-cyan-400/70">
+                  [ 출생 시간 미입력 · 대략적 참고치 ]
+                </p>
+              )}
+            </>
+          ) : (
+            <div className="py-12 text-center text-white/60">
+              아키타입 데이터를 불러오는 중입니다.
             </div>
+          )}
+          <div className="relative mt-6 border-t border-cyan-500/20 pt-6">
+            {result.archetype?.scores && (
+              <p className="text-xs text-slate-500/80 mb-3">
+                차트 라벨을 클릭하면 해당 유형 설명을 볼 수 있습니다.
+              </p>
+            )}
+            <p className="text-slate-300 text-sm leading-relaxed">
+              {selectedArchetype
+                ? ARCHETYPE_DESCRIPTIONS[selectedArchetype]
+                : result.successTip}
+            </p>
           </div>
         </div>
 
-        {/* 추천 직업 분야 */}
+        {/* 추천 직업 분야 (출처 구분 없이 통합 표시) */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
           <div className="flex items-center gap-2 mb-6">
             <span className="text-2xl">⭐</span>
             <h3 className="text-xl font-bold text-gray-800">추천 직업 분야</h3>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {result.jobCategories.map((category, idx) => (
-              <div
-                key={idx}
-                className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition"
-              >
-                <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0">
-                    <JobCategoryIcon type={category.icon} />
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-bold text-lg text-gray-800 mb-2">
-                      {category.title}
-                    </h4>
-                    <p className="text-sm text-gray-600">
-                      {category.professions}
-                    </p>
+          {result.jobRecommendationsBySource ? (
+            (() => {
+              const blocks = [
+                result.jobRecommendationsBySource.dangnyeong,
+                result.jobRecommendationsBySource.saryeong,
+                result.jobRecommendationsBySource.archetype,
+                result.jobRecommendationsBySource.deficientOhaeng,
+              ];
+              const seen = new Set<string>();
+              const allItems: { title: string; professions: string; icon: string }[] = [];
+              for (const block of blocks) {
+                for (const item of block?.items ?? []) {
+                  const key = `${item.title}|${item.professions}`;
+                  if (!seen.has(key)) {
+                    seen.add(key);
+                    allItems.push(item);
+                  }
+                }
+              }
+              return (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {allItems.map((category, idx) => (
+                    <div
+                      key={idx}
+                      className="bg-gray-50 border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition"
+                    >
+                      <div className="flex items-start gap-4">
+                        <div className="flex-shrink-0">
+                          <JobCategoryIcon type={category.icon} />
+                        </div>
+                        <div className="flex-1">
+                          <h5 className="font-bold text-base text-gray-800 mb-1">
+                            {category.title}
+                          </h5>
+                          <p className="text-sm text-gray-600">
+                            {category.professions}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {(result.jobCategories ?? []).map((category, idx) => (
+                <div
+                  key={idx}
+                  className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="flex-shrink-0">
+                      <JobCategoryIcon type={category.icon} />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-bold text-lg text-gray-800 mb-2">
+                        {category.title}
+                      </h4>
+                      <p className="text-sm text-gray-600">
+                        {category.professions}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+          )}
+          <div className="mt-6">
+            <h4 className="text-sm font-semibold text-gray-700 mb-3">
+              추천 직업 질의
+            </h4>
+            <CareerChat
+              context={(() => {
+                const ctx: CareerChatContext = {
+                  name: result.name,
+                  energyType: result.energyType,
+                  energyDescription: result.energyDescription,
+                  keywords: result.keywords,
+                  pillarsSummary: result.pillarsSummary
+                    ? {
+                        ...result.pillarsSummary,
+                        hour: result.pillarsSummary.hour ?? null,
+                      }
+                    : undefined,
+                  archetype: result.archetype
+                    ? {
+                        scores: result.archetype.scores,
+                        timeUnknown: result.archetype.timeUnknown,
+                      }
+                    : undefined,
+                  successTip: result.successTip,
+                  jobLegacyMale: result.jobLegacyMale ?? undefined,
+                  jobLegacyFemale: result.jobLegacyFemale ?? undefined,
+                };
+                if (result.jobRecommendationsBySource) {
+                  const blocks = [
+                    result.jobRecommendationsBySource.dangnyeong,
+                    result.jobRecommendationsBySource.saryeong,
+                    result.jobRecommendationsBySource.archetype,
+                    result.jobRecommendationsBySource.deficientOhaeng,
+                  ];
+                  const seen = new Set<string>();
+                  ctx.jobItems = [];
+                  for (const block of blocks) {
+                    for (const item of block?.items ?? []) {
+                      const key = `${item.title}|${item.professions}`;
+                      if (!seen.has(key)) {
+                        seen.add(key);
+                        ctx.jobItems!.push({
+                          title: item.title,
+                          professions: item.professions,
+                        });
+                      }
+                    }
+                  }
+                }
+                return ctx;
+              })()}
+            />
           </div>
-        </div>
-
-        {/* 4. 운세 데이터 기반 직무 적합성 */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
-          <div className="flex items-center gap-2 mb-6">
+          <div className="mt-6 flex items-center justify-between text-xs text-gray-500">
+          <p>
+            본 분석은 사주 오행과 십신 이론을 바탕으로 한 시뮬레이션입니다.
+          </p>
+          <button
+            onClick={onReset}
+            className="flex items-center gap-1 text-gray-600 hover:text-gray-800 transition"
+          >
+            <span>다시 분석하기</span>
             <svg
-              className="w-6 h-6 text-gray-600"
+              className="w-4 h-4"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
             >
               <path
-                d="M3 3v18h18"
+                d="M1 4v6h6"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
               <path
-                d="M7 16l4-4 4 4 6-6"
+                d="M23 20v-6h-6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M20.49 9A9 9 0 003.51 15"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M3.51 9A9 9 0 0020.49 15"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
             </svg>
-            <h3 className="text-xl font-bold text-gray-800">
-              운세 데이터 기반 직무 적합성
-            </h3>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
-                    오행 분류
-                  </th>
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
-                    대표 특성
-                  </th>
-                  <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">
-                    적합 지수
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {result.suitabilityData.map((item, idx) => (
-                  <tr
-                    key={idx}
-                    className="border-b border-gray-100 hover:bg-gray-50 transition"
-                  >
-                    <td className="py-3 px-4 text-sm text-gray-800">
-                      {item.category}
-                    </td>
-                    <td className="py-3 px-4 text-sm text-gray-600">
-                      {item.characteristics}
-                    </td>
-                    <td className="py-3 px-4 text-sm text-right font-semibold text-gray-800">
-                      {item.suitability}%
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div className="mt-6 flex items-center justify-between text-xs text-gray-500">
-            <p>
-              본 분석은 사주 오행과 십신 이론을 바탕으로 한 시뮬레이션입니다.
-            </p>
-            <button
-              onClick={onReset}
-              className="flex items-center gap-1 text-gray-600 hover:text-gray-800 transition"
-            >
-              <span>다시 분석하기</span>
-              <svg
-                className="w-4 h-4"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path
-                  d="M1 4v6h6"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M23 20v-6h-6"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M20.49 9A9 9 0 003.51 15"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M3.51 9A9 9 0 0020.49 15"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
+          </button>
           </div>
         </div>
       </div>

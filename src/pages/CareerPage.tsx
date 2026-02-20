@@ -43,11 +43,17 @@ interface CareerResultData {
   energyDescription: string;
   keywords: string[];
   energyOhaeng?: "木" | "火" | "土" | "金" | "水";
-  jobCategories: {
+  jobCategories?: {
     title: string;
     professions: string;
     icon: string;
   }[];
+  jobRecommendationsBySource?: {
+    dangnyeong: { source: string; label: string; items: { title: string; professions: string; icon: string }[] };
+    saryeong: { source: string; label: string; items: { title: string; professions: string; icon: string }[] };
+    archetype: { source: string; label: string; items: { title: string; professions: string; icon: string }[] };
+    deficientOhaeng: { source: string; label: string; items: { title: string; professions: string; icon: string }[] };
+  };
   // 십이운성 봉법
   pillarsSibiwunseong?: {
     year: string;

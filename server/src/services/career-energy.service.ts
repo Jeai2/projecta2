@@ -16,29 +16,23 @@ export interface CareerEnergyResult {
 
 /**
  * 사주 원국 천간 배열에서 특정 천간이 있는지 확인
+ * @param excludeHour true면 시주 제외, 년월일만 확인
  */
-function isGanInPillars(gan: string, pillars: { year: string; month: string; day: string; hour: string }): boolean {
+function isGanInPillars(
+  gan: string,
+  pillars: { year: string; month: string; day: string; hour?: string | null }
+): boolean {
   const ganMap: Record<string, string> = {
-    甲: "갑",
-    乙: "을",
-    丙: "병",
-    丁: "정",
-    戊: "무",
-    己: "기",
-    庚: "경",
-    辛: "신",
-    壬: "임",
-    癸: "계",
+    甲: "갑", 乙: "을", 丙: "병", 丁: "정", 戊: "무",
+    己: "기", 庚: "경", 辛: "신", 壬: "임", 癸: "계",
   };
-
   const hangulGan = ganMap[gan] || gan;
   const hangulPillars = [
-    ganMap[pillars.year[0]] || pillars.year[0],
-    ganMap[pillars.month[0]] || pillars.month[0],
-    ganMap[pillars.day[0]] || pillars.day[0],
-    ganMap[pillars.hour[0]] || pillars.hour[0],
-  ];
-
+    ganMap[pillars.year?.[0]] || pillars.year?.[0],
+    ganMap[pillars.month?.[0]] || pillars.month?.[0],
+    ganMap[pillars.day?.[0]] || pillars.day?.[0],
+    ...(pillars.hour ? [ganMap[pillars.hour[0]] || pillars.hour[0]] : []),
+  ].filter(Boolean);
   return hangulPillars.includes(hangulGan);
 }
 
@@ -59,7 +53,7 @@ function isGanInPillars(gan: string, pillars: { year: string; month: string; day
 export function determineCareerEnergy(
   birthDate: Date,
   monthJi: string,
-  pillars: { year: string; month: string; day: string; hour: string }
+  pillars: { year: string; month: string; day: string; hour?: string | null }
 ): CareerEnergyResult {
   // 1. 당령과 사령 계산
   const dangnyeongResult = analyzeDangnyeong(birthDate);
