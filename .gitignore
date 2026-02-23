@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# AI Knowledge Base — 절대 공개 금지
+server/src/assets/secrets/
+
+# Environment variables — API 키 등 비밀 정보
+server/src/.env

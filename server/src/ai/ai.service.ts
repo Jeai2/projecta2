@@ -16,7 +16,7 @@ export interface AiGeneratedOutput {
  * @returns { refinedText, imageUrl } 객체
  */
 export const getAiGeneratedResponse = async (
-  prompt: string
+  prompt: string,
 ): Promise<AiGeneratedOutput | null> => {
   const API_KEY = process.env.GEMINI_API_KEY;
   if (!API_KEY) {
@@ -26,7 +26,7 @@ export const getAiGeneratedResponse = async (
 
   try {
     const genAI = new GoogleGenerativeAI(API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
 
     // AI에게 전달할 최종 지시문
     const finalPrompt = `You are a wise and warm storyteller. Based on the following landscape description, write a single, beautiful, and metaphorical paragraph about the person's inner world and potential. Do not mention the landscape itself, but use its mood and elements as metaphors. Respond in Korean. \n\n Landscape Description: "${prompt}"`;

@@ -16,11 +16,24 @@ export interface CareerChatContext {
   energyType?: string;
   energyDescription?: string;
   keywords?: string[];
-  pillarsSummary?: { year: string; month: string; day: string; hour: string | null };
+  pillarsSummary?: {
+    year: string;
+    month: string;
+    day: string;
+    hour: string | null;
+  };
   archetype?: { scores: Record<string, number>; timeUnknown?: boolean };
   jobItems?: { title: string; professions: string }[];
-  jobLegacyMale?: { label: string; careerTitle: string; careerDescription: string } | null;
-  jobLegacyFemale?: { label: string; careerTitle: string; careerDescription: string } | null;
+  jobLegacyMale?: {
+    label: string;
+    careerTitle: string;
+    careerDescription: string;
+  } | null;
+  jobLegacyFemale?: {
+    label: string;
+    careerTitle: string;
+    careerDescription: string;
+  } | null;
   successTip?: string;
 }
 
@@ -35,11 +48,15 @@ interface CareerChatProps {
 const INITIAL_MESSAGE: ChatMessage = {
   id: "welcome",
   role: "assistant",
-  content: "추천 직업에 대해 궁금한 점을 물어보세요. 예: '나에게 왜 이 직업들이 추천되었나요?'",
+  content: "궁금한 점을 물어봐. (예: '나에게 왜 이 직업들이 추천되었나요?')",
   timestamp: new Date(),
 };
 
-export function CareerChat({ className = "", context, onSend }: CareerChatProps) {
+export function CareerChat({
+  className = "",
+  context,
+  onSend,
+}: CareerChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([INITIAL_MESSAGE]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -72,10 +89,11 @@ export function CareerChat({ className = "", context, onSend }: CareerChatProps)
       if (onSend) {
         reply = await onSend(text);
       } else if (context) {
-        const res = await axios.post<{ error?: boolean; reply?: string; message?: string }>(
-          "/api/fortune/career-chat",
-          { message: text, context }
-        );
+        const res = await axios.post<{
+          error?: boolean;
+          reply?: string;
+          message?: string;
+        }>("/api/fortune/career-chat", { message: text, context });
         if (res.data.error || !res.data.reply) {
           reply = res.data.message ?? "잠시 후 다시 시도해 주세요.";
         } else {
@@ -112,32 +130,75 @@ export function CareerChat({ className = "", context, onSend }: CareerChatProps)
     >
       <div
         ref={scrollRef}
-        className="flex-1 min-h-[200px] max-h-[320px] overflow-y-auto p-4 space-y-4"
+        className="flex-1 min-h-[200px] max-h-[360px] overflow-y-auto p-4 space-y-5"
       >
         {messages.map((msg) => (
           <div
             key={msg.id}
-            className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+            className={`flex items-end gap-2.5 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}
           >
+            {/* 프로필 아바타 */}
+            {msg.role === "assistant" ? (
+              <img
+                src="/yadung.jpg"
+                alt="야등이"
+                className="flex-shrink-0 w-8 h-8 rounded-full object-cover shadow-sm"
+              />
+            ) : (
+              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center shadow-sm">
+                <svg
+                  className="w-4 h-4 text-white"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path
+                    d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+              </div>
+            )}
+            {/* 말풍선 */}
             <div
-              className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm ${
-                msg.role === "user"
-                  ? "bg-slate-700 text-white"
-                  : "bg-white border border-gray-200 text-gray-800 shadow-sm"
-              }`}
+              className={`flex flex-col gap-1 max-w-[75%] ${msg.role === "user" ? "items-end" : "items-start"}`}
             >
-              <p className="whitespace-pre-wrap">{msg.content}</p>
+              <span className="text-xs text-gray-400 px-1">
+                {msg.role === "assistant" ? "야등이" : "나"}
+              </span>
+              <div
+                className={`rounded-2xl px-4 py-2.5 text-sm ${
+                  msg.role === "user"
+                    ? "bg-slate-700 text-white rounded-br-sm"
+                    : "bg-white border border-gray-200 text-gray-800 shadow-sm rounded-bl-sm"
+                }`}
+              >
+                <p className="whitespace-pre-wrap leading-relaxed">
+                  {msg.content}
+                </p>
+              </div>
             </div>
           </div>
         ))}
         {isLoading && (
-          <div className="flex justify-start">
-            <div className="rounded-2xl px-4 py-2.5 bg-white border border-gray-200 shadow-sm">
-              <span className="inline-flex gap-1">
-                <span className="w-2 h-2 rounded-full bg-gray-400 animate-bounce [animation-delay:-0.3s]" />
-                <span className="w-2 h-2 rounded-full bg-gray-400 animate-bounce [animation-delay:-0.15s]" />
-                <span className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" />
-              </span>
+          <div className="flex items-end gap-2.5 flex-row">
+            <img
+              src="/yadung.jpg"
+              alt="진로 AI"
+              className="flex-shrink-0 w-8 h-8 rounded-full object-cover shadow-sm"
+            />
+            <div className="flex flex-col gap-1 items-start">
+              <span className="text-xs text-gray-400 px-1">진로 AI</span>
+              <div className="rounded-2xl rounded-bl-sm px-4 py-3 bg-white border border-gray-200 shadow-sm">
+                <span className="inline-flex gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-gray-400 animate-bounce [animation-delay:-0.3s]" />
+                  <span className="w-2 h-2 rounded-full bg-gray-400 animate-bounce [animation-delay:-0.15s]" />
+                  <span className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" />
+                </span>
+              </div>
             </div>
           </div>
         )}
