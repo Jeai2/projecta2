@@ -46,18 +46,18 @@ const BRANCH_ORDER = [
 ];
 
 const BRANCH_BASE_VALUES: Record<string, number> = {
-  子: 0.8,
+  子: 1.0,
   丑: 0.7,
-  寅: 0.9,
-  卯: 1.0,
-  辰: 0.8,
+  寅: 0.8,
+  卯: 0.9,
+  辰: 0.7,
   巳: 0.9,
   午: 1.0,
-  未: 0.85,
+  未: 0.7,
   申: 0.8,
   酉: 0.9,
   戌: 0.7,
-  亥: 0.75,
+  亥: 0.9,
 };
 
 const BRANCH_ELEMENT_MAP: Record<string, "木" | "火" | "土" | "金" | "水"> = {
@@ -171,6 +171,8 @@ const matchElements = (a: string | null, b: string | null): number => {
 const computeEventBonus = (branch: string, iljinBranch: string | null): number => {
   if (!iljinBranch) return 0;
   let bonus = 0;
+  if (SAMHAP[branch]?.includes(iljinBranch)) bonus += 0.5;
+  if (BANGHAP[branch]?.includes(iljinBranch)) bonus += 0.4;
   if (YUKHAP[branch] === iljinBranch) bonus += 0.3;
   if (YUKCHUNG[branch] === iljinBranch) bonus += 0.2;
   const hasMinorConflict =
@@ -584,9 +586,13 @@ const computeEntanglementData = (
     mainElement: string | null;
     mainStrength: number;
     baseJis: string[];
+    dayGan?: string;
+    monthJi?: string;
+    dayJi?: string;
   }
 ): {
   mainElement: string | null;
+  externalElement: string | null;
   mainStrength: number;
   connectionStrength: number;
   resonanceStrength: number;
@@ -603,7 +609,7 @@ const computeEntanglementData = (
     range?: string;
   }>;
 } => {
-  const { sewoonGanji, wolwoonGanji, iljinGanji, mainElement, mainStrength, baseJis } = options;
+  const { sewoonGanji, wolwoonGanji, iljinGanji, mainElement, mainStrength, baseJis, dayGan, monthJi, dayJi } = options;
   const baseJiSet = new Set(baseJis.filter(Boolean));
 
   const components: Array<{
@@ -687,8 +693,27 @@ const computeEntanglementData = (
     1
   );
 
+  const dayGanElement = dayGan ? GAN_OHENG[dayGan] ?? null : null;
+  const monthJiElement = monthJi ? JI_OHENG[monthJi] ?? null : null;
+  const dayJiElement = dayJi ? JI_OHENG[dayJi] ?? null : null;
+  const externalWeights: Array<{ element: string | null; weight: number }> = [
+    { element: dayGanElement, weight: 0.40 },
+    { element: monthJiElement, weight: 0.35 },
+    { element: dayJiElement, weight: 0.25 },
+  ];
+  const externalCounts: Record<string, number> = {};
+  externalWeights.forEach(({ element, weight }) => {
+    if (element) {
+      externalCounts[element] = (externalCounts[element] ?? 0) + weight;
+    }
+  });
+  const externalElement = Object.entries(externalCounts).length > 0
+    ? Object.entries(externalCounts).reduce((a, b) => (a[1] >= b[1] ? a : b))[0]
+    : null;
+
   return {
     mainElement,
+    externalElement,
     mainStrength,
     connectionStrength,
     resonanceStrength,
@@ -697,7 +722,7 @@ const computeEntanglementData = (
 };
 
 const buildAlignmentDetail = (
-  label: "대운" | "세운",
+  label: "대운" | "세운" | "월운" | "일운",
   ganji: string | null,
   roles: RoleMap,
   baseGans: string[],
@@ -758,7 +783,9 @@ export const calculateFortuneScores = ({
     sajuData.pillars.hour.ji,
   ];
 
-  const roles = deriveRoleMap(sajuData.yongsin?.primaryYongsin);
+  const eokbuYongsin = sajuData.yongsin?.allAnalyses?.find(a => a.tier === 1)?.yongsin;
+  const johuYongsin = sajuData.yongsin?.allAnalyses?.find(a => a.tier === 2)?.yongsin;
+  const roles = deriveRoleMap(eokbuYongsin || johuYongsin);
 
   const daewoonDetail = daewoon
     ? buildAlignmentDetail("대운", daewoon.ganji ?? null, roles, baseGans, baseJis)
@@ -768,11 +795,6 @@ export const calculateFortuneScores = ({
     ? buildAlignmentDetail("세운", sewoon.ganji ?? null, roles, baseGans, baseJis)
     : null;
 
-  const daewoonAlignment = daewoonDetail?.alignmentScore ?? 5;
-  const sewoonAlignment = sewoonDetail?.alignmentScore ?? 5;
-  const daewoonRelation = daewoonDetail?.relationshipScore ?? 0;
-  const sewoonRelation = sewoonDetail?.relationshipScore ?? 0;
-
   const refDate = referenceDate ?? new Date();
   const referenceYear = refDate.getFullYear();
   const referenceMonth = refDate.getMonth() + 1;
@@ -781,6 +803,23 @@ export const calculateFortuneScores = ({
     referenceMonth,
     sajuData.pillars.day.gan
   ).ganji;
+
+  const wolwoonDetail = wolwoonGanji
+    ? buildAlignmentDetail("월운", wolwoonGanji, roles, baseGans, baseJis)
+    : null;
+
+  const iljinDetail = todayIljinGanji
+    ? buildAlignmentDetail("일운", todayIljinGanji, roles, baseGans, baseJis)
+    : null;
+
+  const daewoonAlignment = daewoonDetail?.alignmentScore ?? 5;
+  const sewoonAlignment = sewoonDetail?.alignmentScore ?? 5;
+  const wolwoonAlignment = wolwoonDetail?.alignmentScore ?? 5;
+  const iljinAlignment = iljinDetail?.alignmentScore ?? 5;
+  const daewoonRelation = daewoonDetail?.relationshipScore ?? 0;
+  const sewoonRelation = sewoonDetail?.relationshipScore ?? 0;
+  const wolwoonRelation = wolwoonDetail?.relationshipScore ?? 0;
+  const iljinRelation = iljinDetail?.relationshipScore ?? 0;
 
   const collapseWolwoon = calculateCollapseComponent(wolwoonGanji, sajuData);
   const collapseIljin = calculateCollapseComponent(todayIljinGanji ?? null, sajuData);
@@ -792,10 +831,14 @@ export const calculateFortuneScores = ({
   );
 
   const totalScore = clamp(
-    0.6 * daewoonAlignment +
-      0.4 * sewoonAlignment +
-      0.6 * daewoonRelation +
-      0.4 * sewoonRelation,
+    0.40 * daewoonAlignment +
+      0.30 * sewoonAlignment +
+      0.18 * wolwoonAlignment +
+      0.12 * iljinAlignment +
+      0.40 * daewoonRelation +
+      0.30 * sewoonRelation +
+      0.18 * wolwoonRelation +
+      0.12 * iljinRelation,
     0,
     10
   );
@@ -808,6 +851,9 @@ export const calculateFortuneScores = ({
     mainElement,
     mainStrength,
     baseJis,
+    dayGan: sajuData.pillars.day.gan,
+    monthJi: sajuData.pillars.month.ji,
+    dayJi: sajuData.pillars.day.ji,
   });
 
   const iljinBranch = todayIljinGanji ? todayIljinGanji[1] : null;
@@ -845,6 +891,8 @@ export const calculateFortuneScores = ({
     breakdown: {
       daewoon: daewoonDetail,
       sewoon: sewoonDetail,
+      wolwoon: wolwoonDetail,
+      iljin: iljinDetail,
     },
     collapse: {
       wolwoon: collapseWolwoon,

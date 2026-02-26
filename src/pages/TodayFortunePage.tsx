@@ -45,7 +45,6 @@ const TodayFortunePage = () => {
 
   return (
     <FortunePageLayout
-      imageUrl="https://placehold.co/1200x400/16a34a/ffffff?text=Today"
       title="오늘의 운세"
       description={
         <>

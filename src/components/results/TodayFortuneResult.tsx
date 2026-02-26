@@ -183,13 +183,8 @@ export const TodayFortuneResult: React.FC<TodayFortuneResultProps> = ({
     .filter(Boolean) as string[];
 
   const entanglementData = data.fortuneScore?.entanglement;
-  const connectionStrength = entanglementData?.connectionStrength ?? 0;
   const resonanceStrength = entanglementData?.resonanceStrength ?? 0;
-  const mainStrength = entanglementData?.mainStrength ?? Math.min(baseWaveScore / 10, 1);
-  const connectionPercent = Math.round(connectionStrength * 100);
   const resonancePercent = Math.round(resonanceStrength * 100);
-  const mainStrengthPercent = Math.round(mainStrength * 100);
-  const entanglementComponents = entanglementData?.components ?? [];
   const elementLabelMap: Record<string, string> = {
     木: "목",
     火: "화",
@@ -197,13 +192,6 @@ export const TodayFortuneResult: React.FC<TodayFortuneResultProps> = ({
     金: "금",
     水: "수",
   };
-  const dominantComponent = entanglementComponents.reduce<
-    | (typeof entanglementComponents)[number]
-    | null
-  >((prev, curr) => {
-    if (!prev) return curr;
-    return curr.score > prev.score ? curr : prev;
-  }, null);
 
   const collapseIndex = (() => {
     const L = baseWaveScore;
@@ -391,16 +379,12 @@ export const TodayFortuneResult: React.FC<TodayFortuneResultProps> = ({
               </div>
             </div>
 
-            <p className="text-lg leading-relaxed text-slate-700">
-              {fortune.summary}
-            </p>
-
             <div className="relative overflow-hidden rounded-2xl border border-[#dacfbf] bg-white/80 p-6 shadow-lg shadow-amber-900/10">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(212,163,115,0.22),_transparent_75%)]" />
               <div className="relative z-10 space-y-3">
                 <p className="text-sm font-semibold text-accent-gold">총평</p>
-                <p className="text-sm leading-relaxed text-slate-700">
-                  {fortune.general}
+                <p className="text-lg leading-relaxed text-slate-700">
+                  {fortune.summary}
                 </p>
               </div>
             </div>
@@ -449,7 +433,7 @@ export const TodayFortuneResult: React.FC<TodayFortuneResultProps> = ({
               key="wave"
               className="rounded-2xl border border-[#e2d7c5] bg-white/90 p-4"
             >
-              <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
+              <p className="text-xs uppercase tracking-[0.2em] text-slate-500 text-center">
                 기류
               </p>
               <div className="mt-3 h-24 w-full">
@@ -674,85 +658,70 @@ export const TodayFortuneResult: React.FC<TodayFortuneResultProps> = ({
                 공명
               </p>
               {entanglementData ? (
-                <div className="mt-2 space-y-2">
-                  <div className="relative flex h-28 items-center justify-center">
-                    {(() => {
-                      const circleSize = 70;
-                      const maxSeparation = 60;
-                      const minSeparation = 26;
-                      const containerHeight = 112; // h-28
-                      const separation =
-                        maxSeparation - connectionStrength * (maxSeparation - minSeparation);
-                      const firstLeft = (140 - separation - circleSize) / 2;
-                      const secondLeft = firstLeft + separation;
-                      const top = Math.max((containerHeight - circleSize) / 2, 0);
-                      const overlapSize = 22 + resonanceStrength * 40;
-                      const overlapLeft = firstLeft + circleSize / 2 + separation / 2 - overlapSize / 2;
-                      const overlapTop = top + (circleSize - overlapSize) / 2;
-                      const externalElement = dominantComponent?.element ?? "";
-                      const externalLabel = elementLabelMap[externalElement ?? ""] ?? "-";
+                <>
+                  {(() => {
+                    const mainEl = entanglementData.mainElement ?? "";
+                    const extEl = entanglementData.externalElement ?? "";
+                    const mainLabel = elementLabelMap[mainEl] ?? "-";
+                    const extLabel = elementLabelMap[extEl] ?? "-";
+                    const ohaengColorMap: Record<string, string> = {
+                      木: "#22c55e", 火: "#ef4444", 土: "#eab308", 金: "#6b7280", 水: "#3b82f6",
+                    };
+                    const mainColor = ohaengColorMap[mainEl] ?? "#94a3b8";
+                    const extColor = ohaengColorMap[extEl] ?? "#94a3b8";
 
-                      return (
-                        <>
-                          <div
-                            className="absolute rounded-full bg-emerald-200/80 shadow-sm"
-                            style={{
-                              width: circleSize,
-                              height: circleSize,
-                              left: firstLeft,
-                              top,
-                            }}
-                          >
-                            <div className="flex h-full flex-col items-center justify-center text-[11px] font-semibold text-emerald-700">
-                              <span>主氣</span>
-                              <span className="mt-0.5 text-xs font-medium">
-                                {elementLabelMap[entanglementData.mainElement ?? ""] ?? "-"}
-                              </span>
-                            </div>
-                          </div>
-                          <div
-                            className="absolute rounded-full bg-sky-200/80 shadow-sm"
-                            style={{
-                              width: circleSize,
-                              height: circleSize,
-                              left: secondLeft,
-                              top,
-                            }}
-                          >
-                            <div className="flex h-full flex-col items-center justify-center text-[11px] font-semibold text-sky-700">
-                              <span>客氣</span>
-                              <span className="mt-0.5 text-xs font-medium">{externalLabel}</span>
-                            </div>
-                          </div>
-                          <div
-                            className="absolute rounded-full bg-gradient-to-br from-amber-200/80 via-rose-200/70 to-transparent shadow"
-                            style={{
-                              width: overlapSize,
-                              height: overlapSize,
-                              left: overlapLeft,
-                              top: overlapTop,
-                            }}
-                          />
-                        </>
-                      );
-                    })()}
-                  </div>
-
-                  <div className="flex items-center justify-center gap-4 text-[11px] text-slate-500">
-                    <span className="inline-flex items-center justify-center gap-1">
-                      <span className="inline-block h-2 w-2 rounded-full bg-emerald-400" />
-                      연결 {connectionPercent}%
-                    </span>
-                    <span className="inline-flex items-center justify-center gap-1">
-                      <span className="inline-block h-2 w-2 rounded-full bg-rose-400" />
-                      공명 {resonancePercent}%
-                    </span>
-                    <span className="inline-flex items-center justify-center gap-1">
-                      <span className="inline-block h-2 w-2 rounded-full bg-slate-300" />
-                      원기 {mainStrengthPercent}%
-                    </span>
-                  </div>
-                </div>
+                    return (
+                      <>
+                        <div className="mt-3 flex items-center justify-center">
+                          <svg viewBox="0 0 140 140" className="h-28 w-28">
+                            <defs>
+                              <linearGradient id="syncGradient" x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0%" stopColor="#c4b5fd" />
+                                <stop offset="50%" stopColor="#f9a8d4" />
+                                <stop offset="100%" stopColor="#fde68a" />
+                              </linearGradient>
+                            </defs>
+                            <circle cx="70" cy="70" r="52" fill="none" stroke="#e2e8f0" strokeWidth="12" />
+                            <circle
+                              cx="70"
+                              cy="70"
+                              r="52"
+                              fill="none"
+                              stroke="url(#syncGradient)"
+                              strokeWidth="12"
+                              strokeDasharray={`${resonancePercent / 100 * 327} ${327 - resonancePercent / 100 * 327}`}
+                              strokeDashoffset="82"
+                              strokeLinecap="round"
+                              className="transition-all duration-700"
+                            />
+                            <text x="70" y="64" textAnchor="middle" className="text-xl font-semibold" fill="#334155">
+                              {resonancePercent}%
+                            </text>
+                            <text x="50" y="84" textAnchor="middle" className="text-xs font-semibold" fill={mainColor}>
+                              {mainLabel}
+                            </text>
+                            <text x="70" y="84" textAnchor="middle" className="text-xs" fill="#cbd5e1">
+                              ·
+                            </text>
+                            <text x="90" y="84" textAnchor="middle" className="text-xs font-semibold" fill={extColor}>
+                              {extLabel}
+                            </text>
+                          </svg>
+                        </div>
+                        <div className="mt-2 flex items-center justify-center gap-3 text-[10px] text-slate-500">
+                          <span className="inline-flex items-center gap-1">
+                            <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: mainColor }} />
+                            주기 <span style={{ color: mainColor, fontWeight: 600 }}>{mainLabel}</span>
+                          </span>
+                          <span className="inline-flex items-center gap-1">
+                            <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: extColor }} />
+                            본기 <span style={{ color: extColor, fontWeight: 600 }}>{extLabel}</span>
+                          </span>
+                        </div>
+                      </>
+                    );
+                  })()}
+                </>
               ) : (
                 <p className="mt-3 text-sm text-slate-500">공명 데이터를 불러오지 못했습니다.</p>
               )}

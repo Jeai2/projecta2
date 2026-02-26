@@ -117,69 +117,69 @@ export const TodayFortuneForm: React.FC<TodayFortuneFormProps> = ({
   };
 
   return (
-    <Card className="max-w-2xl mx-auto border-none bg-transparent shadow-none backdrop-blur-none">
-      <CardContent>
+    <Card className="max-w-2xl mx-auto border border-gray-200 bg-white shadow-lg rounded-3xl">
+      <CardContent className="p-8 sm:p-10">
         <form onSubmit={handleFormSubmit} className="space-y-6">
           {/* 1. 성별 및 양력/음력 */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-3">
-              <Label className="text-text-light font-semibold">성별</Label>
+            <div className="space-y-2">
+              <Label className="text-gray-600 font-semibold">성별</Label>
               <RadioGroup
                 value={gender}
                 onValueChange={(value) => setGender(value as "M" | "W")}
-                className="flex gap-6 pt-2"
+                className="grid grid-cols-2 gap-3"
               >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="M" id="today-male" />
-                  <Label htmlFor="today-male" className="text-text-light">
+                <Label htmlFor="today-male" className="cursor-pointer">
+                  <div className="flex items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-gray-50 py-3 text-gray-700 data-[state=checked]:bg-slate-800 data-[state=checked]:text-white">
+                    <RadioGroupItem value="M" id="today-male" />
                     남성
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="W" id="today-female" />
-                  <Label htmlFor="today-female" className="text-text-light">
+                  </div>
+                </Label>
+                <Label htmlFor="today-female" className="cursor-pointer">
+                  <div className="flex items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-gray-50 py-3 text-gray-700 data-[state=checked]:bg-slate-800 data-[state=checked]:text-white">
+                    <RadioGroupItem value="W" id="today-female" />
                     여성
-                  </Label>
-                </div>
+                  </div>
+                </Label>
               </RadioGroup>
             </div>
 
-            <div className="space-y-3">
-              <Label className="text-text-light font-semibold">양력/음력</Label>
+            <div className="space-y-2">
+              <Label className="text-gray-600 font-semibold">양력/음력</Label>
               <RadioGroup
                 value={calendarType}
                 onValueChange={setCalendarType}
-                className="flex gap-6 pt-2"
+                className="grid grid-cols-2 gap-3"
               >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="solar" id="today-solar" />
-                  <Label htmlFor="today-solar" className="text-text-light">
+                <Label htmlFor="today-solar" className="cursor-pointer">
+                  <div className="flex items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-gray-50 py-3 text-gray-700 data-[state=checked]:bg-slate-800 data-[state=checked]:text-white">
+                    <RadioGroupItem value="solar" id="today-solar" />
                     양력
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="lunar" id="today-lunar" />
-                  <Label htmlFor="today-lunar" className="text-text-light">
+                  </div>
+                </Label>
+                <Label htmlFor="today-lunar" className="cursor-pointer">
+                  <div className="flex items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-gray-50 py-3 text-gray-700 data-[state=checked]:bg-slate-800 data-[state=checked]:text-white">
+                    <RadioGroupItem value="lunar" id="today-lunar" />
                     음력
-                  </Label>
-                </div>
+                  </div>
+                </Label>
               </RadioGroup>
             </div>
           </div>
 
           {/* 2. 생년월일시 */}
-          <div className="space-y-3">
-            <Label className="text-text-light font-semibold">생년월일시</Label>
+          <div className="space-y-2">
+            <Label className="text-gray-600 font-semibold">생년월일시</Label>
             <Input
               type="text"
               placeholder="YYYYMMDD 또는 YYYYMMDDHHMM"
               value={formatBirthDateTime(birthDateTime)}
               onChange={(e) => handleBirthDateTimeChange(e.target.value)}
-              className="bg-background-main border-border-muted text-center font-mono text-lg tracking-wider"
-              maxLength={15} // 띄어쓰기 포함해서 15자리
+              className="bg-gray-50 border-gray-200 rounded-2xl text-center font-mono text-lg tracking-wider"
+              maxLength={15}
             />
-            <p className="text-xs text-text-muted">
-              💡 8자리 또는 12자리로 입력하세요.
+            <p className="text-xs text-gray-500">
+              💡 생시(生時)를 모른다면 생략해주세요.
             </p>
             <div className="text-xs text-accent-gold">
               📝 형식: YYYYMMDD / YYYYMMDDHHMM (시간 선택 입력)
@@ -190,7 +190,7 @@ export const TodayFortuneForm: React.FC<TodayFortuneFormProps> = ({
           <div className="pt-4">
             <Button
               type="submit"
-              className="w-full bg-accent-gold hover:bg-accent-gold/80 text-white font-semibold py-3"
+              className="w-full bg-slate-800 hover:bg-slate-700 text-white font-semibold py-3 rounded-2xl"
               size="lg"
               disabled={isLoading}
             >

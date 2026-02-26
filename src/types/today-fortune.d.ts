@@ -49,7 +49,7 @@ export interface RelationshipDetail {
 }
 
 export interface FortuneAlignmentDetail {
-  label: "대운" | "세운";
+  label: "대운" | "세운" | "월운" | "일운";
   ganji: string | null;
   alignmentScore: number;
   relationshipScore: number;
@@ -66,6 +66,8 @@ export interface FortuneScoreMeta {
   breakdown: {
     daewoon: FortuneAlignmentDetail | null;
     sewoon: FortuneAlignmentDetail | null;
+    wolwoon: FortuneAlignmentDetail | null;
+    iljin: FortuneAlignmentDetail | null;
   };
   collapse?: {
     wolwoon: { score: number; element: string | null };
@@ -84,6 +86,7 @@ export interface FortuneScoreMeta {
   };
   entanglement?: {
     mainElement: string | null;
+    externalElement: string | null;
     mainStrength: number;
     connectionStrength: number;
     resonanceStrength: number;
