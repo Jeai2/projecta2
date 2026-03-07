@@ -19,6 +19,8 @@ export interface IchingToneBlock {
 }
 
 export interface IchingInterpretation {
+  /** 오늘의 운세 메인용 한줄 요약 (톤 무관) */
+  todaySummary?: string;
   positive?: IchingToneBlock;
   neutral?: IchingToneBlock;
   negative?: IchingToneBlock;
@@ -28,9 +30,11 @@ export interface IchingInterpretation {
 export const guaInterpretations: Record<string, IchingInterpretation> = {
   "111111": {
     // 건위천
+    todaySummary:
+      "멈추지 않는 노력과 주도적인 태도가 오늘의 흐름을 스스로 열어주는 날이다.",
     positive: {
       summary:
-        "당신은 지금 가장 눈부신 주인공입니다. 그 빛으로 세상을 이롭게 할 때입니다. 진짜 주인공은, 함께 빛나는 법을 아는 사람이랍니다.",
+        "자신감과 추진력이 강하게 작용하여 스스로 기회를 만들고 성과로 연결될 가능성이 높다.",
       details: {
         money:
           "일상의 작은 노력이 눈에 띄는 결과를 만들어낼 수 있는 시기이다. 꾸준히 나아가면 하고자 하는 것에 큰 이익이 다가올 것이며, 하늘처럼 여유로운 마음으로 가치의 흐름을 따라가면 된다.",
@@ -46,7 +50,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
     },
     neutral: {
       summary:
-        "광휘는 유지되지만 속도를 조절할 때입니다. 기본을 지키며 호흡을 맞추면 무난합니다.",
+        "큰 변화보다는 꾸준한 노력과 성실한 태도가 하루의 안정적인 흐름을 만든다.",
       details: {
         money: "수입·지출 균형에 신경 쓰면 안정이 지속됩니다.",
         love: "소소한 배려와 대화가 관계를 편안하게 해줍니다.",
@@ -58,7 +62,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
     },
     negative: {
       summary:
-        "빛이 강하면 그림자도 짙어집니다. 속도를 낮추고 안전장치를 점검하세요.",
+        "자신감이 지나치면 독단이나 과욕으로 보일 수 있으니 겸손한 균형이 필요하다.",
       details: {
         money: "충동 지출을 경계하고 계획을 재점검하세요.",
         love: "감정 과잉과 오해에 주의가 필요합니다.",
@@ -71,6 +75,8 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "111011": {
     // 천택리
+    todaySummary:
+      "원칙을 지키되 기쁨과 소통을 더하면 순풍이 붑니다. 부드럽게 조율하세요.",
     positive: {
       summary:
         "원칙을 지키되 기쁨과 소통을 더하면 순풍이 붑니다. 큰 방향은 하늘처럼 곧게, 실행은 연못처럼 부드럽게 조율하세요.",
@@ -115,6 +121,8 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "111101": {
     // 천화동인
+    todaySummary:
+      "같은 뜻을 모아 함께 나아갈 때. 공감과 신뢰로 연대하면 큰일도 열립니다.",
     positive: {
       summary:
         "같은 뜻을 모아 함께 나아갈 때입니다. 공감과 신뢰를 바탕으로 연대하면 큰일도 열립니다.",
@@ -157,6 +165,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "111001": {
     // 천뢰무망
+    todaySummary: "솔직하고 올바른 마음으로 나아가면 뜻밖의 기회가 열립니다.",
     positive: {
       summary:
         "거짓과 요행을 멀리하고 본질에 충실할 때입니다. 성실과 정직이 곧 가장 큰 운입니다.",
@@ -200,6 +209,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "111110": {
     // 천풍구
+    todaySummary: "바람처럼 은혜가 퍼지는 날. 베풀며 나아가면 복이 돌아옵니다.",
     positive: {
       summary:
         "뜻하지 않은 만남·기회가 찾아옵니다. 큰 원칙을 지키며 가볍게 맞이하면 이로움이 있습니다.",
@@ -244,6 +254,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "111010": {
     // 천수송
+    todaySummary: "갈등은 잠시, 소통과 양보로 화합을 찾는 하루입니다.",
     positive: {
       summary:
         "이견과 논점이 드러나지만, 원칙과 절차로 정당하게 대응하면 유리합니다. 감정보다 사실에 근거하세요.",
@@ -287,6 +298,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "111100": {
     // 천산돈
+    todaySummary: "한 걸음 물러서 여유를 갖는 것이 진전의 비결입니다.",
     positive: {
       summary:
         "멈춤과 재정비의 때입니다. 높은 곳의 안목으로 계획을 다듬고 때를 기다리면 길합니다.",
@@ -329,6 +341,8 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "111000": {
     // 천지비
+    todaySummary:
+      "잠시 숨고 양분을 모을 때. 무리하지 말고 기다림의 지혜를 발휘하세요.",
     positive: {
       summary:
         "하늘의 원칙과 땅의 현실을 연결할 때입니다. 이상을 현실 계획으로 내려 실행하면 성과가 납니다.",
@@ -369,6 +383,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "011111": {
     // 택천쾌
+    todaySummary: "기쁨이 넘치는 하루. 마음을 열고 기쁨을 나누세요.",
     positive: {
       summary:
         "정체가 뚫리고 기쁨이 옵니다. 과감하되 기본을 지키면 빠른 진전이 있습니다.",
@@ -409,6 +424,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "011011": {
     // 태위택
+    todaySummary: "물이 넘쳐도 기쁨으로. 풍요로운 흐름을 따라가세요.",
     positive: {
       summary:
         "기쁨과 공유가 확산됩니다. 분위기를 살리되 기준을 지키면 모두가 편안합니다.",
@@ -448,6 +464,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "011101": {
     // 태화혁
+    todaySummary: "변혁의 시기. 낡은 것을 과감히 버리고 새 출발을 준비하세요.",
     positive: {
       summary:
         "변화와 혁신의 모멘텀입니다. 기쁨의 에너지를 동력으로 실질 변화를 설계하세요.",
@@ -487,6 +504,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "011001": {
     // 태뢰수
+    todaySummary: "어려움이 있어도 끈기로 극복하면 결실을 맺는 날입니다.",
     positive: {
       summary:
         "기쁨과 변화의 에너지가 충돌하지만, 원칙을 지키며 단계적으로 접근하면 성공합니다.",
@@ -532,6 +550,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "011110": {
     // 택풍대과
+    todaySummary: "큰 전환의 기로. 신중한 판단과 결단이 필요한 하루입니다.",
     positive: {
       summary:
         "큰 변화와 전환의 시기입니다. 기존의 틀을 넘어서는 혁신이 성공을 가져올 것입니다.",
@@ -575,6 +594,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "011010": {
     // 택수곤
+    todaySummary: "막힌 구간에 닿았을 때. 인내와 수양으로 통과하세요.",
     positive: {
       summary:
         "어려움을 극복하고 새로운 기회를 찾을 때입니다. 인내와 지혜로 문제를 해결하세요.",
@@ -616,6 +636,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "011100": {
     // 택산함
+    todaySummary: "감정이 통하는 날. 진심을 나누면 관계가 깊어집니다.",
     positive: {
       summary:
         "감정과 이성의 조화가 이루어질 때입니다. 마음의 평정을 유지하며 현명한 판단을 하세요.",
@@ -655,6 +676,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "011000": {
     // 택지췌
+    todaySummary: "모임이 흐트러질 때. 한동안 정리를 위해 쉬어가세요.",
     positive: {
       summary:
         "어려움을 극복하고 새로운 시작을 할 때입니다. 인내와 지혜로 문제를 해결하세요.",
@@ -696,6 +718,8 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "101111": {
     // 화천대유
+    todaySummary:
+      "풍요와 성공이 모이는 날. 지혜롭게 나누면 더 큰 복이 돌아옵니다.",
     positive: {
       summary:
         "큰 성공과 번영의 시기입니다. 지혜와 덕으로 큰 일을 이루어낼 수 있습니다.",
@@ -737,6 +761,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "101011": {
     // 화택규
+    todaySummary: "갈등이 있어도 원칙을 지키면 화해의 길이 열립니다.",
     positive: {
       summary:
         "화합과 조화의 시기입니다. 서로 다른 의견을 조율하고 통합하면 큰 성과를 얻을 수 있습니다.",
@@ -781,6 +806,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "101101": {
     // 이위화
+    todaySummary: "장식과 꾸밈으로 마음을 전하는 날. 따뜻한 표현이 통합니다.",
     positive: {
       summary:
         "화합과 통합의 완성 단계입니다. 모든 요소가 조화롭게 결합되어 큰 성과를 낼 수 있습니다.",
@@ -824,6 +850,8 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "101001": {
     // 화뢰서합
+    todaySummary:
+      "놀라움이 찾아오는 하루. 급한 반응보다 차분한 대응이 좋습니다.",
     positive: {
       summary:
         "화합과 변화가 동시에 일어나는 시기입니다. 새로운 시작과 기존의 조화를 동시에 추구하세요.",
@@ -865,6 +893,8 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "101110": {
     // 화풍정
+    todaySummary:
+      "정교하게 다듬어 나가는 날. 작은 개선이 큰 성과로 이어집니다.",
     positive: {
       summary:
         "화합과 안정이 완성되는 시기입니다. 모든 요소가 조화롭게 정착되어 지속적인 성공을 이룰 수 있습니다.",
@@ -908,6 +938,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "101010": {
     // 화수미제
+    todaySummary: "아직 완성되지 않은 과정. 인내하며 한 걸음씩 나아가세요.",
     positive: {
       summary:
         "화합과 조화가 완성되지만 아직 완전하지 않은 상태입니다. 마지막 단계까지 완성도를 높이세요.",
@@ -953,6 +984,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "101100": {
     // 화산려
+    todaySummary: "빛나는 존재감. 겸손을 잃지 말고 주변을 비추세요.",
     positive: {
       summary:
         "화합과 안정이 조화롭게 결합된 시기입니다. 모든 요소가 균형을 이루어 지속적인 성공을 이룰 수 있습니다.",
@@ -996,6 +1028,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "101000": {
     // 화지진
+    todaySummary: "이별과 고별의 기운. 새로운 출발을 위한 정리가 필요합니다.",
     positive: {
       summary:
         "화합과 안정이 완성되는 시기입니다. 모든 요소가 조화롭게 정착되어 지속적인 성공을 이룰 수 있습니다.",
@@ -1039,6 +1072,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "001111": {
     // 뇌천대장
+    todaySummary: "과감한 결단과 실행력이 빛나는 날. 두려움을 넘어 도전하세요.",
     positive: {
       summary:
         "큰 변화와 발전의 시기입니다. 과감한 결단과 실행력으로 큰 성과를 이룰 수 있습니다.",
@@ -1082,6 +1116,8 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "001011": {
     // 뇌택귀매
+    todaySummary:
+      "잃어버린 것을 찾아 돌아오는 날. 소중한 것을 다시 만나게 됩니다.",
     positive: {
       summary:
         "변화와 조화가 동시에 일어나는 시기입니다. 새로운 시작과 기존의 조화를 동시에 추구하세요.",
@@ -1123,6 +1159,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "001101": {
     // 뇌화풍
+    todaySummary: "변화의 바람이 부는 하루. 유연하게 적응하면 기회가 됩니다.",
     positive: {
       summary:
         "변화와 화합이 조화롭게 결합된 시기입니다. 새로운 발전과 기존의 조화를 동시에 추구하세요.",
@@ -1165,6 +1202,8 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "001001": {
     // 진위뢰
+    todaySummary:
+      "두려움을 넘어 스스로를 다지는 날. 반복된 수양이 힘이 됩니다.",
     positive: {
       summary:
         "변화와 발전의 시기입니다. 과감한 결단과 실행력으로 새로운 성과를 이룰 수 있습니다.",
@@ -1208,6 +1247,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "001110": {
     // 뇌풍항
+    todaySummary: "깊은 인연과 교류가 의미 있는 하루. 진심을 나누세요.",
     positive: {
       summary:
         "변화와 안정이 조화롭게 결합된 시기입니다. 새로운 발전과 기존의 안정을 동시에 추구하세요.",
@@ -1249,6 +1289,8 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "001010": {
     // 뇌수해
+    todaySummary:
+      "어려움이 있어도 해소의 실마리가 보입니다. 침착하게 대처하세요.",
     positive: {
       summary:
         "변화와 조화가 동시에 일어나는 시기입니다. 새로운 시작과 기존의 조화를 동시에 추구하세요.",
@@ -1290,6 +1332,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "001100": {
     // 뇌산소과
+    todaySummary: "작은 일부터 손보는 날. 꼼꼼함이 나중의 큰 성과를 만듭니다.",
     positive: {
       summary:
         "변화와 안정이 조화롭게 결합된 시기입니다. 새로운 발전과 기존의 안정을 동시에 추구하세요.",
@@ -1331,6 +1374,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "001000": {
     // 뇌지예
+    todaySummary: "예의와 절도를 지키면 신뢰가 쌓이는 날입니다.",
     positive: {
       summary:
         "변화와 안정이 완성되는 시기입니다. 모든 요소가 조화롭게 정착되어 지속적인 성공을 이룰 수 있습니다.",
@@ -1374,6 +1418,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "110111": {
     // 풍천소축
+    todaySummary: "작은 축적이 큰 성과로. 꼼꼼히 쌓아가는 하루입니다.",
     positive: {
       summary:
         "풍요와 발전의 시기입니다. 모든 것이 풍성하게 자라나고 큰 성과를 이룰 수 있습니다.",
@@ -1416,6 +1461,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "110011": {
     // 풍택중부
+    todaySummary: "솔직한 마음이 통하는 날. 신뢰를 바탕으로 약속을 지키세요.",
     positive: {
       summary:
         "풍요와 조화가 완성되는 시기입니다. 모든 요소가 조화롭게 결합되어 큰 성과를 낼 수 있습니다.",
@@ -1459,6 +1505,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "110101": {
     // 풍화가인
+    todaySummary: "가족과 동료에게 따뜻함을 나누는 날. 화목이 복입니다.",
     positive: {
       summary:
         "풍요와 화합이 조화롭게 결합된 시기입니다. 모든 요소가 조화롭게 발전하여 큰 성과를 이룰 수 있습니다.",
@@ -1502,6 +1549,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "110001": {
     // 풍뢰익
+    todaySummary: "도움을 받고 베푸는 상생의 하루. 나눔이 이익을 불러옵니다.",
     positive: {
       summary:
         "풍요와 변화가 조화롭게 결합된 시기입니다. 새로운 발전과 기존의 풍요를 동시에 추구하세요.",
@@ -1543,6 +1591,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "110110": {
     // 손위풍
+    todaySummary: "손실을 최소화하고 얻음을 극대화하는 전략이 효과적입니다.",
     positive: {
       summary:
         "풍요와 안정이 조화롭게 결합된 시기입니다. 모든 요소가 조화롭게 정착되어 지속적인 성공을 이룰 수 있습니다.",
@@ -1586,6 +1635,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "110010": {
     // 풍수환
+    todaySummary: "막혔던 것이 풀리는 날. 포기하지 않은 노력이 빛을 봅니다.",
     positive: {
       summary:
         "풍요와 조화가 동시에 일어나는 시기입니다. 새로운 시작과 기존의 풍요를 동시에 추구하세요.",
@@ -1629,6 +1679,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "110100": {
     // 풍산점
+    todaySummary: "결정이 필요한 기로. 차분히 고민하고 마음대로 나아가세요.",
     positive: {
       summary:
         "풍요와 안정이 조화롭게 결합된 시기입니다. 새로운 발전과 기존의 풍요를 동시에 추구하세요.",
@@ -1670,6 +1721,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "110000": {
     // 풍지관
+    todaySummary: "넓은 시야로 상황을 바라보는 날. 한 걸음 물러서 관망하세요.",
     positive: {
       summary:
         "풍요와 안정이 완성되는 시기입니다. 모든 요소가 조화롭게 정착되어 지속적인 성공을 이룰 수 있습니다.",
@@ -1713,6 +1765,8 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "010111": {
     // 수천수
+    todaySummary:
+      "위험 앞에서 신중함이 길. 모험보다 확실한 발걸음을 선택하세요.",
     positive: {
       summary:
         "수렴과 발전의 시기입니다. 모든 것이 하나로 모여 큰 성과를 이룰 수 있습니다.",
@@ -1754,6 +1808,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "010011": {
     // 수택절
+    todaySummary: "적당한 절제가 풍요로 이어지는 날. 과함을 피하세요.",
     positive: {
       summary:
         "수렴과 조화가 완성되는 시기입니다. 모든 요소가 조화롭게 결합되어 큰 성과를 낼 수 있습니다.",
@@ -1797,6 +1852,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "010101": {
     // 수화기제
+    todaySummary: "아직 완성 전. 협력과 조율로 마무리를 향해 가세요.",
     positive: {
       summary:
         "수렴과 화합이 조화롭게 결합된 시기입니다. 모든 요소가 조화롭게 발전하여 큰 성과를 이룰 수 있습니다.",
@@ -1840,6 +1896,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "010001": {
     // 수뢰돈
+    todaySummary: "어려움 앞에서 잠시 물러날 때. 휴식 후 재기하세요.",
     positive: {
       summary:
         "수렴과 변화가 조화롭게 결합된 시기입니다. 새로운 발전과 기존의 수렴을 동시에 추구하세요.",
@@ -1881,6 +1938,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "010110": {
     // 수풍정
+    todaySummary: "바쁜 와중에도 마음을 가다듬고 정갈하게 보내는 하루.",
     positive: {
       summary:
         "수렴과 안정이 조화롭게 결합된 시기입니다. 모든 요소가 조화롭게 정착되어 지속적인 성공을 이룰 수 있습니다.",
@@ -1924,6 +1982,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "010010": {
     // 감위수
+    todaySummary: "순수한 마음으로 앞당겨 가는 날. 믿음이 통합니다.",
     positive: {
       summary:
         "수렴과 조화가 동시에 일어나는 시기입니다. 새로운 시작과 기존의 수렴을 동시에 추구하세요.",
@@ -1967,6 +2026,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "010100": {
     // 수산건
+    todaySummary: "어려운 구간을 지나고 있습니다. 인내로 극복의 길이 열립니다.",
     positive: {
       summary:
         "수렴과 안정이 조화롭게 결합된 시기입니다. 새로운 발전과 기존의 수렴을 동시에 추구하세요.",
@@ -2008,6 +2068,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "010000": {
     // 수지비
+    todaySummary: "막힌 시기. 겸손히 기다리며 내실을 다지는 하루입니다.",
     positive: {
       summary:
         "수렴과 안정이 완성되는 시기입니다. 모든 요소가 조화롭게 정착되어 지속적인 성공을 이룰 수 있습니다.",
@@ -2051,6 +2112,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "100111": {
     // 산천대축
+    todaySummary: "큰 것을 모으고 쌓는 날. 계획적으로 비축하세요.",
     positive: {
       summary:
         "산과 하늘이 조화롭게 결합된 시기입니다. 모든 요소가 조화롭게 발전하여 큰 성과를 이룰 수 있습니다.",
@@ -2094,6 +2156,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "100011": {
     // 산택손
+    todaySummary: "겸손한 태도가 호운을 부르는 날. 베풀되 알리지 말고 하세요.",
     positive: {
       summary:
         "산과 연못이 조화롭게 결합된 시기입니다. 모든 요소가 조화롭게 발전하여 큰 성과를 이룰 수 있습니다.",
@@ -2137,6 +2200,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "100101": {
     // 산화비
+    todaySummary: "빛을 숨기고 때를 기다리는 지혜. 무리한 표현은 삼가세요.",
     positive: {
       summary:
         "산과 불이 조화롭게 결합된 시기입니다. 모든 요소가 조화롭게 발전하여 큰 성과를 이룰 수 있습니다.",
@@ -2180,6 +2244,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "100001": {
     // 산뢰이
+    todaySummary: "쉬어가며 재충전하는 날. 무리한 움직임은 피하세요.",
     positive: {
       summary:
         "산과 번개가 조화롭게 결합된 시기입니다. 모든 요소가 조화롭게 발전하여 큰 성과를 이룰 수 있습니다.",
@@ -2223,6 +2288,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "100110": {
     // 산풍고
+    todaySummary: "흩어진 마음을 모으는 하루. 고요함 속에서 답을 찾으세요.",
     positive: {
       summary:
         "산과 바람이 조화롭게 결합된 시기입니다. 모든 요소가 조화롭게 발전하여 큰 성과를 이룰 수 있습니다.",
@@ -2266,6 +2332,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "100010": {
     // 산수몽
+    todaySummary: "꿈과 현실 사이. 직감을 믿되 급한 결정은 미루세요.",
     positive: {
       summary:
         "산과 물이 조화롭게 결합된 시기입니다. 모든 요소가 조화롭게 발전하여 큰 성과를 이룰 수 있습니다.",
@@ -2309,6 +2376,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "100100": {
     // 간위산
+    todaySummary: "산처럼 묵직하고 안정된 하루. 차분히 자리를 지키세요.",
     positive: {
       summary:
         "산이 조화롭게 결합된 시기입니다. 모든 요소가 조화롭게 발전하여 큰 성과를 이룰 수 있습니다.",
@@ -2352,6 +2420,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "100000": {
     // 산지박
+    todaySummary: "기반이 흔들릴 때. 원점에서 다시 다져 나가세요.",
     positive: {
       summary:
         "산과 땅이 조화롭게 결합된 시기입니다. 모든 요소가 조화롭게 발전하여 큰 성과를 이룰 수 있습니다.",
@@ -2395,6 +2464,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "000111": {
     // 지천태
+    todaySummary: "천지가 소통하는 태평의 날. 새로운 시작에 적합합니다.",
     positive: {
       summary:
         "땅과 하늘이 조화롭게 결합된 시기입니다. 모든 요소가 조화롭게 발전하여 큰 성과를 이룰 수 있습니다.",
@@ -2438,6 +2508,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "000011": {
     // 지택림
+    todaySummary: "새싹이 돋는 성장의 시기. 기초를 튼튼히 하세요.",
     positive: {
       summary:
         "땅과 연못이 조화롭게 결합된 시기입니다. 모든 요소가 조화롭게 발전하여 큰 성과를 이룰 수 있습니다.",
@@ -2481,6 +2552,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "000101": {
     // 지화명이
+    todaySummary: "밝은 지혜로 어둠을 비추는 날. 겸손한 자세로 조언하세요.",
     positive: {
       summary:
         "땅과 불이 조화롭게 결합된 시기입니다. 모든 요소가 조화롭게 발전하여 큰 성과를 이룰 수 있습니다.",
@@ -2524,6 +2596,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "000001": {
     // 지뢰복
+    todaySummary: "회복과 되살아남의 날. 포기하지 않으면 반전이 옵니다.",
     positive: {
       summary:
         "땅과 번개가 조화롭게 결합된 시기입니다. 모든 요소가 조화롭게 발전하여 큰 성과를 이룰 수 있습니다.",
@@ -2567,6 +2640,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "000110": {
     // 지풍승
+    todaySummary: "바람을 타고 올라가는 상승의 기운. 신중히 진격하세요.",
     positive: {
       summary:
         "땅과 바람이 조화롭게 결합된 시기입니다. 모든 요소가 조화롭게 발전하여 큰 성과를 이룰 수 있습니다.",
@@ -2610,6 +2684,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "000010": {
     // 지수사
+    todaySummary: "군대처럼 질서 있게 나아가는 날. 계획대로 진행하세요.",
     positive: {
       summary:
         "땅과 물이 조화롭게 결합된 시기입니다. 모든 요소가 조화롭게 발전하여 큰 성과를 이룰 수 있습니다.",
@@ -2653,6 +2728,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "000100": {
     // 지산겸
+    todaySummary: "겸손함이 만사를 이롭게 하는 날. 교만을 경계하세요.",
     positive: {
       summary:
         "땅과 산이 조화롭게 결합된 시기입니다. 모든 요소가 조화롭게 발전하여 큰 성과를 이룰 수 있습니다.",
@@ -2696,6 +2772,8 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   },
   "000000": {
     // 곤위지
+    todaySummary:
+      "땅처럼 넓고 받쳐주는 기운. 인내와 포용으로 하루를 마감하세요.",
     positive: {
       summary:
         "땅이 조화롭게 결합된 시기입니다. 모든 요소가 조화롭게 발전하여 큰 성과를 이룰 수 있습니다.",

@@ -569,6 +569,7 @@ export const getTodayFortune = async (userInfo: {
     compatibility, // 상성 분석 결과 추가
     lukim: lukimResult
       ? {
+          name: lukimResult.interpretation?.name ?? "",
           value: lukimResult.total,
           summary: lukimResult.interpretation?.summary ?? "",
           components: lukimResult.components,

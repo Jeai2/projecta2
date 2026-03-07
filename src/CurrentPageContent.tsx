@@ -12,6 +12,7 @@ import TodayFortunePage from "./pages/TodayFortunePage";
 import MansePage from "./pages/MansePage";
 import IljuPage from "./pages/IljuPage";
 import CareerPage from "./pages/CareerPage";
+import AIConsultPage from "./pages/AIConsultPage";
 import { useUiStore } from "./store/uiStore";
 
 const HomePageContent = ({
@@ -50,6 +51,9 @@ export const CurrentPageContent = ({
   }
   if (currentPage === "career") {
     return <CareerPage />;
+  }
+  if (currentPage === "ai-consult") {
+    return <AIConsultPage />;
   }
   return <HomePageContent isExpertMode={isExpertMode} onNavigate={onNavigate} />;
 };

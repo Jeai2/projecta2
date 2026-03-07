@@ -1,6 +1,5 @@
 // src/config/menuConfig.ts
 import {
-  Home,
   Zap,
   Users,
   Clock,
@@ -9,6 +8,7 @@ import {
   Phone,
   BookOpen,
   Star,
+  MessageCircle,
 } from "lucide-react";
 
 // 메뉴 아이템의 타입 정의
@@ -20,6 +20,7 @@ export interface MenuItem {
 
 // 메인 메뉴 (무료 및 주요 기능)
 export const mainMenuItems: MenuItem[] = [
+  { id: "ai-consult", name: "AI상담", icon: MessageCircle },
   { id: "manse", name: "만세력", icon: BookOpen },
   { id: "today", name: "오늘의 운세", icon: Clock },
   { id: "service", name: "운세서비스", icon: Star },

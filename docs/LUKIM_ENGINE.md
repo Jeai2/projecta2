@@ -1,5 +1,7 @@
 # 육임정단(六壬精斷) 계산 엔진 문서
 
+> **추후 만세력 프로그램처럼 육임정단도 웹 시각화 예정.**
+
 > 환경 변경 시 참조용. 2026년 2월 기준 작업 내용 정리.
 
 ---
@@ -10,6 +12,10 @@
 2. [B. 천지반도 (天地盤圖)](#b-천지반도-天地盤圖)
 3. [C. 사과 (四課)](#c-사과-四課)
 4. [D. 삼전 (三傳)](#d-삼전-三傳)
+5. [E. 본명·행년 (本命·行年)](#e-본명행년-本命行年)
+6. [F. 선봉법 (先鋒法)](#f-선봉법-先鋒法)
+6. [F. 선봉법 (先鋒法)](#f-선봉법-先鋒法)
+6. [F. 선봉법 (先鋒法)](#f-선봉법-先鋒法)
 
 ---
 
@@ -182,7 +188,97 @@
 
 ## D. 삼전 (三傳)
 
-**미구현** — 복잡하여 추후 진행 예정.
+10과 판별 + 초·중·말전 계산 구현 완료.
+
+→ 상세 정리: [LUKIM_SAMJEON.md](./LUKIM_SAMJEON.md)
+
+### 함수
+- `getSamjeon(targetDate: Date): Samjeon | null`
+
+### Samjeon 구조
+```ts
+{
+  gwaName: SamjeonGwaName;  // 원수과 | 중심과 | 지일과 | ...
+  cho: SamjeonJeon;         // 초전
+  jung: SamjeonJeon;        // 중전
+  mal: SamjeonJeon;         // 말전
+}
+```
+
+### SamjeonJeon 구조
+```ts
+{
+  jiban: WoljangJi;
+  cheonban: WoljangJi;
+  cheonjang?: Cheonjang;
+  dunggan?: Dunggan;
+}
+```
+
+---
+
+## E. 본명·행년 (本命·行年)
+
+### 본명(本命)
+- 태어난 띠의 지지를 천지반도 지반에서 찾은 자리
+- 예: 1991년생 辛未년 → 未가 본명 → 천지반도에서 지반=未인 행
+
+### 행년(行年)
+- 한 해의 운을 보는 자리
+- **계산**: 나이 ÷ 12의 나머지 값
+- **男**: 寅 포함, 나머지 값만큼 **시계방향** 이동 (예: 나머지 7 → 寅 포함 7번째 = 申)
+- **女**: 申 포함, 나머지 값만큼 **시계 반대방향** 이동 (예: 나머지 7 → 申 포함 7번째 = 寅)
+
+### 함수
+- `getBonmyeong(ddi: WoljangJi, cheonjibando: CheonjibandoPair[]): CheonjibandoPair | null`
+- `getHaengnyeon(age: number, gender: 'M' | 'F', cheonjibando: CheonjibandoPair[]): CheonjibandoPair | null`
+
+---
+
+## F. 선봉법 (先鋒法)
+
+질문자(이용자·내담자)의 고민을 **먼저 알아내는** 육임술법. 일진과 정단 시간으로 판단한다.
+
+### 입력
+- **일진**: 점치 날짜의 일주 (예: 2026-03-07 → 庚辰日)
+- **정단 시지**: 점치 시간을 시진으로 변환 (예: 16:30 → 申시, 15:30~17:29)
+
+### 계산
+- **기준**: 일진의 천간(일간), 일진의 지지(일지)
+- 일간 기준 **일지**의 십성 → `SIPSIN_TABLE.e[일간][일지]`
+- 일간 기준 **시지(정단 시지)**의 십성 → `SIPSIN_TABLE.e[일간][시지]`
+- **지지 간 형충파해합**: 일지-시지 간 육합·육충·육형·육파·육해 (`relationship.data.ts`)
+- **12신살**: 일지의 삼합 그룹 기준, 시지가 어떤 신살인지 → `SINSAL_12_MAP[getSamhapGroup(일지)][시지]` (지살, 년살, 월살, 망신, 장성, 반안, 역마, 육해, 화개, 겁살, 재살, 천살)
+
+### 해석
+- `server/src/data/seonbong-interpretations.ts`에서 사용자가 작성
+- `sipsinOfIlji`, `sipsinOfJeomsi`, `jijiRelations`, `sinsalOfJeomsi` 조합으로 판단 가능
+
+### 함수
+- `getSeonbong(targetDate: Date): SeonbongResult`
+
+### SeonbongResult 구조
+```ts
+{
+  iljinGanji: string;      // 일진 간지 (예: "庚辰")
+  ilgan: string;           // 일간 (예: "庚")
+  ilji: string;            // 일지 (예: "辰")
+  jeomsiJi: WoljangJi;     // 정단 시지 (예: "申")
+  sipsinOfIlji: string;    // 일간 기준 일지의 십성 (예: "편인")
+  sipsinOfJeomsi: string;  // 일간 기준 시지의 십성 (예: "비견")
+  jijiRelations: ("육합"|"육충"|"육형"|"육파"|"육해")[];  // 일지-시지 형충파해합
+  sinsalOfJeomsi: string;  // 일지 기준 시지의 12신살 (지살, 년살, 월살, 망신, 장성, 반안, 역마, 육해, 화개, 겁살, 재살, 천살)
+  interpretation: { sipsin, concernCategory, summary, keywords } | null;  // 사용자 작성
+}
+```
+
+### 사용 예시
+```ts
+getSeonbong(new Date('2026-03-07T16:30:00'));
+// { iljinGanji: "庚辰", ilgan: "庚", ilji: "辰", jeomsiJi: "申",
+//   sipsinOfIlji: "편인", sipsinOfJeomsi: "비견", jijiRelations: ["육해"], sinsalOfJeomsi: "지살",
+//   interpretation: null }  // seonbong-interpretations.ts에서 작성
+```
 
 ---
 
@@ -191,6 +287,9 @@
 | 구분 | 경로 |
 |------|------|
 | 메인 로직 | `server/src/services/lukim.service.ts` |
+| 선봉법 해석 | `server/src/data/seonbong-interpretations.ts` |
+| 지지 관계(형충파해합) | `server/src/data/relationship.data.ts` |
+| 12신살 | `server/src/data/sinsal/12sinsal.map.ts` |
 | 절기 데이터 | `server/src/data/seasonal/*.ts` |
 | 천간/지지 | `server/src/data/saju.data.ts` |
 | 일주 계산 | `server/src/services/saju.service.ts` (`getDayGanji`) |
@@ -200,7 +299,7 @@
 ## 사용 예시
 
 ```ts
-import { getWoljang, getJeomsi, getCheonjibando, getSagwa } from './lukim.service';
+import { getWoljang, getJeomsi, getCheonjibando, getSagwa, getSamjeon } from './lukim.service';
 
 const targetDate = new Date('2026-02-26T12:35:00');
 
@@ -208,4 +307,5 @@ getWoljang(targetDate);      // "亥" (우수~경칩)
 getJeomsi(targetDate);       // "午"
 getCheonjibando(targetDate); // 12개 pair
 getSagwa(targetDate);        // { gw1, gw2, gw3, gw4 }
+getSamjeon(targetDate);      // { gwaName, cho, jung, mal }
 ```

@@ -139,6 +139,7 @@ export interface LukimComponent {
 }
 
 export interface LukimFortune {
+  name: string;
   value: number;
   summary: string;
   components: LukimComponent[];

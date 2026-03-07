@@ -13,6 +13,7 @@ import { ParamsDictionary } from "express-serve-static-core";
 import { getAiGeneratedResponse, AiGeneratedOutput } from "../ai/ai.service";
 // ✅ 오늘의 운세 서비스 import
 import { getTodayFortune } from "../services/today-fortune.service";
+import type { MookADebounceResult } from "../services/mookA-debounce.service";
 // ✅ 일주론 서비스 import
 import { getIljuAnalysis } from "../services/ilju.service";
 
@@ -539,8 +540,7 @@ export const getOhaengChart = async (
     });
 
     // 일간 (선버스트 색상 + 삼합/방합 보너스용)
-    const dayGan =
-      sajuResult.sajuData.pillars?.day?.gan ?? null;
+    const dayGan = sajuResult.sajuData.pillars?.day?.gan ?? null;
 
     // 일간 제외 십신 개수 (시주 없으면 5위치만)
     const { getSipsinCountWithSamhapBanghap, getSipsinCountExcludingDayGan } =
@@ -550,21 +550,30 @@ export const getOhaengChart = async (
       ? sajuResult.sajuData.sipsin
       : { ...sajuResult.sajuData.sipsin, hour: { gan: null, ji: null } };
     const pillarsForBonus = hasHourInput
-      ? { year: { ji: pillars.year.ji ?? null }, month: { ji: pillars.month.ji ?? null }, day: { ji: pillars.day.ji ?? null }, hour: { ji: pillars.hour.ji ?? null } }
-      : { year: { ji: pillars.year.ji ?? null }, month: { ji: pillars.month.ji ?? null }, day: { ji: pillars.day.ji ?? null }, hour: { ji: null } };
+      ? {
+          year: { ji: pillars.year.ji ?? null },
+          month: { ji: pillars.month.ji ?? null },
+          day: { ji: pillars.day.ji ?? null },
+          hour: { ji: pillars.hour.ji ?? null },
+        }
+      : {
+          year: { ji: pillars.year.ji ?? null },
+          month: { ji: pillars.month.ji ?? null },
+          day: { ji: pillars.day.ji ?? null },
+          hour: { ji: null },
+        };
     const sipsinCount =
       dayGan != null
         ? getSipsinCountWithSamhapBanghap(
             sipsinForCount,
             pillarsForBonus,
-            dayGan
+            dayGan,
           )
         : getSipsinCountExcludingDayGan(sipsinForCount);
 
     // 유저가 보유한 신살 목록 + 직무 능력 텍스트 (커리어 페이지 배지용)
-    const { SINSAL_INTERPRETATION } = await import(
-      "../data/interpretation/sinsal"
-    );
+    const { SINSAL_INTERPRETATION } =
+      await import("../data/interpretation/sinsal");
     // 12신살·rules 등에서 쓰는 짧은 이름 → interpretation 키(살 접미사 등) 정규화 → 동일 신살 중복 제거
     const SINSAL_NAME_TO_INTERPRETATION_KEY: Record<string, string> = {
       화개: "화개살",
@@ -587,8 +596,7 @@ export const getOhaengChart = async (
           careerImageUrl: def?.careerImageUrl ?? undefined,
           potentialAbility:
             def?.potentialAbility ?? def?.careerTitle ?? interpretationKey,
-          expertOpinion:
-            def?.expertOpinion ?? def?.careerDescription ?? "",
+          expertOpinion: def?.expertOpinion ?? def?.careerDescription ?? "",
           luckyAction:
             def?.luckyAction ?? "이 신살의 특성을 활용한 행동을 추천합니다.",
         };
@@ -718,14 +726,13 @@ export const getCareerAnalysis = async (
       lunarMonth = birthDateObject.getMonth() + 1; // JS month 0–11 → 1–12
     } else {
       try {
-        const KoreanLunarCalendar = (
-          await import("korean-lunar-calendar")
-        ).default;
+        const KoreanLunarCalendar = (await import("korean-lunar-calendar"))
+          .default;
         const calendar = new KoreanLunarCalendar();
         calendar.setSolarDate(
           birthDateObject.getFullYear(),
           birthDateObject.getMonth() + 1,
-          birthDateObject.getDate()
+          birthDateObject.getDate(),
         );
         const lunar = calendar.getLunarCalendar();
         lunarMonth = lunar?.month ?? birthDateObject.getMonth() + 1;
@@ -734,14 +741,13 @@ export const getCareerAnalysis = async (
         lunarMonth = jiToMonthNumber(
           sajuResult.sajuData.pillars.month.ji as Parameters<
             typeof jiToMonthNumber
-          >[0]
+          >[0],
         );
       }
     }
 
-    const { getJobLegacyByGender } = await import(
-      "../services/job-legacy.service"
-    );
+    const { getJobLegacyByGender } =
+      await import("../services/job-legacy.service");
     const pillars = sajuResult.sajuData.pillars;
     const daewoonList = sajuResult.sajuData.daewoonFull;
     // 만세력(Manse) 페이지와 동일한 기준으로 현재 대운을 계산
@@ -752,12 +758,14 @@ export const getCareerAnalysis = async (
       const currentAge = currentYear - birthYear;
       const currentDaewoonIndex = Math.floor((currentAge - 9) / 10);
       currentDaewoon =
-        daewoonList[currentDaewoonIndex] ?? daewoonList[daewoonList.length - 1] ?? null;
+        daewoonList[currentDaewoonIndex] ??
+        daewoonList[daewoonList.length - 1] ??
+        null;
     }
     const jobLegacy = getJobLegacyByGender(
       pillars.year.gan,
       pillars.year.ji,
-      lunarMonth
+      lunarMonth,
     );
 
     // Archetype 6 (홀랜드 6유형) 점수 산출
@@ -780,7 +788,9 @@ export const getCareerAnalysis = async (
       year: pillars.year.gan + (pillars.year.ji ?? ""),
       month: pillars.month.gan + (pillars.month.ji ?? ""),
       day: pillars.day.gan + (pillars.day.ji ?? ""),
-      ...(hasHourInput ? { hour: pillars.hour.gan + (pillars.hour.ji ?? "") } : { hour: null }),
+      ...(hasHourInput
+        ? { hour: pillars.hour.gan + (pillars.hour.ji ?? "") }
+        : { hour: null }),
     };
     const energyResult = determineCareerEnergy(
       birthDateObject,
@@ -797,9 +807,8 @@ export const getCareerAnalysis = async (
     });
 
     // 4가지 출처별 직업 추천
-    const { buildJobRecommendations } = await import(
-      "../services/job-recommendations.service"
-    );
+    const { buildJobRecommendations } =
+      await import("../services/job-recommendations.service");
     const jobRecommendationsBySource = buildJobRecommendations({
       dangnyeongGan: energyResult.dangnyeongGan,
       saryeongGan: energyResult.saryeongGan,
@@ -868,15 +877,16 @@ export const getCareerAnalysis = async (
         hour: timeUnknown ? "" : (pillars.hour.sibiwunseong ?? ""),
       },
       // 십이운성 거법 — 시주 없으면 "-"
-      pillarsSibiwunseongGeopbeop:
-        sajuResult.sajuData.sibiwunseongGeopbeop
-          ? {
-              year: sajuResult.sajuData.sibiwunseongGeopbeop.year ?? "",
-              month: sajuResult.sajuData.sibiwunseongGeopbeop.month ?? "",
-              day: sajuResult.sajuData.sibiwunseongGeopbeop.day ?? "",
-              hour: timeUnknown ? "" : (sajuResult.sajuData.sibiwunseongGeopbeop.hour ?? ""),
-            }
-          : null,
+      pillarsSibiwunseongGeopbeop: sajuResult.sajuData.sibiwunseongGeopbeop
+        ? {
+            year: sajuResult.sajuData.sibiwunseongGeopbeop.year ?? "",
+            month: sajuResult.sajuData.sibiwunseongGeopbeop.month ?? "",
+            day: sajuResult.sajuData.sibiwunseongGeopbeop.day ?? "",
+            hour: timeUnknown
+              ? ""
+              : (sajuResult.sajuData.sibiwunseongGeopbeop.hour ?? ""),
+          }
+        : null,
       // Archetype 6 점수 (육각형 차트용)
       archetype: {
         scores: archetypeResult.scores,
@@ -914,7 +924,7 @@ export const postCareerChat = async (
     { error: false; reply: string } | ErrorResponseBody,
     { message: string; context: Record<string, unknown> }
   >,
-  res: Response<{ error: false; reply: string } | ErrorResponseBody>
+  res: Response<{ error: false; reply: string } | ErrorResponseBody>,
 ) => {
   try {
     const { message, context } = req.body;
@@ -924,9 +934,8 @@ export const postCareerChat = async (
         message: "message가 필요합니다.",
       });
     }
-    const { getCareerChatReply } = await import(
-      "../services/career-chat.service"
-    );
+    const { getCareerChatReply } =
+      await import("../services/career-chat.service");
     const reply = await getCareerChatReply(message, context ?? {});
     return res.status(200).json({ error: false, reply });
   } catch (error) {
@@ -934,6 +943,194 @@ export const postCareerChat = async (
     return res.status(500).json({
       error: true,
       message: error instanceof Error ? error.message : "서버 내부 오류",
+    });
+  }
+};
+
+/** !오늘운세 감지 패턴 (대소문자 무시) */
+const TODAY_FORTUNE_PATTERN = /!?\s*오늘\s*운세|오늘의?\s*운세|오늘\s*운세\s*봐/i;
+
+/** 도배 시 묵설이 짜증 반응 */
+const SPAM_REPLY =
+  "아우 정신없어! 스승님, 이 사람이 자꾸 말을 끊어서 해요! 짹!";
+
+/**
+ * 묵설(MookA) 챗봇 API
+ * POST /api/fortune/mook-a
+ * body: { userId?, birthDate?, birthTime?, gender?, message, calendarType?, targetPerson? }
+ * message만 필수. birthDate·gender 없으면 자유 대화 모드.
+ *
+ * [디바운스] userId 있으면 2.5초 대기 후 동일 사용자의 메시지를 하나로 합쳐 처리.
+ * - 클라이언트(메시지봇R)는 대기 중 '묵설이가 읽고 있어요...' 등 상태 표시 권장.
+ * - 10개 이상 연속 메시지(도배) 시 짜증 반응 반환.
+ *
+ * "!오늘운세" 등 감지 시 오늘의 운세 전용 포맷으로 응답.
+ */
+export const getMookAFortuneAPI = async (
+  req: Request<
+    ParamsDictionary,
+    unknown,
+    {
+      userId?: string;
+      birthDate?: string;
+      birthTime?: string;
+      gender?: "M" | "W";
+      message: string;
+      targetPerson?: string;
+      calendarType?: "solar" | "lunar";
+    }
+  >,
+  res: Response,
+) => {
+  try {
+    const { userId, birthDate, birthTime, gender, message, targetPerson, calendarType } =
+      req.body;
+
+    if (!message) {
+      return res.status(400).json({
+        error: true,
+        message: "message가 필요합니다.",
+      });
+    }
+
+    // 디바운스: userId 있으면 2.5초 대기 후 합쳐진 메시지로 처리
+    const {
+      collectAndWait,
+      createImmediateResult,
+    } = await import("../services/mookA-debounce.service");
+
+    const debouncedOrCollecting = userId
+      ? await collectAndWait({
+          userId,
+          message,
+          birthDate,
+          birthTime,
+          gender,
+          calendarType,
+          targetPerson,
+        })
+      : createImmediateResult({
+          message,
+          birthDate,
+          birthTime,
+          gender,
+          calendarType,
+          targetPerson,
+        });
+
+    // 추가 메시지 수집 중인 요청: 사용자에게 보낼 메시지 없음 (클라이언트는 202 시 '묵설이가 읽고 있어요...' 표시)
+    if (userId && typeof debouncedOrCollecting === "object" && "primary" in debouncedOrCollecting && !debouncedOrCollecting.primary) {
+      return res.status(202).json({
+        error: false,
+        status: "collecting",
+        sendToUser: false,
+        hint: "묵설이가 읽고 있어요...",
+      });
+    }
+
+    const debounced = debouncedOrCollecting as MookADebounceResult;
+    const { combinedMessage, isSpam } = debounced;
+    const effectiveBirthDate = debounced.birthDate ?? birthDate;
+    const effectiveBirthTime = debounced.birthTime ?? birthTime;
+    const effectiveGender = debounced.gender ?? gender;
+    const effectiveTargetPerson = debounced.targetPerson ?? targetPerson;
+    const effectiveCalendarType = debounced.calendarType ?? calendarType;
+
+    // 도배(10개 이상 연속 메시지) 시 짜증 반응
+    if (isSpam) {
+      console.log("[MookA] 도배 감지, 짜증 반응:", debounced.messageCount);
+      return res.status(200).json({ error: false, reply: SPAM_REPLY });
+    }
+
+    let sajuInfo = { dayPillar: "신비", ohaengSummary: "정령의 기운" };
+    const hasSaju = !!(effectiveBirthDate && effectiveGender);
+    const isTodayFortuneRequest = TODAY_FORTUNE_PATTERN.test(combinedMessage.trim());
+
+    if (hasSaju) {
+      const timeStr = effectiveBirthTime || "12:00";
+      console.log("[MookA] 사주 모드 요청:", {
+        birthDate: effectiveBirthDate,
+        timeStr,
+        gender: effectiveGender,
+        message: combinedMessage,
+      });
+
+      const sajuResult = await getSajuDetails(
+        new Date(`${effectiveBirthDate}T${timeStr}`),
+        effectiveGender,
+      );
+
+      const dayPillar = sajuResult.sajuData.pillars.day;
+      sajuInfo = {
+        dayPillar: `${dayPillar.gan}${dayPillar.ji}`,
+        ohaengSummary: `일간 ${dayPillar.ganOhaeng}, 일지 ${dayPillar.jiOhaeng}`,
+      };
+      console.log("[MookA] 사주 계산 완료:", sajuInfo);
+
+      // !오늘운세 호출: getTodayFortune으로 육임 괘 조회 후 전용 포맷 응답
+      if (isTodayFortuneRequest) {
+        const todayResult = await getTodayFortune({
+          name: "",
+          birthDate: effectiveBirthDate!,
+          gender: effectiveGender!,
+          calendarType: effectiveCalendarType ?? "solar",
+          birthTime: timeStr,
+          birthPlace: "",
+        });
+
+        if (todayResult.lukim?.name && todayResult.lukim?.summary) {
+          const { getMookATodayFortuneResponse } = await import("../services/mookA.service");
+          const reply = await getMookATodayFortuneResponse({
+            lukimName: todayResult.lukim.name,
+            lukimSummary: todayResult.lukim.summary,
+            dayPillar: sajuInfo.dayPillar,
+            ohaengSummary: sajuInfo.ohaengSummary,
+            avoid: todayResult.fortune.avoid,
+            lucky: todayResult.fortune.lucky,
+            advice: todayResult.fortune.advice,
+          });
+
+          if (reply) {
+            console.log("[MookA] 오늘운세 응답 성공:", reply.substring(0, 60));
+            return res.status(200).json({
+              error: false,
+              reply,
+              sendFairyImage: true, // 선녀 모드: 메신저봇R에서 1.5초 후 강신 이미지 전송
+            });
+          }
+        }
+        // lukim 없으면 아래 일반 사주 모드로 fallback
+      }
+    } else {
+      console.log("[MookA] 자유 대화 모드:", { message: combinedMessage });
+    }
+
+    const { getMookAResponse } = await import("../services/mookA.service");
+    const reply = await getMookAResponse(
+      sajuInfo,
+      combinedMessage,
+      hasSaju,
+      effectiveTargetPerson,
+    );
+
+    if (!reply) {
+      console.error("[MookA] AI 응답이 null — API 키 또는 모델 문제 가능성");
+      return res.status(500).json({
+        error: true,
+        message: "묵설이가 잠들었나봐요! (AI 응답 없음)",
+      });
+    }
+
+    console.log("[MookA] 응답 성공:", reply.substring(0, 50));
+    return res.status(200).json({ error: false, reply });
+  } catch (error) {
+    const errMsg = error instanceof Error ? error.message : String(error);
+    const errStack = error instanceof Error ? error.stack : "";
+    console.error("[MookA] 에러 발생:", errMsg);
+    console.error("[MookA] 스택:", errStack);
+    return res.status(500).json({
+      error: true,
+      message: `묵설이가 잠들었나봐요! (${errMsg})`,
     });
   }
 };

@@ -1,6 +1,5 @@
 import { Router } from "express";
 import {
-  getTodaysFortune,
   getTodayFortuneAPI,
   getManseFortune,
   getSewoonForDaewoonAPI,
@@ -11,6 +10,7 @@ import {
   getCareerAnalysis,
   getOhaengChart,
   postCareerChat,
+  getMookAFortuneAPI,
 } from "../controllers/fortune.controller";
 
 const router = Router();
@@ -25,5 +25,6 @@ router.get("/sewoon", getSewoonForDaewoonAPI);
 router.get("/woolwoon", getWoolwoonForYearAPI);
 router.get("/daewoon-relationships", getDaewoonRelationshipsAPI);
 router.get("/sewoon-relationships", getSewoonRelationshipsAPI);
+router.post("/mook-a", getMookAFortuneAPI);
 
 export default router;

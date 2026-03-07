@@ -48,3 +48,36 @@ export const getAiGeneratedResponse = async (
     return null;
   }
 };
+
+/**
+ * 묵설 전용 AI 호출.
+ * 시스템 프롬프트를 그대로 전달하고, 텍스트만 반환한다.
+ * 기존 getAiGeneratedResponse와 달리 풍경 묘사 래핑 없음.
+ */
+export const getMookAChatResponse = async (
+  systemPrompt: string,
+  userMessage: string,
+): Promise<string | null> => {
+  const API_KEY = process.env.GEMINI_API_KEY;
+  if (!API_KEY) {
+    console.error("[MookA] GEMINI_API_KEY가 .env에 설정되지 않았습니다.");
+    return null;
+  }
+
+  try {
+    const genAI = new GoogleGenerativeAI(API_KEY);
+    const model = genAI.getGenerativeModel({
+      model: "gemini-3.1-flash-lite-preview",
+    });
+
+    const result = await model.generateContent([
+      { text: systemPrompt },
+      { text: userMessage },
+    ]);
+    const response = await result.response;
+    return response.text();
+  } catch (error) {
+    console.error("[MookA] AI 응답 생성 실패:", error);
+    return null;
+  }
+};
