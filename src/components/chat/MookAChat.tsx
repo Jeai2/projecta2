@@ -1,118 +1,162 @@
 // src/components/chat/MookAChat.tsx
-// AI 상담 - 서호/윤하/야등이 선생님 선택 챗봇 UI (묵설은 메신저 전용)
+// AI 상담 채팅 — 모던 UI 리디자인
 
 import React, { useState, useRef, useEffect } from "react";
 import axios from "axios";
-import { Send, ChevronDown, User } from "lucide-react";
+import { ArrowUp, Plus, X, Scroll, BookOpen } from "lucide-react";
+import {
+  getCharacterProfile,
+  type CharacterId,
+} from "@/config/characterProfiles";
+import { useFortuneStore } from "@/store/fortuneStore";
+import type { FortuneResponseData, PillarData } from "@/types/fortune";
 
-export type TeacherId = "seoho" | "yunha" | "yadeung";
-
-const TEACHERS: { id: TeacherId; name: string }[] = [
-  { id: "seoho", name: "서호" },
-  { id: "yunha", name: "윤하" },
-  { id: "yadeung", name: "야등이" },
-];
-
+// ─── 타입 ────────────────────────────────────────────────────
 interface ChatMessage {
   id: string;
   role: "user" | "assistant";
   content: string;
-  timestamp: Date;
 }
 
-const WELCOME_BY_TEACHER: Record<TeacherId, string> = {
-  seoho: "서호입니다. 무엇이든 편하게 물어보세요.",
-  yunha: "윤하예요. 궁금한 점 있으면 말해 주세요.",
-  yadeung: "야등이입니다. 운세나 사주, 궁금한 걸 물어보세요.",
+interface Attachment {
+  label: string;
+  content: string;
+}
+
+// ─── 첨부 컨텐츠 포매터 ─────────────────────────────────────
+const pillarLine = (title: string, d: PillarData) => {
+  const sipsin =
+    [d.ganSipsin, d.jiSipsin].filter(Boolean).join("/") || "일간";
+  return `${title}: ${d.gan}(${d.ganOhaeng}) ${d.ji}(${d.jiOhaeng})  [${sipsin}]`;
 };
 
-const getInitialMessage = (teacherId: TeacherId): ChatMessage => ({
-  id: "welcome",
-  role: "assistant",
-  content: WELCOME_BY_TEACHER[teacherId],
-  timestamp: new Date(),
-});
+const formatMingshik = (r: FortuneResponseData): string => {
+  const { pillars } = r.saju.sajuData;
+  const nameLine = r.userInfo.name ? `이름: ${r.userInfo.name}\n` : "";
+  return [
+    "[사주 명식 첨부]",
+    nameLine +
+      [
+        pillarLine("시주", pillars.hour),
+        pillarLine("일주", pillars.day),
+        pillarLine("월주", pillars.month),
+        pillarLine("년주", pillars.year),
+      ].join("\n"),
+  ].join("\n");
+};
 
-const QUICK_PROMPTS = [
-  { label: "오늘의 운세", prompt: "오늘의 운세 알려줘" },
-  { label: "사주 풀이", prompt: "사주 풀이 해줘" },
-  { label: "직업 추천", prompt: "나에게 맞는 직업 추천해줘" },
-  { label: "궁합 보기", prompt: "궁합에 대해 알려줘" },
-  { label: "일상 고민", prompt: "요즘 고민이 있어" },
-];
+const formatInterpretation = (r: FortuneResponseData): string => {
+  const { interpretation } = r.saju;
+  const base = interpretation.dayMasterNature.base.slice(0, 180);
+  const sipsin = interpretation.sipsinAnalysis.slice(0, 180);
+  return [
+    "[해석 결과 첨부]",
+    `일간 기질: ${base}…`,
+    `십신 분석: ${sipsin}…`,
+  ].join("\n\n");
+};
 
-export function MookAChat({ className = "" }: { className?: string }) {
-  const [teacher, setTeacher] = useState<TeacherId>("yadeung");
-  const [messages, setMessages] = useState<ChatMessage[]>(() => [
-    { id: "welcome", role: "assistant", content: WELCOME_BY_TEACHER.yadeung, timestamp: new Date() },
+// ─── 환영 메시지 ─────────────────────────────────────────────
+const WELCOME: Record<CharacterId, string> = {
+  seoho: "서호입니다. 무엇이든 편하게 물어보세요.",
+  yunha: "운하예요. 궁금한 점 있으면 말해 주세요.",
+  yadeung: "야등입니다. 운세나 사주, 궁금한 걸 물어보세요.",
+};
+
+// ─── Props ───────────────────────────────────────────────────
+interface MookAChatProps {
+  className?: string;
+  selectedCharacter: CharacterId;
+}
+
+// ─── 컴포넌트 ────────────────────────────────────────────────
+export function MookAChat({ className = "", selectedCharacter }: MookAChatProps) {
+  const { fortuneResult } = useFortuneStore();
+
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    { id: "welcome", role: "assistant", content: WELCOME[selectedCharacter] },
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [teacherDropdownOpen, setTeacherDropdownOpen] = useState(false);
+  const [attachment, setAttachment] = useState<Attachment | null>(null);
+  const [plusOpen, setPlusOpen] = useState(false);
+
   const scrollRef = useRef<HTMLDivElement>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  const profile = getCharacterProfile(selectedCharacter);
+  const characterName = profile?.name ?? "선생님";
+  const avatarSrc = profile?.chatImage ?? profile?.image ?? "/yadung.jpg";
+
+  // 캐릭터 변경 시 리셋
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setTeacherDropdownOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    setMessages([
+      { id: "welcome", role: "assistant", content: WELCOME[selectedCharacter] },
+    ]);
+    setAttachment(null);
+    setInput("");
+  }, [selectedCharacter]);
 
-  const hasUserMessages = messages.some((m) => m.role === "user");
-  const isEmptyState = !hasUserMessages;
-
+  // 메시지 추가 시 스크롤
   useEffect(() => {
     scrollRef.current?.scrollTo({
       top: scrollRef.current.scrollHeight,
       behavior: "smooth",
     });
-  }, [messages]);
+  }, [messages, isLoading]);
 
+  // textarea 자동 높이
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
+  }, [input]);
+
+  // ─── 전송 ────────────────────────────────────────────────
   const sendMessage = async (text: string) => {
     const trimmed = text.trim();
     if (!trimmed || isLoading) return;
 
+    const fullContent = attachment
+      ? `${attachment.content}\n\n${trimmed}`
+      : trimmed;
+
     const userMsg: ChatMessage = {
       id: `user-${Date.now()}`,
       role: "user",
-      content: trimmed,
-      timestamp: new Date(),
+      content: trimmed, // 화면에는 첨부 내용 없이 표시
     };
+
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
+    setAttachment(null);
     setIsLoading(true);
 
     try {
-      const res = await axios.post<{
-        error?: boolean;
-        reply?: string;
-        message?: string;
-      }>("/api/fortune/mook-a", { message: trimmed, teacher });
+      const res = await axios.post<{ error?: boolean; reply?: string; message?: string }>(
+        "/api/fortune/mook-a",
+        { message: fullContent, teacher: selectedCharacter }
+      );
 
       const reply =
         res.data.error || !res.data.reply
           ? res.data.message ?? "잠시 후 다시 시도해 주세요."
           : res.data.reply;
 
-      const assistantMsg: ChatMessage = {
-        id: `assistant-${Date.now()}`,
-        role: "assistant",
-        content: reply,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, assistantMsg]);
+      setMessages((prev) => [
+        ...prev,
+        { id: `assistant-${Date.now()}`, role: "assistant", content: reply },
+      ]);
     } catch {
-      const errorMsg: ChatMessage = {
-        id: `assistant-${Date.now()}`,
-        role: "assistant",
-        content: "잠시 후 다시 시도해 주세요.",
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, errorMsg]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `assistant-${Date.now()}`,
+          role: "assistant",
+          content: "잠시 후 다시 시도해 주세요.",
+        },
+      ]);
     } finally {
       setIsLoading(false);
     }
@@ -123,158 +167,212 @@ export function MookAChat({ className = "" }: { className?: string }) {
     sendMessage(input);
   };
 
-  const handleQuickPrompt = (prompt: string) => {
-    sendMessage(prompt);
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage(input);
+    }
   };
 
-  const InputBar = () => (
-    <form onSubmit={handleSubmit} className="w-full">
-      <div className="flex items-center gap-2 rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm focus-within:ring-2 focus-within:ring-gray-300/50 focus-within:border-gray-300">
-        <div className="relative flex-shrink-0" ref={dropdownRef}>
-          <button
-            type="button"
-            onClick={() => setTeacherDropdownOpen((o) => !o)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 bg-gray-50 hover:bg-gray-100 text-gray-700 text-sm font-medium transition"
-          >
-            <User className="w-4 h-4" />
-            <span>선생님 교체</span>
-            <ChevronDown className="w-4 h-4" />
-          </button>
-          {teacherDropdownOpen && (
-            <div className="absolute left-0 top-full mt-1 py-1 rounded-lg border border-gray-200 bg-white shadow-lg z-10 min-w-[120px]">
-              {TEACHERS.map((t) => (
-                <button
-                  key={t.id}
-                  type="button"
-                  onClick={() => {
-                    setTeacher(t.id);
-                    setTeacherDropdownOpen(false);
-                  }}
-                  className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 ${teacher === t.id ? "bg-gray-100 font-medium" : ""}`}
-                >
-                  {t.name}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="무엇이든 물어보세요"
-          disabled={isLoading}
-          className="flex-1 min-w-0 bg-transparent text-gray-800 placeholder:text-gray-400 text-sm focus:outline-none disabled:opacity-60"
-        />
-        <button
-          type="submit"
-          disabled={!input.trim() || isLoading}
-          className="flex-shrink-0 p-2 rounded-lg bg-gray-800 text-white hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
-          aria-label="전송"
-        >
-          <Send className="w-4 h-4" />
-        </button>
-      </div>
-    </form>
-  );
+  // ─── + 메뉴 옵션 ────────────────────────────────────────
+  const attachMingshik = () => {
+    if (!fortuneResult) return;
+    setAttachment({ label: "사주 명식", content: formatMingshik(fortuneResult) });
+    setPlusOpen(false);
+    textareaRef.current?.focus();
+  };
 
+  const attachInterpretation = () => {
+    if (!fortuneResult) return;
+    setAttachment({
+      label: "해석 결과",
+      content: formatInterpretation(fortuneResult),
+    });
+    setPlusOpen(false);
+    textareaRef.current?.focus();
+  };
+
+  const hasFortune = !!fortuneResult;
+
+  // ─── 렌더 ────────────────────────────────────────────────
   return (
     <div className={`flex flex-col ${className}`}>
-      {/* 채팅 모드: 메시지 영역 + 하단 입력 */}
-      {!isEmptyState && (
-        <div
-          ref={scrollRef}
-          className="flex-1 min-h-[320px] max-h-[calc(100vh-320px)] overflow-y-auto py-6 space-y-6"
-        >
-          {messages.map((msg) => (
-            <div
-              key={msg.id}
-              className={`flex items-end gap-3 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}
-            >
-              {msg.role === "assistant" ? (
-                <img
-                  src="/yadung.jpg"
-                  alt={TEACHERS.find((t) => t.id === teacher)?.name ?? "선생님"}
-                  className="flex-shrink-0 w-9 h-9 rounded-full object-cover shadow-sm"
-                />
-              ) : (
-                <div className="flex-shrink-0 w-9 h-9 rounded-full bg-gray-300 flex items-center justify-center">
-                  <svg
-                    className="w-4 h-4 text-gray-500"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                    <circle cx="12" cy="7" r="4" />
-                  </svg>
-                </div>
-              )}
-              <div
-                className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm ${
-                  msg.role === "user"
-                    ? "bg-gray-800 text-white rounded-br-md"
-                    : "bg-white border border-gray-200 text-gray-800 shadow-sm rounded-bl-md"
-                }`}
-              >
-                <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
-              </div>
-            </div>
-          ))}
-          {isLoading && (
-            <div className="flex items-end gap-3 flex-row">
+
+      {/* 메시지 영역 */}
+      <div
+        ref={scrollRef}
+        className="flex-1 overflow-y-auto py-5 space-y-5 min-h-[280px] max-h-[calc(100vh-300px)]"
+      >
+        {messages.map((msg) => (
+          <div
+            key={msg.id}
+            className={`flex items-end gap-2.5 ${
+              msg.role === "user" ? "flex-row-reverse" : "flex-row"
+            }`}
+          >
+            {/* 아바타 */}
+            {msg.role === "assistant" ? (
               <img
-                src="/yadung.jpg"
-                alt={TEACHERS.find((t) => t.id === teacher)?.name ?? "선생님"}
-                className="flex-shrink-0 w-9 h-9 rounded-full object-cover shadow-sm"
+                src={avatarSrc}
+                alt={characterName}
+                className="w-8 h-8 rounded-full object-cover object-top flex-shrink-0 shadow-sm"
               />
-              <div className="rounded-2xl rounded-bl-md px-4 py-3 bg-white border border-gray-200 shadow-sm">
-                <span className="inline-flex gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-gray-400 animate-bounce [animation-delay:-0.3s]" />
-                  <span className="w-2 h-2 rounded-full bg-gray-400 animate-bounce [animation-delay:-0.15s]" />
-                  <span className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" />
-                </span>
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
+                <svg className="w-4 h-4 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
               </div>
-            </div>
-          )}
-        </div>
-      )}
+            )}
 
-      {/* 빈 상태: 중앙 입력 + 추천 프롬프트 그리드 */}
-      {isEmptyState && (
-        <div className="flex flex-col items-center py-8 sm:py-12">
-          <div className="w-full max-w-2xl space-y-8">
-            <InputBar />
-
-            <div>
-              <p className="text-sm font-medium text-gray-500 mb-3 px-1">
-                추천 질문
-              </p>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {QUICK_PROMPTS.map((item) => (
-                  <button
-                    key={item.label}
-                    type="button"
-                    onClick={() => handleQuickPrompt(item.prompt)}
-                    disabled={isLoading}
-                    className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition disabled:opacity-50 text-left"
-                  >
-                    <span className="truncate">{item.label}</span>
-                  </button>
-                ))}
-              </div>
+            {/* 말풍선 */}
+            <div
+              className={`max-w-[75%] text-sm leading-relaxed whitespace-pre-wrap ${
+                msg.role === "user"
+                  ? "bg-slate-900 text-white rounded-2xl rounded-tr-sm px-4 py-2.5"
+                  : "bg-white border border-gray-100 text-gray-800 shadow-sm rounded-2xl rounded-tl-sm px-4 py-2.5"
+              }`}
+            >
+              {msg.content}
             </div>
           </div>
+        ))}
+
+        {/* 로딩 점 */}
+        {isLoading && (
+          <div className="flex items-end gap-2.5 flex-row">
+            <img
+              src={avatarSrc}
+              alt={characterName}
+              className="w-8 h-8 rounded-full object-cover object-top flex-shrink-0 shadow-sm"
+            />
+            <div className="bg-white border border-gray-100 shadow-sm rounded-2xl rounded-tl-sm px-4 py-3">
+              <span className="inline-flex gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce [animation-delay:-0.3s]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce [animation-delay:-0.15s]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce" />
+              </span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* 첨부 칩 */}
+      {attachment && (
+        <div className="px-1 pb-2">
+          <span className="inline-flex items-center gap-1.5 bg-accent-gold/10 border border-accent-gold/25 text-accent-gold text-xs font-medium px-3 py-1.5 rounded-full">
+            <Scroll className="w-3 h-3" />
+            {attachment.label} 첨부됨
+            <button
+              type="button"
+              onClick={() => setAttachment(null)}
+              className="ml-0.5 hover:text-accent-gold/60 transition"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          </span>
         </div>
       )}
 
-      {/* 채팅 모드: 하단 고정 입력 */}
-      {!isEmptyState && (
-        <div className="pt-4 pb-2">
-          <InputBar />
+      {/* 입력 바 */}
+      <form onSubmit={handleSubmit}>
+        <div className="relative flex items-end gap-2 rounded-2xl border border-gray-200 bg-white px-3 py-2.5 shadow-sm focus-within:border-gray-300 focus-within:ring-2 focus-within:ring-gray-100 transition">
+
+          {/* + 버튼 */}
+          <div className="relative flex-shrink-0 self-end mb-0.5">
+            {/* 백드롭 */}
+            {plusOpen && (
+              <div
+                className="fixed inset-0 z-10"
+                onClick={() => setPlusOpen(false)}
+              />
+            )}
+
+            <button
+              type="button"
+              onClick={() => setPlusOpen((v) => !v)}
+              className={`w-8 h-8 rounded-full border flex items-center justify-center transition ${
+                plusOpen
+                  ? "border-gray-400 text-gray-700 bg-gray-100"
+                  : "border-gray-200 text-gray-400 hover:border-gray-300 hover:text-gray-600"
+              }`}
+              aria-label="컨텍스트 첨부"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+
+            {/* + 팝업 메뉴 */}
+            {plusOpen && (
+              <div className="absolute bottom-full left-0 mb-2 z-20 w-52 bg-white rounded-xl border border-gray-100 shadow-lg overflow-hidden">
+                <p className="px-3 pt-2.5 pb-1 text-[11px] font-semibold text-text-subtle uppercase tracking-wide">
+                  첨부하기
+                </p>
+                <button
+                  type="button"
+                  onClick={attachMingshik}
+                  disabled={!hasFortune}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-text-light hover:bg-gray-50 transition disabled:opacity-35 disabled:pointer-events-none"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0">
+                    <Scroll className="w-3.5 h-3.5 text-amber-500" />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-medium text-[13px]">명식 불러오기</p>
+                    <p className="text-[11px] text-text-subtle">사주 4기둥 정보</p>
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={attachInterpretation}
+                  disabled={!hasFortune}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 mb-1 text-sm text-text-light hover:bg-gray-50 transition disabled:opacity-35 disabled:pointer-events-none"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
+                    <BookOpen className="w-3.5 h-3.5 text-blue-400" />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-medium text-[13px]">해석 결과 불러오기</p>
+                    <p className="text-[11px] text-text-subtle">일간 · 십신 요약</p>
+                  </div>
+                </button>
+                {!hasFortune && (
+                  <p className="px-3 pb-2.5 text-[11px] text-text-subtle">
+                    종합사주 결과가 있을 때 사용 가능
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* 텍스트 입력 */}
+          <textarea
+            ref={textareaRef}
+            rows={1}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={`${characterName}에게 물어보세요…`}
+            disabled={isLoading}
+            className="flex-1 min-w-0 resize-none bg-transparent text-gray-800 placeholder:text-gray-400 text-sm focus:outline-none disabled:opacity-50 leading-relaxed self-center"
+            style={{ maxHeight: "120px" }}
+          />
+
+          {/* 전송 버튼 */}
+          <button
+            type="submit"
+            disabled={!input.trim() || isLoading}
+            className="flex-shrink-0 self-end mb-0.5 w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center text-white hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed transition"
+            aria-label="전송"
+          >
+            <ArrowUp className="w-4 h-4" />
+          </button>
         </div>
-      )}
+
+        <p className="text-center text-[11px] text-text-subtle mt-2">
+          Enter 전송 · Shift+Enter 줄바꿈
+        </p>
+      </form>
     </div>
   );
 }

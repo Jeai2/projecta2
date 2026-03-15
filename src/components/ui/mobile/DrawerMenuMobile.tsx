@@ -6,7 +6,8 @@ import {
   secondaryMenuItems,
   premiumMenuItems,
   offlineMenuItems,
-} from "@/config/menuConfig"; // ✅ 1. 설정 파일에서 메뉴 데이터 가져오기
+} from "@/config/menuConfig";
+import { useAuthStore } from "@/store/authStore";
 
 interface DrawerMenuMobileProps {
   isOpen: boolean;
@@ -19,6 +20,8 @@ export const DrawerMenuMobile = ({
   onClose,
   onNavigate,
 }: DrawerMenuMobileProps) => {
+  const { isLoggedIn } = useAuthStore();
+
   const handleMenuClick = (pageId: string) => {
     onNavigate(pageId);
     onClose(); // 메뉴 항목 클릭 시 메뉴가 닫히도록
@@ -66,6 +69,7 @@ export const DrawerMenuMobile = ({
           </div>
 
           {/* 프리미엄 서비스 섹션 */}
+          {premiumMenuItems.length > 0 && (
           <div>
             <h3 className="text-sm font-medium text-text-muted mb-3 px-3">
               프리미엄 서비스
@@ -82,6 +86,7 @@ export const DrawerMenuMobile = ({
               </a>
             ))}
           </div>
+          )}
 
           {/* 오프라인 서비스 섹션 */}
           <div>
@@ -99,6 +104,25 @@ export const DrawerMenuMobile = ({
                 <span>{item.name}</span>
               </a>
             ))}
+          </div>
+
+          {/* 로그인 / 프로필 */}
+          <div className="pt-2 border-t border-white/10">
+            {isLoggedIn ? (
+              <button
+                onClick={() => handleMenuClick("profile")}
+                className="w-full p-3 text-lg rounded-md text-text-light hover:bg-white/10 flex items-center gap-3"
+              >
+                <span>프로필</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => handleMenuClick("login")}
+                className="w-full p-3 text-lg rounded-md text-text-light hover:bg-white/10 flex items-center gap-3"
+              >
+                <span>로그인</span>
+              </button>
+            )}
           </div>
 
           {/* 기타 섹션 */}

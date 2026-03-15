@@ -1,5 +1,6 @@
 import React from "react";
 import { Header } from "./Header";
+import { Sparkles } from "lucide-react";
 
 interface GeneralLayoutProps {
   children: React.ReactNode;

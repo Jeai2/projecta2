@@ -23,25 +23,15 @@ const SinnyeonUnsePage = () => {
 
   return (
     <FortunePageLayout
-      imageUrl="https://placehold.co/1200x400/334155/ffffff?text=New+Year"
-      title="2025년 신년운세"
-      description={
-        <>
-          다가오는 한 해의 길흉화복을 미리 확인하고
-          <br />
-          새로운 기회를 준비하세요.
-        </>
-      }
+      title="2026년 신년운세"
+      description={<>한 해의 길흉화복을 확인하세요.</>}
+      contentWrapperClassName="p-0 bg-transparent"
     >
       {/* ✅ 5. fortuneResult 데이터 유무에 따라 폼 또는 결과를 보여줍니다. */}
       {fortuneResult ? (
         <FortuneResult data={fortuneResult} onReset={handleReset} />
       ) : (
-        <UserInfoForm
-          title="사주 정보 입력"
-          buttonText="신년운세 보기"
-          onSuccess={handleSuccess} // ✅ 6. onSuccess prop으로 함수를 전달합니다.
-        />
+        <UserInfoForm buttonText="신년운세 보기" onSuccess={handleSuccess} />
       )}
     </FortunePageLayout>
   );

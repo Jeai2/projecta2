@@ -1,7 +1,8 @@
 // src/components/results/TodayFortuneResult.tsx
 // 오늘의 운세 전용 결과 컴포넌트 (일진 기반)
 
-import React from "react";
+import React, { useState } from "react";
+import axios from "axios";
 import { Button } from "../ui/common/Button";
 import type { TodayFortuneResponse } from "../../types/today-fortune";
 
@@ -14,6 +15,50 @@ export const TodayFortuneResult: React.FC<TodayFortuneResultProps> = ({
   data,
   onReset,
 }) => {
+  const [unhaText, setUnhaText] = useState<string | null>(null);
+  const [unhaLoading, setUnhaLoading] = useState(false);
+
+  const fetchUnhaInterpretation = async () => {
+    if (unhaLoading || unhaText || !data) return;
+    setUnhaLoading(true);
+
+    const message = [
+      "오늘의 운세를 흐름과 타이밍 관점에서 깊이 있게 해석해주세요.",
+      "",
+      "[오늘의 일진]",
+      `일진: ${data.iljin.ganji} (천간 ${data.iljin.ohaeng.gan} · 지지 ${data.iljin.ohaeng.ji})`,
+      `천간 십성: ${data.sipsinOfToday?.gan ?? "-"} / 지지 십성: ${data.sipsinOfToday?.ji ?? "-"}`,
+      "",
+      "[운세 지표]",
+      `기류 점수: ${waveScore.toFixed(1)} / 10`,
+      `조화: ${probabilityPercent}%`,
+      `용운 확률: ${collapseIndex}%`,
+      `공명 강도: ${resonancePercent}%`,
+      "",
+      "[오늘의 총평]",
+      data.fortune.summary,
+      "",
+      "오늘 하루의 기운 흐름, 주의할 시간대, 활용할 포인트, 실질적인 조언을 운하 특유의 시각으로 해석해주세요.",
+    ].join("\n");
+
+    try {
+      const res = await axios.post<{
+        error?: boolean;
+        reply?: string;
+        message?: string;
+      }>("/api/fortune/mook-a", { message, teacher: "yunha" });
+      setUnhaText(
+        res.data.error || !res.data.reply
+          ? (res.data.message ?? "잠시 후 다시 시도해 주세요.")
+          : res.data.reply,
+      );
+    } catch {
+      setUnhaText("잠시 후 다시 시도해 주세요.");
+    } finally {
+      setUnhaLoading(false);
+    }
+  };
+
   if (!data || !data.iljin || !data.fortune) {
     return (
       <div className="text-center text-text-muted">
@@ -40,13 +85,7 @@ export const TodayFortuneResult: React.FC<TodayFortuneResultProps> = ({
     weekday: "long",
   });
 
-  const compatibilityNotes = data.compatibility
-    ? [
-        data.compatibility.analysis.ganRelation,
-        data.compatibility.analysis.jiRelation,
-        data.compatibility.analysis.daewoonEffect,
-      ].filter(Boolean)
-    : [];
+  const compatibilityNotes: string[] = []; // 미표시 (금/화극, 대운 정보 등)
 
   const specialHarmony =
     data.compatibility?.analysis.specialHarmony?.filter(
@@ -728,20 +767,49 @@ export const TodayFortuneResult: React.FC<TodayFortuneResultProps> = ({
             </div>
           </div>
 
-          {compatibilityNotes.length > 0 && (
-            <div className="mt-6 space-y-2 rounded-2xl border border-[#e2d7c5] bg-white/90 p-5">
-              {compatibilityNotes.map((note, index) => (
-                <p
-                  key={index}
-                  className="text-sm leading-relaxed text-slate-700"
-                >
-                  {note}
-                </p>
-              ))}
-            </div>
-          )}
         </section>
       )}
+
+      {/* 운하의 AI 해석 */}
+      <section className="rounded-3xl border border-[#d9ccb7] bg-white/80 p-8 shadow-lg shadow-amber-900/10">
+        <div className="flex items-start gap-4">
+          <img
+            src="/Unha_chat.png"
+            alt="운하"
+            className="w-12 h-12 rounded-full object-cover ring-2 ring-sky-200 shrink-0"
+          />
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-sm font-bold text-slate-800">운하</span>
+              <span className="text-[10px] font-semibold text-sky-700 px-2 py-0.5 rounded-full bg-sky-50 border border-sky-200">
+                흐름을 읽는 천문가
+              </span>
+            </div>
+
+            {!unhaText && !unhaLoading && (
+              <button
+                onClick={fetchUnhaInterpretation}
+                className="px-5 py-2.5 rounded-xl bg-stone-800 text-white text-sm font-semibold hover:bg-stone-700 active:scale-95 transition-all shadow-sm"
+              >
+                운하에게 오늘 운세 해석 받기
+              </button>
+            )}
+
+            {unhaLoading && (
+              <div className="flex items-center gap-2.5 py-3 text-sm text-slate-500">
+                <div className="w-4 h-4 border-2 border-sky-200 border-t-sky-500 rounded-full animate-spin shrink-0" />
+                운하가 오늘의 흐름을 읽고 있습니다…
+              </div>
+            )}
+
+            {unhaText && (
+              <div className="bg-sky-50/70 rounded-2xl rounded-tl-sm p-5 border border-sky-100 text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
+                {unhaText}
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
 
       <section className="space-y-6">
         <h3 className="text-lg font-semibold text-accent-gold">주제별 운세</h3>
@@ -816,7 +884,7 @@ export const TodayFortuneResult: React.FC<TodayFortuneResultProps> = ({
 
       <div className="pt-4 text-center">
         <Button onClick={onReset} variant="outline" size="lg">
-          다른 날 운세 보기
+          운세 다시 보기
         </Button>
       </div>
     </div>

@@ -76,6 +76,7 @@ export const Sidebar = ({ currentPage, onNavigate }: SidebarProps) => {
         </ul>
 
         {/* 프리미엄 메뉴 섹션 */}
+        {premiumMenuItems.length > 0 && (
         <div className="mb-6 px-3">
           <h3 className="text-[10px] font-bold uppercase text-slate-500 mb-3 px-3 tracking-wider">
             프리미엄 서비스
@@ -116,6 +117,7 @@ export const Sidebar = ({ currentPage, onNavigate }: SidebarProps) => {
             })}
           </ul>
         </div>
+        )}
 
         {/* 오프라인 서비스 섹션 */}
         <div className="mb-6 px-3">

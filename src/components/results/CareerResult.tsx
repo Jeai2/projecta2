@@ -116,10 +116,26 @@ interface CareerResultData {
   }[];
   /** 4가지 출처별 직업 추천 (당령, 사령, 아키타입6, 부족한 오행) */
   jobRecommendationsBySource?: {
-    dangnyeong: { source: string; label: string; items: { title: string; professions: string; icon: string }[] };
-    saryeong: { source: string; label: string; items: { title: string; professions: string; icon: string }[] };
-    archetype: { source: string; label: string; items: { title: string; professions: string; icon: string }[] };
-    deficientOhaeng: { source: string; label: string; items: { title: string; professions: string; icon: string }[] };
+    dangnyeong: {
+      source: string;
+      label: string;
+      items: { title: string; professions: string; icon: string }[];
+    };
+    saryeong: {
+      source: string;
+      label: string;
+      items: { title: string; professions: string; icon: string }[];
+    };
+    archetype: {
+      source: string;
+      label: string;
+      items: { title: string; professions: string; icon: string }[];
+    };
+    deficientOhaeng: {
+      source: string;
+      label: string;
+      items: { title: string; professions: string; icon: string }[];
+    };
   };
   // 만세력 네 기둥(년/월/일/시) 요약 (예: "甲子")
   pillarsSummary?: {
@@ -1163,9 +1179,7 @@ export const CareerResult: React.FC<CareerResultProps> = ({
                 maxScore={1000}
                 size={320}
                 onArchetypeSelect={(code) =>
-                  setSelectedArchetype((prev) =>
-                    prev === code ? null : code
-                  )
+                  setSelectedArchetype((prev) => (prev === code ? null : code))
                 }
               />
               {result.archetype.timeUnknown && (
@@ -1208,7 +1222,11 @@ export const CareerResult: React.FC<CareerResultProps> = ({
                 result.jobRecommendationsBySource.deficientOhaeng,
               ];
               const seen = new Set<string>();
-              const allItems: { title: string; professions: string; icon: string }[] = [];
+              const allItems: {
+                title: string;
+                professions: string;
+                icon: string;
+              }[] = [];
               for (const block of blocks) {
                 for (const item of block?.items ?? []) {
                   const key = `${item.title}|${item.professions}`;
@@ -1269,7 +1287,7 @@ export const CareerResult: React.FC<CareerResultProps> = ({
           )}
           <div className="mt-6">
             <h4 className="text-sm font-semibold text-gray-700 mb-3">
-              추천 직업 질의
+              야등이의 말하는 본인의 진로
             </h4>
             <CareerChat
               context={(() => {
@@ -1321,43 +1339,41 @@ export const CareerResult: React.FC<CareerResultProps> = ({
             />
           </div>
           <div className="mt-6 flex items-center justify-between text-xs text-gray-500">
-          <p>
-            본 분석은 사주 오행과 십신 이론을 바탕으로 한 시뮬레이션입니다.
-          </p>
-          <button
-            onClick={onReset}
-            className="flex items-center gap-1 text-gray-600 hover:text-gray-800 transition"
-          >
-            <span>다시 분석하기</span>
-            <svg
-              className="w-4 h-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
+            <p>본 분석은 화의명리 관점과 해석방법을 바탕으로 한 분석입니다.</p>
+            <button
+              onClick={onReset}
+              className="flex items-center gap-1 text-gray-600 hover:text-gray-800 transition"
             >
-              <path
-                d="M1 4v6h6"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M23 20v-6h-6"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M20.49 9A9 9 0 003.51 15"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M3.51 9A9 9 0 0020.49 15"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
+              <span>다시 분석하기</span>
+              <svg
+                className="w-4 h-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path
+                  d="M1 4v6h6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M23 20v-6h-6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M20.49 9A9 9 0 003.51 15"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M3.51 9A9 9 0 0020.49 15"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
           </div>
         </div>
       </div>

@@ -1,7 +1,5 @@
 // src/config/menuConfig.ts
 import {
-  Zap,
-  Users,
   Clock,
   Library,
   HelpCircle,
@@ -9,6 +7,7 @@ import {
   BookOpen,
   Star,
   MessageCircle,
+  User,
 } from "lucide-react";
 
 // 메뉴 아이템의 타입 정의
@@ -24,13 +23,11 @@ export const mainMenuItems: MenuItem[] = [
   { id: "manse", name: "만세력", icon: BookOpen },
   { id: "today", name: "오늘의 운세", icon: Clock },
   { id: "service", name: "운세서비스", icon: Star },
+  { id: "profile", name: "마이페이지", icon: User },
 ];
 
-// 프리미엄 콘텐츠 (유료)
-export const premiumMenuItems: MenuItem[] = [
-  { id: "jonghap", name: "종합사주", icon: Zap },
-  { id: "couple", name: "서로궁합", icon: Users },
-];
+// 프리미엄 콘텐츠 (유료) — 헤더에는 미표시, 운세서비스/홈 카드 등에서 접근
+export const premiumMenuItems: MenuItem[] = [];
 
 // 오프라인 서비스
 export const offlineMenuItems: MenuItem[] = [

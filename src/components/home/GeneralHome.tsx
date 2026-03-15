@@ -1,34 +1,59 @@
-import { Heart, Coins, Sparkles, Compass, Users } from "lucide-react";
+import { Heart, Coins, Sparkles, Compass, Users, ArrowRight, Star } from "lucide-react";
+import { useState } from "react";
 
 interface GeneralHomeProps {
   onNavigate: (page: string) => void;
 }
 
 export const GeneralHome = ({ onNavigate }: GeneralHomeProps) => {
+  const [query, setQuery] = useState("");
+
+  const handleConsult = () => {
+    onNavigate("ai-consult");
+  };
+
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
-      <div className="relative w-full h-[280px] md:h-[320px] rounded-3xl overflow-hidden mb-10 shadow-lg group">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-4 pb-10">
+
+      {/* 히어로 — AI 상담 인풋 */}
+      <div className="relative rounded-3xl overflow-hidden mb-10 shadow-xl">
+        {/* 배경 이미지 */}
         <img
-          className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
-          src="/heroimage.png"
-          alt="오늘의 운세"
+          src="/full.png"
+          alt="hero"
+          className="absolute inset-0 w-full h-full object-cover object-center"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent flex flex-col justify-center px-6 sm:px-10">
-          <span className="inline-flex items-center gap-2 px-3 py-1 bg-white/20 backdrop-blur rounded-full text-white text-xs font-semibold mb-4 w-fit border border-white/20">
-            Free
-          </span>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-myeongjo font-bold text-white mb-2">
-            오늘의 운세
+        {/* 오버레이 */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/50 to-black/70" />
+
+        {/* 콘텐츠 */}
+        <div className="relative z-10 px-6 sm:px-12 py-14 sm:py-20 max-w-xl mx-auto text-center">
+          <p className="text-xs text-amber-300/90 font-semibold tracking-widest uppercase mb-4">AI 사주 상담</p>
+          <h1 className="text-3xl sm:text-4xl font-myeongjo font-bold text-white mb-3 leading-snug drop-shadow">
+            무엇이 궁금하세요?
           </h1>
-          <p className="text-white/80 text-sm sm:text-base">
-            작은 행운부터 큰 기회까지, 야등이가 오늘의 흐름을 미리 비춰드릴게요
+          <p className="text-white/60 text-sm mb-8">
+            사주·운세·진로·인연 — 무엇이든 물어보세요
           </p>
-          <div className="mt-6">
+          <div
+            className="flex items-center gap-3 bg-black/30 backdrop-blur-sm border border-white/25 rounded-2xl px-5 py-4 cursor-text group hover:bg-black/40 hover:border-white/35 transition"
+            onClick={handleConsult}
+          >
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleConsult()}
+              onClick={(e) => e.stopPropagation()}
+              placeholder="오늘 무엇이 궁금하세요?"
+              className="flex-1 bg-transparent text-sm text-white placeholder-white/45 outline-none"
+            />
             <button
-              onClick={() => onNavigate("today")}
-              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-white/90 text-gray-900 text-sm font-semibold shadow-md hover:bg-white transition"
+              type="button"
+              onClick={(e) => { e.stopPropagation(); handleConsult(); }}
+              className="w-8 h-8 rounded-full bg-amber-400 flex items-center justify-center flex-shrink-0 hover:bg-amber-300 transition"
             >
-              운세보러가기
+              <ArrowRight className="w-4 h-4 text-slate-900" />
             </button>
           </div>
         </div>
@@ -67,23 +92,25 @@ export const GeneralHome = ({ onNavigate }: GeneralHomeProps) => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
         {[
+          {
+            title: "오늘의 운세",
+            description: "야등이가 오늘의 흐름을 비춰드려요",
+            icon: Star,
+            iconBg: "bg-amber-50",
+            iconColor: "text-amber-500",
+            badge: "free",
+            onClick: () => onNavigate("today"),
+          },
           {
             title: "내 일주",
             description: "일주론으로 보는 내 일주",
             icon: Heart,
             iconBg: "bg-pink-50",
             iconColor: "text-pink-500",
+            badge: "free",
             onClick: () => onNavigate("ilju"),
-          },
-          {
-            title: "내 진로 직업 찾기",
-            description: "나에게 맞는 진로와 직업 방향",
-            icon: Compass,
-            iconBg: "bg-blue-50",
-            iconColor: "text-blue-500",
-            onClick: () => onNavigate("career"),
           },
           {
             title: "2026년 신년운세",
@@ -91,7 +118,17 @@ export const GeneralHome = ({ onNavigate }: GeneralHomeProps) => {
             icon: Sparkles,
             iconBg: "bg-purple-50",
             iconColor: "text-purple-500",
-            onClick: () => {},
+            badge: "free",
+            onClick: () => onNavigate("sinnyeon"),
+          },
+          {
+            title: "내 진로 직업 찾기",
+            description: "나에게 맞는 진로와 직업 방향",
+            icon: Compass,
+            iconBg: "bg-blue-50",
+            iconColor: "text-blue-500",
+            badge: "paid",
+            onClick: () => onNavigate("career"),
           },
           {
             title: "커플궁합",
@@ -99,7 +136,8 @@ export const GeneralHome = ({ onNavigate }: GeneralHomeProps) => {
             icon: Users,
             iconBg: "bg-emerald-50",
             iconColor: "text-emerald-500",
-            onClick: () => {},
+            badge: "paid",
+            onClick: () => onNavigate("couple"),
           },
           {
             title: "종합사주",
@@ -107,7 +145,8 @@ export const GeneralHome = ({ onNavigate }: GeneralHomeProps) => {
             icon: Coins,
             iconBg: "bg-amber-50",
             iconColor: "text-amber-500",
-            onClick: () => {},
+            badge: "paid",
+            onClick: () => onNavigate("jonghap"),
           },
         ].map((card) => {
           const Icon = card.icon;
@@ -115,8 +154,17 @@ export const GeneralHome = ({ onNavigate }: GeneralHomeProps) => {
             <div
               key={card.title}
               onClick={card.onClick}
-              className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition cursor-pointer group"
+              className="relative bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition cursor-pointer group"
             >
+              <span
+                className={`absolute top-3 right-3 text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                  card.badge === "free"
+                    ? "bg-blue-50 text-blue-500"
+                    : "bg-red-50 text-red-400"
+                }`}
+              >
+                {card.badge === "free" ? "무료" : "유료"}
+              </span>
               <div
                 className={`w-12 h-12 ${card.iconBg} rounded-full flex items-center justify-center ${card.iconColor} mb-4 group-hover:scale-110 transition`}
               >

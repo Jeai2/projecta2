@@ -29,9 +29,8 @@ const InputPage = () => {
         <FortuneResult data={fortuneResult} onReset={handleReset} />
       ) : (
         <UserInfoForm
-          title="사주 정보 입력"
           buttonText="운세 보기"
-          onSuccess={handleSuccess} // ✅ 6. onSuccess prop으로 함수를 전달합니다.
+          onSuccess={handleSuccess}
         />
       )}
     </div>

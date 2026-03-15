@@ -2,7 +2,8 @@
 import { useState } from "react";
 import { MenuIcon } from "../ui/common/Icons";
 import { DrawerMenuMobile } from "../ui/mobile/DrawerMenuMobile";
-import { mainMenuItems, premiumMenuItems } from "@/config/menuConfig";
+import { mainMenuItems } from "@/config/menuConfig";
+import { useAuthStore } from "@/store/authStore";
 import { Search } from "lucide-react";
 
 interface HeaderProps {
@@ -17,8 +18,9 @@ export const Header = ({
   currentPage,
 }: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { isLoggedIn } = useAuthStore();
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
-  const desktopMenuItems = [...mainMenuItems, ...premiumMenuItems];
+  const desktopMenuItems = mainMenuItems;
   const handleLogoClick = onLogoClick ?? (() => onNavigate("home"));
 
   return (
@@ -60,13 +62,26 @@ export const Header = ({
             <button className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200 transition">
               <Search className="w-4 h-4" />
             </button>
-            <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-200 cursor-pointer">
-              <img
-                className="w-full h-full object-cover"
-                src="https://placehold.co/100x100/EAE7E1/333333?text=U"
-                alt="user"
-              />
-            </div>
+            {isLoggedIn ? (
+              <button
+                onClick={() => onNavigate("profile")}
+                className="w-8 h-8 rounded-full overflow-hidden border border-gray-200 cursor-pointer hover:ring-2 hover:ring-accent-gold/50 transition"
+                aria-label="프로필"
+              >
+                <img
+                  className="w-full h-full object-cover"
+                  src="https://placehold.co/100x100/EAE7E1/333333?text=U"
+                  alt="프로필"
+                />
+              </button>
+            ) : (
+              <button
+                onClick={() => onNavigate("login")}
+                className="text-sm font-medium text-gray-700 hover:text-accent-gold transition"
+              >
+                로그인
+              </button>
+            )}
           </div>
           <div className="lg:hidden">
             <button
