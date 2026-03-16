@@ -26,6 +26,7 @@ import {
   getGradeTone,
   getTenGodMessage,
 } from "./today-fortune.utils";
+import { calcSajuIching } from "./iching.service";
 
 // 오행 매핑
 const GAN_TO_OHAENG: Record<string, "木" | "火" | "土" | "金" | "水"> = {
@@ -481,7 +482,7 @@ export const getTodayFortune = async (userInfo: {
   birthDate: string;
   birthTime: string;
   birthPlace: string;
-}): Promise<TodayFortuneResponse> => {
+}) => {
   const today = new Date();
   const iljin = generateIljinData(today);
 
@@ -558,6 +559,25 @@ export const getTodayFortune = async (userInfo: {
     }
   );
 
+  // 사주 기반 괘 계산
+  const [birthYear, birthMonth, birthDay] = userInfo.birthDate
+    .split("-")
+    .map(Number);
+  const birthHour = userInfo.birthTime
+    ? parseInt(userInfo.birthTime.split(":")[0], 10)
+    : undefined;
+  const ichingResult = calcSajuIching({
+    birthYear,
+    birthMonth,
+    birthDay,
+    birthHour,
+    userDayJi: userPillars.day.ji,
+    iljinJi: iljin.ji,
+    currentYear: today.getFullYear(),
+    currentMonth: today.getMonth() + 1,
+    currentDay: today.getDate(),
+  });
+
   return {
     userInfo: {
       ...userInfo,
@@ -576,6 +596,7 @@ export const getTodayFortune = async (userInfo: {
         }
       : null,
     fortuneScore: fortuneScores,
+    iching: ichingResult,
     generatedAt: new Date().toISOString(),
   };
 };

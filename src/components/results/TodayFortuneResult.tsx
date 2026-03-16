@@ -85,8 +85,6 @@ export const TodayFortuneResult: React.FC<TodayFortuneResultProps> = ({
     weekday: "long",
   });
 
-  const compatibilityNotes: string[] = []; // 미표시 (금/화극, 대운 정보 등)
-
   const specialHarmony =
     data.compatibility?.analysis.specialHarmony?.filter(
       (item) => item && item.type && item.base && item.target
@@ -258,12 +256,14 @@ export const TodayFortuneResult: React.FC<TodayFortuneResultProps> = ({
     Math.min((probabilityPercent / 100) * 140, 140)
   );
 
+  const ichingDetails = data.iching?.details;
+
   const themeCards = [
     {
       key: "work",
       title: "직업 · 사업",
       icon: "💼",
-      content: fortune.work,
+      content: ichingDetails?.work ?? fortune.work,
       border: "border-sky-400/40",
       gradient: "from-sky-500/15 via-sky-500/5 to-transparent",
     },
@@ -271,7 +271,7 @@ export const TodayFortuneResult: React.FC<TodayFortuneResultProps> = ({
       key: "money",
       title: "재물",
       icon: "💰",
-      content: fortune.money,
+      content: ichingDetails?.money ?? fortune.money,
       border: "border-amber-400/40",
       gradient: "from-amber-500/15 via-amber-500/5 to-transparent",
     },
@@ -279,7 +279,7 @@ export const TodayFortuneResult: React.FC<TodayFortuneResultProps> = ({
       key: "love",
       title: "연애 · 인간관계",
       icon: "💞",
-      content: fortune.love,
+      content: ichingDetails?.love ?? fortune.love,
       border: "border-pink-400/40",
       gradient: "from-pink-500/15 via-pink-500/5 to-transparent",
     },
@@ -287,7 +287,7 @@ export const TodayFortuneResult: React.FC<TodayFortuneResultProps> = ({
       key: "health",
       title: "건강",
       icon: "🌿",
-      content: fortune.health,
+      content: ichingDetails?.health ?? fortune.health,
       border: "border-emerald-400/40",
       gradient: "from-emerald-500/15 via-emerald-500/5 to-transparent",
     },
@@ -295,7 +295,7 @@ export const TodayFortuneResult: React.FC<TodayFortuneResultProps> = ({
       key: "relations",
       title: "협력 · 네트워크",
       icon: "🤝",
-      content: fortune.relations ?? "-",
+      content: ichingDetails?.relations ?? fortune.relations ?? "-",
       border: "border-indigo-400/40",
       gradient: "from-indigo-500/15 via-indigo-500/5 to-transparent",
     },
@@ -303,7 +303,7 @@ export const TodayFortuneResult: React.FC<TodayFortuneResultProps> = ({
       key: "documents",
       title: "계약 · 문서",
       icon: "📄",
-      content: fortune.documents ?? "-",
+      content: ichingDetails?.documents ?? fortune.documents ?? "-",
       border: "border-violet-400/40",
       gradient: "from-violet-500/15 via-violet-500/5 to-transparent",
     },

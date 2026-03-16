@@ -145,6 +145,20 @@ export interface LukimFortune {
   components: LukimComponent[];
 }
 
+export interface IchingResult {
+  hexagramKey: string;
+  tone: "positive" | "neutral" | "negative";
+  todaySummary?: string;
+  details: {
+    money?: string;
+    love?: string;
+    work?: string;
+    relations?: string;
+    health?: string;
+    documents?: string;
+  };
+}
+
 export interface TodayFortuneResponse {
   userInfo: {
     name?: string;
@@ -182,6 +196,7 @@ export interface TodayFortuneResponse {
     };
   };
   lukim?: LukimFortune | null;
+  iching?: IchingResult;
   generatedAt: string; // 생성 시간
   fortuneScore?: FortuneScoreMeta;
 }
