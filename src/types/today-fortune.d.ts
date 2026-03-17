@@ -145,6 +145,19 @@ export interface LukimFortune {
   components: LukimComponent[];
 }
 
+export interface IchingLucky {
+  direction: string;
+  color: string;
+  number: string;
+  time: string;
+}
+
+export interface IchingAvoid {
+  direction: string;
+  color: string;
+  time: string;
+}
+
 export interface IchingResult {
   hexagramKey: string;
   tone: "positive" | "neutral" | "negative";
@@ -157,6 +170,8 @@ export interface IchingResult {
     health?: string;
     documents?: string;
   };
+  lucky?: IchingLucky;
+  avoid?: IchingAvoid;
 }
 
 export interface TodayFortuneResponse {

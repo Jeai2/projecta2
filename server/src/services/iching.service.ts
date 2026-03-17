@@ -1,7 +1,8 @@
 // server/src/services/iching.service.ts
 // 시간 기반 테마(5종) → 에너지 삼중값(태양/소양/소음/태음) → 6비트 키 → 괘 조회
 
-import { guaInterpretations } from "../data/iching/hexagrams";
+import { guaInterpretations, guaLuckyAvoid } from "../data/iching/hexagrams";
+import type { IchingLucky, IchingAvoid } from "../data/iching/hexagrams";
 import {
   YUKHAP,
   SAMHAP,
@@ -201,6 +202,8 @@ export interface SajuIchingResult {
     health?: string;
     documents?: string;
   };
+  lucky?: IchingLucky;
+  avoid?: IchingAvoid;
 }
 
 export function calcSajuIching(params: {
@@ -245,10 +248,14 @@ export function calcSajuIching(params: {
   const tone = getSajuIchingTone(params.userDayJi, params.iljinJi);
   const toneBlock = interpretation?.[tone];
 
+  const luckyAvoid = guaLuckyAvoid[hexagramKey];
+
   return {
     hexagramKey,
     tone,
     todaySummary: interpretation?.todaySummary,
     details: toneBlock?.details ?? {},
+    lucky: luckyAvoid?.lucky,
+    avoid: luckyAvoid?.avoid,
   };
 }

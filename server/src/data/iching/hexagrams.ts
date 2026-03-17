@@ -3,6 +3,19 @@
 
 export type IchingTone = "pro" | "neutral" | "con";
 
+export interface IchingLucky {
+  direction: string; // 길한 방향
+  color: string; // 길한 색상
+  number: string; // 길한 숫자
+  time: string; // 길한 시간대
+}
+
+export interface IchingAvoid {
+  direction: string; // 피해야 할 방향
+  color: string; // 피해야 할 색상
+  time: string; // 피해야 할 시간대
+}
+
 // 오늘의 운세 UI 카테고리와 1:1 매칭되는 섹션만 유지
 export interface IchingDetailSections {
   money?: string; // 재물
@@ -30,53 +43,53 @@ export interface IchingInterpretation {
 export const guaInterpretations: Record<string, IchingInterpretation> = {
   "111111": {
     // 중천건 (건위천)
-    todaySummary: "꾸준히 움직이는 사람에게 오늘은 힘이 되어주는 날입니다.",
+    todaySummary:
+      "오늘은 섣불리 앞서나가기보다, 평소의 원칙을 꾸준히 지키는 것이 행운을 부릅니다.",
     positive: {
       summary:
-        "그동안 쌓아온 것들이 드디어 빛을 발하는 시기입니다. 믿을 수 있는 사람과 함께라면 생각보다 더 큰 결과를 만들어낼 수 있습니다.",
+        "지금까지 열심히 해온 일들이 드디어 좋은 결실로 돌아올 수 있는 시기입니다. 믿을 만한 사람들과 힘을 합치면 예상보다 더 좋은 일이 생길 수 있어요.",
       details: {
         money:
-          "서두르지 않고 흐름을 읽으며 움직이면 실속 있는 결과로 이어질 수 있습니다. 작은 노력도 오늘은 제대로 된 보답으로 돌아올 가능성이 높습니다.",
-        love: "진심이 자연스럽게 전해지는 날입니다. 잘 보이려 애쓰기보다 있는 그대로의 모습으로 다가갈 때 오히려 상대의 마음이 열립니다.",
-        work: "준비해온 것을 차근차근 풀어내기 좋은 날입니다. 조급함만 내려놓으면 기대했던 것 이상의 성과가 따라옵니다.",
+          "조급해하지 않고 천천히 움직이면 이득을 얻을 수 있습니다. 작은 수고도 오늘은 분명한 보상으로 돌아올 가능성이 높아요.",
+        love: "있는 그대로의 모습을 보여주면 상대가 내 진심을 느끼고 마음을 열 수 있습니다.",
+        work: "차분하게 준비한 것을 하나하나 실천하기에 좋은 때입니다. 조급함을 내려놓으면 원래 기대했던 것보다 더 좋은 결과를 얻을 수 있어요.",
         relations:
-          "좋은 인연을 만나거나 기존 관계가 한층 깊어질 수 있습니다. 먼저 손을 내밀고 솔직하게 소통할수록 든든한 지지를 얻을 수 있습니다.",
+          "새로운 좋은 인연이 생기거나 기존의 관계가 더 깊어질 수 있습니다. 먼저 다가가 솔직하게 얘기할수록 더욱 든든한 응원을 얻을 수 있어요.",
         health:
-          "몸에 활력이 넘치는 날입니다. 이 에너지를 잘 활용하되 무리하지 않는 선에서 움직이면 컨디션을 오래 유지할 수 있습니다.",
+          "몸에 에너지가 넘치는 날입니다. 너무 무리하지 않고 적당히 활동하면 좋은 컨디션을 유지할 수 있습니다.",
         documents:
-          "계약이나 서류 관련 일이 비교적 순조롭게 풀릴 가능성이 높습니다. 좋은 흐름이라도 세부 조건은 꼼꼼히 짚어보는 것이 좋습니다.",
+          "계약이나 서류 관련 일도 문제없이 진행될 가능성이 높아요. 잘 풀리더라도 조건을 꼼꼼하게 확인하는 게 좋아요.",
       },
     },
     neutral: {
       summary:
-        "크게 뛰어오르는 날이 아니더라도, 묵묵히 제 자리를 지키며 나아가는 것이 오늘의 바른 흐름입니다.",
+        "크게 변화가 일어나지 않아도, 묵묵히 제자리를 지키며 하던 대로 하는 것이 오늘엔 가장 좋습니다.",
       details: {
         money:
-          "들어오고 나가는 돈의 균형을 점검하고 무리한 지출은 잠시 미루는 것이 좋습니다.",
-        love: "거창한 표현보다 작은 배려 하나가 관계를 더 따뜻하게 만들어줍니다.",
-        work: "오늘은 새로운 시도보다 해두었던 일을 마무리하는 데 집중하는 것이 좋습니다.",
+          "수입과 지출을 잘 살피고, 필요하지 않은 씀씀이는 오늘만이라도 줄이면 좋습니다.",
+        love: "화려한 표현보다는 사소한 배려 하나가 관계를 더 따뜻하게 해줄 수 있습니다.",
+        work: "새로운 도전보다는 미뤄뒀던 일을 마무리하는 데 집중하는 게 좋습니다.",
         relations:
-          "앞서기보다 먼저 들어주는 태도가 신뢰를 쌓는 데 훨씬 효과적입니다.",
-        health:
-          "무리하지 않는 선에서 일정한 생활 리듬을 유지하는 것이 중요합니다.",
+          "내가 앞서기보다는 상대 이야기를 먼저 들어주면 신뢰를 받을 수 있습니다.",
+        health: "무리하지 않고 평소처럼 일상을 유지하는 것이 중요합니다.",
         documents:
-          "검토와 정리 위주로 진행하되 놓친 기한은 없는지 다시 한번 확인하는 것이 좋습니다.",
+          "서류나 해야 할 일들은 한 번 더 기한을 확인하고 정리를 해두면 실수를 줄일 수 있습니다.",
       },
     },
     negative: {
       summary:
-        "자신감이 지나치면 주변 사람들 눈에 독단적으로 보일 수 있습니다. 내가 옳다는 확신이 강할수록 한 발 물러서서 돌아보는 여유가 필요한 날입니다.",
+        "자신만만한 태도가 오히려 주변에 독단적으로 비칠 수 있습니다. 내가 옳다는 생각이 강해질수록 잠시 멈추고 스스로를 돌아보는 것이 필요해요.",
       details: {
         money:
-          "지금 당장의 욕심보다 긴 흐름을 보는 것이 중요합니다. 충동적인 결정은 나중에 후회로 돌아올 수 있습니다.",
-        love: "내 감정만 앞세우면 상대가 부담을 느낄 수 있습니다. 잠깐 멈추고 상대의 입장을 헤아려 보는 것이 좋습니다.",
-        work: "혼자 밀어붙이려는 욕심이 오히려 일을 꼬이게 만들 수 있습니다. 주변 의견을 먼저 들어보는 것이 현명합니다.",
+          "짧은 이익에 집착하지 말고, 멀리 내다보는 것이 필요합니다. 즉흥적인 결정은 피하세요.",
+        love: "내 감정만 내세우면 상대가 힘들어할 수 있습니다. 잠깐 멈추고 상대방의 입장을 생각해보세요.",
+        work: "모든 것을 혼자 해결하려고 하면 오히려 일이 복잡해질 수 있습니다. 주변 의견을 듣는 게 좋습니다.",
         relations:
-          "지나친 자기주장은 불필요한 마찰을 만들 수 있습니다. 오늘은 말보다 경청을 선택하는 것이 좋습니다.",
+          "내 주장만 앞세우면 괜한 다툼이 생길 수 있습니다. 오늘은 내 의견보다는 상대 말에 귀 기울이세요.",
         health:
-          "넘치는 기운을 과신하지 않는 것이 좋습니다. 충분한 수면과 회복이 지금 가장 필요합니다.",
+          "기운이 넘친다고 무리하지 말고, 충분한 휴식과 수면이 필요합니다.",
         documents:
-          "서두르다 놓치는 것이 생기기 쉬운 날입니다. 기한과 조건을 다시 한번 꼼꼼히 확인하는 것이 좋습니다.",
+          "성급하게 처리하다가 실수가 생길 수 있는 날이니, 기한이나 조건을 꼼꼼하게 확인해야 합니다.",
       },
     },
   },
@@ -1832,7 +1845,7 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
   "110101": {
     // 풍화가인
     todaySummary:
-      "가장 가까운 관계에서부터 말과 행동에 항상함을 지키는 것이 오늘 모든 것의 기반이 됩니다.",
+      "가까운 사람에게 말과 행동을 꾸준히 잘하는 것이 오늘을 잘 보내는 가장 중요한 방법입니다.",
     positive: {
       summary:
         "말에 실질이 있고 행동에 항상함을 지키면 가까운 사람들의 신뢰가 자연스럽게 쌓이는 시기입니다. 각자의 본분에 충실하고 서로 사랑을 나누면 가정도 일도 모두 좋은 방향으로 흘러갑니다.",
@@ -1872,11 +1885,11 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
         money:
           "헛된 말과 실질 없는 행동으로 임하면 신뢰를 잃게 됩니다. 본분을 벗어난 욕심이 오히려 지금까지 쌓아온 것을 무너뜨릴 수 있습니다.",
         love: "말과 행동에 항상함이 없거나 절도를 잃으면 가장 가까운 관계부터 흔들리기 시작합니다. 진심 없는 사랑과 일관성 없는 행동은 결국 관계를 멀어지게 만듭니다.",
-        work: "각자의 역할과 본분을 무시하거나 말과 행동에 일관성이 없으면 팀 전체의 신뢰가 무너집니다. 항상함 없이 즐거움만 좇으면 결국 절도를 잃게 됩니다.",
+        work: "서로 역할을 지키지 않거나 말과 행동이 들쑥날쑥하면 팀에 대한 신뢰가 떨어질 수 있어요. 규칙 없이 즐겁기만 추구하면 일도 흐트러질 수 있으니 주의하세요.",
         relations:
           "가장 가까운 사람에게 본분을 지키지 않으면 모든 관계의 기반이 흔들립니다. 절도 없이 희희덕거리기만 하면 결국 인색한 결과만 남게 됩니다.",
         health:
-          "항상함 없이 불규칙하게 생활하면 몸이 먼저 반응합니다. 좋은 생활 습관의 절도를 잃으면 건강도 쉽게 무너질 수 있습니다.",
+          "생활이 불규칙하면 몸이 금방 안 좋아질 수 있어요. 좋은 습관을 지키지 않으면 건강이 쉽게 나빠지니 평소 리듬을 지키는 게 중요합니다다.",
         documents:
           "말과 행동에 일관성이 없거나 실질 없이 처리하면 나중에 더 큰 문제가 생깁니다. 항상함이 없는 처리는 신뢰를 잃는 원인이 됩니다.",
       },
@@ -2172,9 +2185,9 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
         "험함이 앞에 있음을 알고 항상함을 잃지 않으며 중정한 마음으로 기다리는 것이 오늘의 바른 태도입니다. 조급하게 나서기보다 여유롭게 힘을 기르는 것이 중요합니다.",
       details: {
         money:
-          "아직 때가 아니라면 서두르지 않고 차분하게 준비하는 것이 좋습니다. 항상함을 잃지 않으면서 중도를 지키는 것이 현명합니다.",
-        love: "서두르지 않고 여유롭게 임하는 것이 좋습니다. 중정한 마음으로 기다리면 자연스럽게 좋은 흐름이 만들어집니다.",
-        work: "험한 상황이 앞에 있더라도 내괘가 강건하면 버틸 수 있습니다. 지금은 조급하게 나서기보다 힘을 기르며 때를 기다리는 것이 현명합니다.",
+          "아직 시작하기엔 이른 시기이니 서두르지 말고 차분히 준비하세요. 평소처럼 일상을 유지하면서 중심을 잡는 것이 좋습니다.",
+        love: "상대에게 서두르지 말고 자연스럽게 다가가세요. 인연의 타이밍을 믿고 진심을 보여주면 좋은 흐름으로 이어질 수 있습니다.",
+        work: "어려운 일이 있더라도 마음을 단단히 먹으면 이겨낼 수 있습니다. 지금은 서두르지 말고 힘을 키우면서 기회를 기다리는 게 좋습니다.",
         relations:
           "뜻밖의 상황에도 공경하는 마음으로 임하는 것이 중요합니다. 떳떳함을 잃지 않고 여유롭게 임하면 됩니다.",
         health:
@@ -3412,6 +3425,737 @@ export const guaInterpretations: Record<string, IchingInterpretation> = {
         documents:
           "앞서 무리하게 나서거나 순함을 잃으면 미혹되어 도를 잃게 됩니다. 삼가지 않으면 해롭게 되는 결과가 됩니다.",
       },
+    },
+  },
+};
+
+// ── 64괘 길한·주의 포인트 맵 ────────────────────────────────────────────
+// 상괘의 오행 기운을 기준으로 방향·색상·숫자·시간 산출
+export const guaLuckyAvoid: Record<
+  string,
+  { lucky: IchingLucky; avoid: IchingAvoid }
+> = {
+  // ── 天(乾) 상괘 ──────────────────────────────
+  "111111": {
+    // 중천건 (重天乾) ䷀
+    lucky: {
+      direction: "동쪽",
+      color: "흰색·금색",
+      number: "1·6",
+      time: "오전 5–9시",
+    },
+    avoid: {
+      direction: "북쪽",
+      color: "검정색·탁한 회색",
+      time: "밤 11시 이후",
+    },
+  },
+  "111011": {
+    // 천택리 (天澤履) ䷉
+    lucky: {
+      direction: "서쪽",
+      color: "흰색·금색",
+      number: "6·7",
+      time: "오후 3–7시",
+    },
+    avoid: {
+      direction: "동쪽",
+      color: "청색·녹색",
+      time: "새벽 3–7시",
+    },
+  },
+  "111101": {
+    // 천화동인 (天火同人) ䷌
+    lucky: {
+      direction: "남쪽",
+      color: "흰색·적색",
+      number: "3·6",
+      time: "오전 11시–오후 3시",
+    },
+    avoid: {
+      direction: "북쪽",
+      color: "흑색·감색",
+      time: "밤 11시–오전 3시",
+    },
+  },
+  "111001": {
+    // 천뢰무망
+    lucky: {
+      direction: "동",
+      color: "초록색·금색",
+      number: "3·8",
+      time: "오전 5–7시",
+    },
+    avoid: { direction: "서", color: "흰색", time: "오후" },
+  },
+  "111110": {
+    // 천풍구
+    lucky: {
+      direction: "동남",
+      color: "하늘색·금색",
+      number: "3·4",
+      time: "오전 7–9시",
+    },
+    avoid: { direction: "서북", color: "회색", time: "야간" },
+  },
+  "111010": {
+    // 천수송 (天水訟) ䷅
+    lucky: {
+      direction: "서북쪽",
+      color: "청색·흑색",
+      number: "6·1",
+      time: "오후 3–7시",
+    },
+    avoid: {
+      direction: "남쪽",
+      color: "적색·자주색",
+      time: "오전 11시–오후 1시",
+    },
+  },
+  "111100": {
+    // 천산돈
+    lucky: {
+      direction: "서북",
+      color: "흰색·은색",
+      number: "4·9",
+      time: "오전 7–9시",
+    },
+    avoid: { direction: "동남", color: "초록색", time: "오전 중" },
+  },
+  "111000": {
+    // 천지비 (天地否) ䷋
+    lucky: {
+      direction: "서북쪽",
+      color: "황색·갈색",
+      number: "2·6",
+      time: "오후 1–5시",
+    },
+    avoid: {
+      direction: "남쪽",
+      color: "청색·녹색",
+      time: "오전 7–11시",
+    },
+  },
+
+  // ── 澤(兌) 상괘 ──────────────────────────────
+  "011111": {
+    // 택천쾌
+    lucky: {
+      direction: "서",
+      color: "흰색·은색",
+      number: "4·9",
+      time: "오후 5–7시",
+    },
+    avoid: { direction: "동", color: "초록색", time: "오전" },
+  },
+  "011011": {
+    // 중택태
+    lucky: {
+      direction: "서",
+      color: "흰색·은색",
+      number: "4·9",
+      time: "오후 5–7시",
+    },
+    avoid: { direction: "동", color: "초록색", time: "오전" },
+  },
+  "011101": {
+    // 택화혁
+    lucky: {
+      direction: "남",
+      color: "빨간색·은색",
+      number: "2·7",
+      time: "오전 11시–오후 1시",
+    },
+    avoid: { direction: "북", color: "검은색", time: "야간" },
+  },
+  "011001": {
+    // 택뢰수 (澤雷隨) ䷐
+    lucky: {
+      direction: "서쪽",
+      color: "청색·황색",
+      number: "3·7",
+      time: "오후 5–9시",
+    },
+    avoid: {
+      direction: "동북쪽",
+      color: "흑색·적색",
+      time: "밤 11시–오전 3시",
+    },
+  },
+  "011110": {
+    // 택풍대과
+    lucky: {
+      direction: "동남",
+      color: "하늘색·흰색",
+      number: "3·4",
+      time: "오전 7–9시",
+    },
+    avoid: { direction: "서북", color: "흰색", time: "늦은 오후" },
+  },
+  "011010": {
+    // 택수곤
+    lucky: {
+      direction: "북",
+      color: "남색·은색",
+      number: "1·6",
+      time: "자정 전후",
+    },
+    avoid: { direction: "남", color: "빨간색", time: "정오" },
+  },
+  "011100": {
+    // 택산함
+    lucky: {
+      direction: "동북",
+      color: "황색·은색",
+      number: "5·8",
+      time: "오전 3–5시",
+    },
+    avoid: { direction: "남서", color: "초록색", time: "오전" },
+  },
+  "011000": {
+    // 택지취
+    lucky: {
+      direction: "남서",
+      color: "황색·은색",
+      number: "2·5",
+      time: "오후 1–3시",
+    },
+    avoid: { direction: "동북", color: "초록색", time: "이른 아침" },
+  },
+
+  // ── 火(離) 상괘 ──────────────────────────────
+  "101111": {
+    // 화천대유 (火天大有) ䷍
+    lucky: {
+      direction: "남쪽",
+      color: "적색·금색",
+      number: "3·6",
+      time: "오전 11시–오후 3시",
+    },
+    avoid: {
+      direction: "북쪽",
+      color: "흑색·감색",
+      time: "밤 11시–오전 3시",
+    },
+  },
+  "101011": {
+    // 화택규
+    lucky: {
+      direction: "남",
+      color: "빨간색·주황색",
+      number: "2·7",
+      time: "오전 11시–오후 1시",
+    },
+    avoid: { direction: "북", color: "검은색", time: "밤" },
+  },
+  "101101": {
+    // 중화리
+    lucky: {
+      direction: "남",
+      color: "빨간색·주황색",
+      number: "2·7",
+      time: "오전 11시–오후 1시",
+    },
+    avoid: { direction: "북", color: "검은색", time: "야간" },
+  },
+  "101001": {
+    // 화뢰서합
+    lucky: {
+      direction: "동",
+      color: "주황색·초록색",
+      number: "3·7",
+      time: "오전 9–11시",
+    },
+    avoid: { direction: "서", color: "회색", time: "늦은 오후" },
+  },
+  "101110": {
+    // 화풍정
+    lucky: {
+      direction: "동남",
+      color: "주황색·하늘색",
+      number: "2·3",
+      time: "오전 7–9시",
+    },
+    avoid: { direction: "서북", color: "흰색", time: "야간" },
+  },
+  "101010": {
+    // 화수미제
+    lucky: {
+      direction: "남",
+      color: "빨간색·주황색",
+      number: "2·7",
+      time: "오전 11시–오후 1시",
+    },
+    avoid: { direction: "북", color: "검은색", time: "새벽" },
+  },
+  "101100": {
+    // 화산려
+    lucky: {
+      direction: "남",
+      color: "주황색·황색",
+      number: "2·7",
+      time: "오전 11시–오후 1시",
+    },
+    avoid: { direction: "북", color: "검은색", time: "야간" },
+  },
+  "101000": {
+    // 화지진
+    lucky: {
+      direction: "남",
+      color: "빨간색·주황색",
+      number: "2·7",
+      time: "오전 11시–오후 1시",
+    },
+    avoid: { direction: "북", color: "검은색", time: "야간" },
+  },
+
+  // ── 雷(震) 상괘 ──────────────────────────────
+  "001111": {
+    // 뇌천대장
+    lucky: {
+      direction: "동",
+      color: "초록색·금색",
+      number: "3·8",
+      time: "오전 5–7시",
+    },
+    avoid: { direction: "서", color: "흰색", time: "오후" },
+  },
+  "001011": {
+    // 뇌택귀매
+    lucky: {
+      direction: "동",
+      color: "초록색·은색",
+      number: "3·8",
+      time: "오전 5–7시",
+    },
+    avoid: { direction: "서", color: "흰색", time: "저녁" },
+  },
+  "001101": {
+    // 뇌화풍
+    lucky: {
+      direction: "동",
+      color: "초록색·주황색",
+      number: "3·8",
+      time: "오전 5–7시",
+    },
+    avoid: { direction: "서", color: "흰색", time: "오후" },
+  },
+  "001001": {
+    // 중뢰진
+    lucky: {
+      direction: "동",
+      color: "초록색·청록색",
+      number: "3·8",
+      time: "오전 5–7시",
+    },
+    avoid: { direction: "서", color: "흰색", time: "오후" },
+  },
+  "001110": {
+    // 뇌풍항
+    lucky: {
+      direction: "동",
+      color: "초록색·하늘색",
+      number: "3·4",
+      time: "오전 7–9시",
+    },
+    avoid: { direction: "서", color: "흰색·은색", time: "오후" },
+  },
+  "001010": {
+    // 뇌수해
+    lucky: {
+      direction: "동",
+      color: "초록색·청록색",
+      number: "3·8",
+      time: "오전 5–7시",
+    },
+    avoid: { direction: "서남", color: "흰색", time: "오후 늦게" },
+  },
+  "001100": {
+    // 뇌산소과
+    lucky: {
+      direction: "동",
+      color: "초록색·갈색",
+      number: "3·8",
+      time: "오전 5–9시",
+    },
+    avoid: { direction: "서", color: "흰색·은색", time: "오후" },
+  },
+  "001000": {
+    // 뇌지예 (雷地豫) ䷏
+    lucky: {
+      direction: "동쪽",
+      color: "청색·녹색",
+      number: "3·2",
+      time: "새벽 3–7시",
+    },
+    avoid: {
+      direction: "서쪽",
+      color: "흰색·금색",
+      time: "오후 5–9시",
+    },
+  },
+
+  // ── 風(巽) 상괘 ──────────────────────────────
+  "110111": {
+    // 풍천소축 (風天小畜) ䷈
+    lucky: {
+      direction: "동남쪽",
+      color: "청색·녹색",
+      number: "3·4",
+      time: "오전 7–11시",
+    },
+    avoid: {
+      direction: "서쪽",
+      color: "적색·주황색",
+      time: "밤 9시–밤 11시",
+    },
+  },
+  "110011": {
+    // 풍택중부
+    lucky: {
+      direction: "동남",
+      color: "하늘색·은색",
+      number: "3·4",
+      time: "오전 7–9시",
+    },
+    avoid: { direction: "서북", color: "회색", time: "야간" },
+  },
+  "110101": {
+    // 풍화가인
+    lucky: {
+      direction: "동남",
+      color: "하늘색·주황색",
+      number: "2·3",
+      time: "오전 9–11시",
+    },
+    avoid: { direction: "서북", color: "흰색", time: "야간" },
+  },
+  "110001": {
+    // 풍뢰익
+    lucky: {
+      direction: "동",
+      color: "초록색·하늘색",
+      number: "3·4",
+      time: "오전 7–9시",
+    },
+    avoid: { direction: "서", color: "흰색", time: "오후 늦게" },
+  },
+  "110110": {
+    // 중풍손
+    lucky: {
+      direction: "동남",
+      color: "하늘색·청록색",
+      number: "3·4",
+      time: "오전 7–9시",
+    },
+    avoid: { direction: "서북", color: "흰색", time: "야간" },
+  },
+  "110010": {
+    // 풍수환
+    lucky: {
+      direction: "동남",
+      color: "하늘색·남색",
+      number: "1·3",
+      time: "오전 7–9시",
+    },
+    avoid: { direction: "서북", color: "흰색", time: "야간" },
+  },
+  "110100": {
+    // 풍산점
+    lucky: {
+      direction: "동남",
+      color: "하늘색·황색",
+      number: "3·4",
+      time: "오전 7–9시",
+    },
+    avoid: { direction: "서", color: "흰색", time: "오후" },
+  },
+  "110000": {
+    // 풍지관
+    lucky: {
+      direction: "동남",
+      color: "하늘색·황색",
+      number: "3·4",
+      time: "오전 7–9시",
+    },
+    avoid: { direction: "서", color: "흰색", time: "오후 늦게" },
+  },
+
+  // ── 水(坎) 상괘 ──────────────────────────────
+  "010111": {
+    // 수천수 (水天需) ䷄
+    lucky: {
+      direction: "서쪽",
+      color: "청색·흑색",
+      number: "1·6",
+      time: "오후 3–7시",
+    },
+    avoid: {
+      direction: "동남쪽",
+      color: "적색·주황색",
+      time: "오전 11시–오후 1시",
+    },
+  },
+  "010011": {
+    // 수택절
+    lucky: {
+      direction: "북",
+      color: "남색·은색",
+      number: "1·6",
+      time: "자정 전후",
+    },
+    avoid: { direction: "남", color: "빨간색", time: "정오" },
+  },
+  "010101": {
+    // 수화기제
+    lucky: {
+      direction: "북",
+      color: "남색·주황색",
+      number: "1·6",
+      time: "자정 전후",
+    },
+    avoid: { direction: "남", color: "빨간색", time: "오전 11시–오후 1시" },
+  },
+  "010001": {
+    // 수뢰둔 (水雷屯) ䷂
+    lucky: {
+      direction: "동쪽",
+      color: "청색·녹색",
+      number: "1·3",
+      time: "새벽 3–7시",
+    },
+    avoid: {
+      direction: "서쪽",
+      color: "흰색·금색",
+      time: "밤 11시–새벽 1시",
+    },
+  },
+  "010110": {
+    // 수풍정
+    lucky: {
+      direction: "북",
+      color: "남색·하늘색",
+      number: "1·3",
+      time: "오전 7–9시",
+    },
+    avoid: { direction: "남", color: "빨간색", time: "정오" },
+  },
+  "010010": {
+    // 중수감
+    lucky: {
+      direction: "북",
+      color: "검은색·남색",
+      number: "1·6",
+      time: "자정 전후",
+    },
+    avoid: { direction: "남", color: "빨간색", time: "정오" },
+  },
+  "010100": {
+    // 수산건
+    lucky: {
+      direction: "북",
+      color: "남색·황색",
+      number: "1·6",
+      time: "자정 전후",
+    },
+    avoid: { direction: "남", color: "빨간색", time: "오전 중" },
+  },
+  "010000": {
+    // 수지비 (水地比) ䷇
+    lucky: {
+      direction: "북쪽",
+      color: "황색·갈색",
+      number: "1·2",
+      time: "오전 9시–오후 1시",
+    },
+    avoid: {
+      direction: "동북쪽",
+      color: "적색·자주색",
+      time: "밤 9시–밤 11시",
+    },
+  },
+
+  // ── 山(艮) 상괘 ──────────────────────────────
+  "100111": {
+    // 산천대축
+    lucky: {
+      direction: "동북",
+      color: "황색·금색",
+      number: "5·8",
+      time: "오전 3–5시",
+    },
+    avoid: { direction: "서남", color: "흰색", time: "오후" },
+  },
+  "100011": {
+    // 산택손
+    lucky: {
+      direction: "동북",
+      color: "황색·은색",
+      number: "5·8",
+      time: "오전 3–5시",
+    },
+    avoid: { direction: "서", color: "초록색", time: "오전" },
+  },
+  "100101": {
+    // 산화비
+    lucky: {
+      direction: "동북",
+      color: "황색·주황색",
+      number: "5·7",
+      time: "오전 9–11시",
+    },
+    avoid: { direction: "북", color: "검은색", time: "야간" },
+  },
+  "100001": {
+    // 산뢰이
+    lucky: {
+      direction: "동",
+      color: "초록색·황색",
+      number: "3·8",
+      time: "오전 7–9시",
+    },
+    avoid: { direction: "서", color: "흰색", time: "오후" },
+  },
+  "100110": {
+    // 산풍고 (山風蠱) ䷑
+    lucky: {
+      direction: "동남쪽",
+      color: "황색·청색",
+      number: "4·8",
+      time: "오전 7–11시",
+    },
+    avoid: {
+      direction: "서쪽",
+      color: "적색·흰색",
+      time: "오후 5–9시",
+    },
+  },
+  "100010": {
+    // 산수몽
+    lucky: {
+      direction: "동쪽",
+      color: "초록색·연두색",
+      number: "3",
+      time: "오전 5–9시",
+    },
+    avoid: { direction: "서쪽", color: "회색", time: "밤 9시 이후" },
+  },
+  "100100": {
+    // 중산간
+    lucky: {
+      direction: "동북",
+      color: "황색·갈색",
+      number: "5·8",
+      time: "오전 3–5시",
+    },
+    avoid: { direction: "서남", color: "초록색", time: "오후" },
+  },
+  "100000": {
+    // 산지박
+    lucky: {
+      direction: "동북",
+      color: "황색·베이지색",
+      number: "5·8",
+      time: "오전 3–5시",
+    },
+    avoid: { direction: "서남", color: "초록색", time: "오후" },
+  },
+
+  // ── 地(坤) 상괘 ──────────────────────────────
+  "000111": {
+    // 지천태 (地天泰) ䷊
+    lucky: {
+      direction: "남쪽",
+      color: "황색·녹색",
+      number: "2·3",
+      time: "오전 9시–오후 1시",
+    },
+    avoid: {
+      direction: "서북쪽",
+      color: "흑색·회색",
+      time: "밤 9시 이후",
+    },
+  },
+  "000011": {
+    // 지택림
+    lucky: {
+      direction: "남서",
+      color: "황색·은색",
+      number: "2·5",
+      time: "오후 1–3시",
+    },
+    avoid: { direction: "동북", color: "파란색", time: "이른 아침" },
+  },
+  "000101": {
+    // 지화명이
+    lucky: {
+      direction: "남서",
+      color: "황색·주황색",
+      number: "2·5",
+      time: "오후 1–3시",
+    },
+    avoid: { direction: "동북", color: "검은색", time: "야간" },
+  },
+  "000001": {
+    // 지뢰복
+    lucky: {
+      direction: "동",
+      color: "초록색·황색",
+      number: "3·5",
+      time: "오전 5–7시",
+    },
+    avoid: { direction: "서", color: "흰색", time: "오후" },
+  },
+  "000110": {
+    // 지풍승
+    lucky: {
+      direction: "남서",
+      color: "황색·하늘색",
+      number: "2·4",
+      time: "오전 9–11시",
+    },
+    avoid: { direction: "서", color: "흰색", time: "저녁" },
+  },
+  "000010": {
+    // 지수사 (地水師) ䷆
+    lucky: {
+      direction: "북쪽",
+      color: "흑색·감색",
+      number: "1·2",
+      time: "오후 11시–오전 3시",
+    },
+    avoid: {
+      direction: "남쪽",
+      color: "적색·밝은 황색",
+      time: "오전 11시–오후 1시",
+    },
+  },
+  "000100": {
+    // 지산겸 (地山謙) ䷏
+    lucky: {
+      direction: "서남쪽",
+      color: "황색·갈색",
+      number: "2·8",
+      time: "오전 7–11시",
+    },
+    avoid: {
+      direction: "남쪽",
+      color: "적색·주황색",
+      time: "오전 11시–오후 1시",
+    },
+  },
+  "000000": {
+    // 중지곤 (重地坤) ䷁
+    lucky: {
+      direction: "서남쪽",
+      color: "황색·갈색",
+      number: "2·8",
+      time: "오후 1–5시",
+    },
+    avoid: {
+      direction: "동북쪽",
+      color: "흰색·금색",
+      time: "오전 5–9시",
     },
   },
 };

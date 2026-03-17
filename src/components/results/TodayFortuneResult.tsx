@@ -309,6 +309,9 @@ export const TodayFortuneResult: React.FC<TodayFortuneResultProps> = ({
     },
   ];
 
+  const ichingLucky = data.iching?.lucky;
+  const ichingAvoid = data.iching?.avoid;
+
   const highlightCards = [
     {
       key: "lucky",
@@ -317,10 +320,10 @@ export const TodayFortuneResult: React.FC<TodayFortuneResultProps> = ({
       border: "border-emerald-400/40",
       gradient: "from-emerald-500/20 via-emerald-500/5 to-transparent",
       items: [
-        { label: "방향", value: fortune.lucky.direction },
-        { label: "색상", value: fortune.lucky.color },
-        { label: "숫자", value: fortune.lucky.number },
-        { label: "시간", value: fortune.lucky.time },
+        { label: "방향", value: ichingLucky?.direction ?? fortune.lucky.direction },
+        { label: "색상", value: ichingLucky?.color ?? fortune.lucky.color },
+        { label: "숫자", value: ichingLucky?.number ?? fortune.lucky.number },
+        { label: "시간", value: ichingLucky?.time ?? fortune.lucky.time },
       ],
     },
     {
@@ -330,9 +333,9 @@ export const TodayFortuneResult: React.FC<TodayFortuneResultProps> = ({
       border: "border-rose-400/40",
       gradient: "from-rose-500/20 via-rose-500/5 to-transparent",
       items: [
-        { label: "방향", value: fortune.avoid.direction },
-        { label: "색상", value: fortune.avoid.color },
-        { label: "시간", value: fortune.avoid.time },
+        { label: "방향", value: ichingAvoid?.direction ?? fortune.avoid.direction },
+        { label: "색상", value: ichingAvoid?.color ?? fortune.avoid.color },
+        { label: "시간", value: ichingAvoid?.time ?? fortune.avoid.time },
       ],
     },
     {
@@ -341,7 +344,7 @@ export const TodayFortuneResult: React.FC<TodayFortuneResultProps> = ({
       icon: "💫",
       border: "border-amber-400/40",
       gradient: "from-amber-500/20 via-amber-500/5 to-transparent",
-      content: fortune.advice,
+      content: data.iching?.todaySummary ?? fortune.advice,
     },
   ];
 
