@@ -3479,25 +3479,33 @@ export const guaLuckyAvoid: Record<
     },
   },
   "111001": {
-    // 천뢰무망
-    lucky: {
-      direction: "동",
-      color: "초록색·금색",
-      number: "3·8",
-      time: "오전 5–7시",
-    },
-    avoid: { direction: "서", color: "흰색", time: "오후" },
+  // 천뢰무망 (天雷无妄) ䷘
+  lucky: {
+    direction: "동쪽",
+    color: "흰색·청색",
+    number: "1·6",
+    time: "새벽 3–7시",
   },
+  avoid: {
+    direction: "남쪽",
+    color: "적색·자주색",
+    time: "오전 11시–오후 1시",
+  },
+},
   "111110": {
-    // 천풍구
-    lucky: {
-      direction: "동남",
-      color: "하늘색·금색",
-      number: "3·4",
-      time: "오전 7–9시",
-    },
-    avoid: { direction: "서북", color: "회색", time: "야간" },
+  // 천풍구 (天風姤) ䷫
+  lucky: {
+    direction: "서북쪽",
+    color: "흰색·청색",
+    number: "4·6",
+    time: "오후 5–9시",
   },
+  avoid: {
+    direction: "동쪽",
+    color: "흑색·적색",
+    time: "새벽 3–7시",
+  },
+},
   "111010": {
     // 천수송 (天水訟) ䷅
     lucky: {
@@ -3513,15 +3521,19 @@ export const guaLuckyAvoid: Record<
     },
   },
   "111100": {
-    // 천산돈
-    lucky: {
-      direction: "서북",
-      color: "흰색·은색",
-      number: "4·9",
-      time: "오전 7–9시",
-    },
-    avoid: { direction: "동남", color: "초록색", time: "오전 중" },
+  // 천산돈 (天山遯) ䷠
+  lucky: {
+    direction: "서북쪽",
+    color: "은색",
+    number: "6·8",
+    time: "오후 5–9시",
   },
+  avoid: {
+    direction: "동쪽",
+    color: "흑색·청색",
+    time: "새벽 3–7시",
+  },
+},
   "111000": {
     // 천지비 (天地否) ䷋
     lucky: {
@@ -3539,35 +3551,47 @@ export const guaLuckyAvoid: Record<
 
   // ── 澤(兌) 상괘 ──────────────────────────────
   "011111": {
-    // 택천쾌
-    lucky: {
-      direction: "서",
-      color: "흰색·은색",
-      number: "4·9",
-      time: "오후 5–7시",
-    },
-    avoid: { direction: "동", color: "초록색", time: "오전" },
+  // 택천쾌 (澤天夬) ䷪
+  lucky: {
+    direction: "서쪽",
+    color: "흰색·청색",
+    number: "6·7",
+    time: "오후 3–7시",
   },
+  avoid: {
+    direction: "동쪽",
+    color: "흑색·적색",
+    time: "새벽 3–7시",
+  },
+},
   "011011": {
-    // 중택태
-    lucky: {
-      direction: "서",
-      color: "흰색·은색",
-      number: "4·9",
-      time: "오후 5–7시",
-    },
-    avoid: { direction: "동", color: "초록색", time: "오전" },
+  // 중택태 (重澤兌) ䷹
+  lucky: {
+    direction: "서쪽",
+    color: "흰색·황색",
+    number: "7·2",
+    time: "오후 3–7시",
   },
+  avoid: {
+    direction: "동쪽",
+    color: "청색·흑색",
+    time: "새벽 3–7시",
+  },
+},
   "011101": {
-    // 택화혁
-    lucky: {
-      direction: "남",
-      color: "빨간색·은색",
-      number: "2·7",
-      time: "오전 11시–오후 1시",
-    },
-    avoid: { direction: "북", color: "검은색", time: "야간" },
+  // 택화혁 (澤火革) ䷰
+  lucky: {
+    direction: "남쪽",
+    color: "적색·흰색",
+    number: "3·7",
+    time: "오전 11시–오후 3시",
   },
+  avoid: {
+    direction: "북쪽",
+    color: "흑색·청색",
+    time: "밤 11시–오전 3시",
+  },
+},
   "011001": {
     // 택뢰수 (澤雷隨) ䷐
     lucky: {
@@ -3583,45 +3607,61 @@ export const guaLuckyAvoid: Record<
     },
   },
   "011110": {
-    // 택풍대과
-    lucky: {
-      direction: "동남",
-      color: "하늘색·흰색",
-      number: "3·4",
-      time: "오전 7–9시",
-    },
-    avoid: { direction: "서북", color: "흰색", time: "늦은 오후" },
+  // 택풍대과 (澤風大過) ䷛
+  lucky: {
+    direction: "서쪽",
+    color: "황색·청색",
+    number: "4·7",
+    time: "오후 3–7시",
   },
+  avoid: {
+    direction: "동쪽",
+    color: "적색·흑색",
+    time: "새벽 3–7시",
+  },
+},
   "011010": {
-    // 택수곤
-    lucky: {
-      direction: "북",
-      color: "남색·은색",
-      number: "1·6",
-      time: "자정 전후",
-    },
-    avoid: { direction: "남", color: "빨간색", time: "정오" },
+  // 택수곤 (澤水困) ䷮
+  lucky: {
+    direction: "서쪽",
+    color: "흑색·흰색",
+    number: "1·7",
+    time: "밤 9시–자정",
   },
+  avoid: {
+    direction: "남쪽",
+    color: "적색·청색",
+    time: "오전 11시–오후 3시",
+  },
+},
   "011100": {
-    // 택산함
-    lucky: {
-      direction: "동북",
-      color: "황색·은색",
-      number: "5·8",
-      time: "오전 3–5시",
-    },
-    avoid: { direction: "남서", color: "초록색", time: "오전" },
+  // 택산함 (澤山咸) ䷞
+  lucky: {
+    direction: "서쪽",
+    color: "은색",
+    number: "7·8",
+    time: "오후 3–7시",
   },
+  avoid: {
+    direction: "동쪽",
+    color: "흑색·청색",
+    time: "새벽 3–7시",
+  },
+},
   "011000": {
-    // 택지취
-    lucky: {
-      direction: "남서",
-      color: "황색·은색",
-      number: "2·5",
-      time: "오후 1–3시",
-    },
-    avoid: { direction: "동북", color: "초록색", time: "이른 아침" },
+  // 택지취 (澤地萃) ䷬
+  lucky: {
+    direction: "서쪽",
+    color: "황색·흰색",
+    number: "2·7",
+    time: "오후 1–5시",
   },
+  avoid: {
+    direction: "동쪽",
+    color: "청색·흑색",
+    time: "새벽 3–7시",
+  },
+},
 
   // ── 火(離) 상괘 ──────────────────────────────
   "101111": {
@@ -3639,147 +3679,203 @@ export const guaLuckyAvoid: Record<
     },
   },
   "101011": {
-    // 화택규
-    lucky: {
-      direction: "남",
-      color: "빨간색·주황색",
-      number: "2·7",
-      time: "오전 11시–오후 1시",
-    },
-    avoid: { direction: "북", color: "검은색", time: "밤" },
+  // 화택규 (火澤睽) ䷥
+  lucky: {
+    direction: "남쪽",
+    color: "적색·흰색",
+    number: "7·9",
+    time: "오후 1–5시",
   },
+  avoid: {
+    direction: "동북쪽",
+    color: "흑색·청색",
+    time: "밤 9시 이후",
+  },
+},
   "101101": {
-    // 중화리
-    lucky: {
-      direction: "남",
-      color: "빨간색·주황색",
-      number: "2·7",
-      time: "오전 11시–오후 1시",
-    },
-    avoid: { direction: "북", color: "검은색", time: "야간" },
+  // 중화리 (重火離) ䷝
+  lucky: {
+    direction: "남쪽",
+    color: "적색·황색",
+    number: "3·9",
+    time: "오전 11시–오후 3시",
   },
+  avoid: {
+    direction: "북쪽",
+    color: "흑색·감색",
+    time: "밤 11시–오전 3시",
+  },
+},
   "101001": {
-    // 화뢰서합
-    lucky: {
-      direction: "동",
-      color: "주황색·초록색",
-      number: "3·7",
-      time: "오전 9–11시",
-    },
-    avoid: { direction: "서", color: "회색", time: "늦은 오후" },
+  // 화뢰서합 (火雷噬嗑) ䷔
+  lucky: {
+    direction: "남쪽",
+    color: "적색·청색",
+    number: "3·9",
+    time: "오전 11시–오후 3시",
   },
+  avoid: {
+    direction: "북쪽",
+    color: "흑색·흰색",
+    time: "밤 11시–오전 3시",
+  },
+},
   "101110": {
-    // 화풍정
-    lucky: {
-      direction: "동남",
-      color: "주황색·하늘색",
-      number: "2·3",
-      time: "오전 7–9시",
-    },
-    avoid: { direction: "서북", color: "흰색", time: "야간" },
+  // 화풍정 (火風鼎) ䷱
+  lucky: {
+    direction: "남쪽",
+    color: "적색·청색",
+    number: "3·4",
+    time: "오전 11시–오후 3시",
   },
+  avoid: {
+    direction: "북쪽",
+    color: "흑색·흰색",
+    time: "밤 11시–오전 3시",
+  },
+},
   "101010": {
-    // 화수미제
-    lucky: {
-      direction: "남",
-      color: "빨간색·주황색",
-      number: "2·7",
-      time: "오전 11시–오후 1시",
-    },
-    avoid: { direction: "북", color: "검은색", time: "새벽" },
+  // 화수미제 (火水未濟) ䷿
+  lucky: {
+    direction: "남쪽",
+    color: "적색·황색",
+    number: "1·9",
+    time: "오전 9시–오후 1시",
   },
+  avoid: {
+    direction: "북쪽",
+    color: "흑색·청색",
+    time: "밤 11시–오전 3시",
+  },
+},
   "101100": {
-    // 화산려
-    lucky: {
-      direction: "남",
-      color: "주황색·황색",
-      number: "2·7",
-      time: "오전 11시–오후 1시",
-    },
-    avoid: { direction: "북", color: "검은색", time: "야간" },
+  // 화산려 (火山旅) ䷷
+  lucky: {
+    direction: "남쪽",
+    color: "황색·적색",
+    number: "8·3",
+    time: "오전 9시–오후 1시",
   },
+  avoid: {
+    direction: "동쪽",
+    color: "청색·흑색",
+    time: "새벽 3–7시",
+  },
+},
   "101000": {
-    // 화지진
-    lucky: {
-      direction: "남",
-      color: "빨간색·주황색",
-      number: "2·7",
-      time: "오전 11시–오후 1시",
-    },
-    avoid: { direction: "북", color: "검은색", time: "야간" },
+  // 화지진 (火地晉) ䷢
+  lucky: {
+    direction: "남쪽",
+    color: "적색·황색",
+    number: "3·2",
+    time: "오전 9시–오후 1시",
   },
+  avoid: {
+    direction: "북쪽",
+    color: "흑색·청색",
+    time: "밤 11시–오전 3시",
+  },
+},
 
   // ── 雷(震) 상괘 ──────────────────────────────
   "001111": {
-    // 뇌천대장
-    lucky: {
-      direction: "동",
-      color: "초록색·금색",
-      number: "3·8",
-      time: "오전 5–7시",
-    },
-    avoid: { direction: "서", color: "흰색", time: "오후" },
+  // 뇌천대장 (雷天大壯) ䷡
+  lucky: {
+    direction: "동쪽",
+    color: "금색",
+    number: "1·3",
+    time: "새벽 3–7시",
   },
+  avoid: {
+    direction: "서쪽",
+    color: "황색·갈색",
+    time: "오후 5–9시",
+  },
+},
   "001011": {
-    // 뇌택귀매
-    lucky: {
-      direction: "동",
-      color: "초록색·은색",
-      number: "3·8",
-      time: "오전 5–7시",
-    },
-    avoid: { direction: "서", color: "흰색", time: "저녁" },
+  // 뇌택귀매 (雷澤歸妹) ䷵
+  lucky: {
+    direction: "서쪽",
+    color: "흰색·황색",
+    number: "3·7",
+    time: "오후 3–7시",
   },
+  avoid: {
+    direction: "동쪽",
+    color: "청색·흑색",
+    time: "새벽 3–7시",
+  },
+},
   "001101": {
-    // 뇌화풍
-    lucky: {
-      direction: "동",
-      color: "초록색·주황색",
-      number: "3·8",
-      time: "오전 5–7시",
-    },
-    avoid: { direction: "서", color: "흰색", time: "오후" },
+  // 뇌화풍 (雷火豐) ䷶
+  lucky: {
+    direction: "동쪽",
+    color: "적색·청색",
+    number: "3·9",
+    time: "오전 11시–오후 3시",
   },
+  avoid: {
+    direction: "서북쪽",
+    color: "흑색·황색",
+    time: "밤 9시 이후",
+  },
+},
   "001001": {
-    // 중뢰진
-    lucky: {
-      direction: "동",
-      color: "초록색·청록색",
-      number: "3·8",
-      time: "오전 5–7시",
-    },
-    avoid: { direction: "서", color: "흰색", time: "오후" },
+  // 중뢰진 (重雷震) ䷲
+  lucky: {
+    direction: "동쪽",
+    color: "청색·녹색",
+    number: "3·1",
+    time: "새벽 3–7시",
   },
+  avoid: {
+    direction: "서쪽",
+    color: "흰색·금색",
+    time: "오후 5–9시",
+  },
+},
   "001110": {
-    // 뇌풍항
-    lucky: {
-      direction: "동",
-      color: "초록색·하늘색",
-      number: "3·4",
-      time: "오전 7–9시",
-    },
-    avoid: { direction: "서", color: "흰색·은색", time: "오후" },
+  // 뇌풍항 (雷風恒) ䷟
+  lucky: {
+    direction: "동쪽",
+    color: "청색·녹색",
+    number: "3·4",
+    time: "오전 5–9시",
   },
+  avoid: {
+    direction: "서쪽",
+    color: "흰색·금색",
+    time: "오후 7–11시",
+  },
+},
   "001010": {
-    // 뇌수해
-    lucky: {
-      direction: "동",
-      color: "초록색·청록색",
-      number: "3·8",
-      time: "오전 5–7시",
-    },
-    avoid: { direction: "서남", color: "흰색", time: "오후 늦게" },
+  // 뇌수해 (雷水解) ䷧
+  lucky: {
+    direction: "동쪽",
+    color: "청색·황색",
+    number: "1·3",
+    time: "새벽 3–7시",
   },
+  avoid: {
+    direction: "서쪽",
+    color: "흰색·금색",
+    time: "오후 7–11시",
+  },
+},
   "001100": {
-    // 뇌산소과
-    lucky: {
-      direction: "동",
-      color: "초록색·갈색",
-      number: "3·8",
-      time: "오전 5–9시",
-    },
-    avoid: { direction: "서", color: "흰색·은색", time: "오후" },
+  // 뇌산소과 (雷山小過) ䷽
+  lucky: {
+    direction: "동북쪽",
+    color: "청색·황색",
+    number: "3·8",
+    time: "오전 1–7시",
   },
+  avoid: {
+    direction: "남쪽",
+    color: "적색·흰색",
+    time: "오전 11시–오후 3시",
+  },
+},
   "001000": {
     // 뇌지예 (雷地豫) ䷏
     lucky: {
@@ -3811,75 +3907,103 @@ export const guaLuckyAvoid: Record<
     },
   },
   "110011": {
-    // 풍택중부
-    lucky: {
-      direction: "동남",
-      color: "하늘색·은색",
-      number: "3·4",
-      time: "오전 7–9시",
-    },
-    avoid: { direction: "서북", color: "회색", time: "야간" },
+  // 풍택중부 (風澤中孚) ䷼
+  lucky: {
+    direction: "동남쪽",
+    color: "청색·황색",
+    number: "4·7",
+    time: "오후 1–5시",
   },
+  avoid: {
+    direction: "서북쪽",
+    color: "흰색·흑색",
+    time: "밤 9시 이후",
+  },
+},
   "110101": {
-    // 풍화가인
-    lucky: {
-      direction: "동남",
-      color: "하늘색·주황색",
-      number: "2·3",
-      time: "오전 9–11시",
-    },
-    avoid: { direction: "서북", color: "흰색", time: "야간" },
+  // 풍화가인 (風火家人) ䷤
+  lucky: {
+    direction: "동남쪽",
+    color: "적색·청색",
+    number: "3·4",
+    time: "오전 7–11시",
   },
+  avoid: {
+    direction: "서쪽",
+    color: "흑색·흰색",
+    time: "밤 9시 이후",
+  },
+},
   "110001": {
-    // 풍뢰익
-    lucky: {
-      direction: "동",
-      color: "초록색·하늘색",
-      number: "3·4",
-      time: "오전 7–9시",
-    },
-    avoid: { direction: "서", color: "흰색", time: "오후 늦게" },
+  // 풍뢰익 (風雷益) ䷩
+  lucky: {
+    direction: "동쪽",
+    color: "청색·녹색",
+    number: "3·4",
+    time: "오전 5–9시",
   },
+  avoid: {
+    direction: "서쪽",
+    color: "흰색·금색",
+    time: "오후 7–11시",
+  },
+},
   "110110": {
-    // 중풍손
-    lucky: {
-      direction: "동남",
-      color: "하늘색·청록색",
-      number: "3·4",
-      time: "오전 7–9시",
-    },
-    avoid: { direction: "서북", color: "흰색", time: "야간" },
+  // 중풍손 (重風巽) ䷸
+  lucky: {
+    direction: "동남쪽",
+    color: "청색·녹색",
+    number: "4·9",
+    time: "오전 7–11시",
   },
+  avoid: {
+    direction: "서북쪽",
+    color: "흰색·황색",
+    time: "밤 9시 이후",
+  },
+},
   "110010": {
-    // 풍수환
-    lucky: {
-      direction: "동남",
-      color: "하늘색·남색",
-      number: "1·3",
-      time: "오전 7–9시",
-    },
-    avoid: { direction: "서북", color: "흰색", time: "야간" },
+  // 풍수환 (風水渙) ䷺
+  lucky: {
+    direction: "동남쪽",
+    color: "청색·황색",
+    number: "1·4",
+    time: "오전 9시–오후 1시",
   },
+  avoid: {
+    direction: "동북쪽",
+    color: "흑색·적색",
+    time: "밤 11시–오전 3시",
+  },
+},
   "110100": {
-    // 풍산점
-    lucky: {
-      direction: "동남",
-      color: "하늘색·황색",
-      number: "3·4",
-      time: "오전 7–9시",
-    },
-    avoid: { direction: "서", color: "흰색", time: "오후" },
+  // 풍산점 (風山漸) ䷴
+  lucky: {
+    direction: "동남쪽",
+    color: "황색·청색",
+    number: "4·8",
+    time: "오전 7–11시",
   },
+  avoid: {
+    direction: "서북쪽",
+    color: "흰색·적색",
+    time: "밤 9시 이후",
+  },
+},
   "110000": {
-    // 풍지관
-    lucky: {
-      direction: "동남",
-      color: "하늘색·황색",
-      number: "3·4",
-      time: "오전 7–9시",
-    },
-    avoid: { direction: "서", color: "흰색", time: "오후 늦게" },
+  // 풍지관 (風地觀) ䷓
+  lucky: {
+    direction: "동남쪽",
+    color: "황색·청색",
+    number: "4·2",
+    time: "오전 9시–오후 1시",
   },
+  avoid: {
+    direction: "서북쪽",
+    color: "흰색·금색",
+    time: "밤 9시 이후",
+  },
+},
 
   // ── 水(坎) 상괘 ──────────────────────────────
   "010111": {
@@ -3897,25 +4021,33 @@ export const guaLuckyAvoid: Record<
     },
   },
   "010011": {
-    // 수택절
-    lucky: {
-      direction: "북",
-      color: "남색·은색",
-      number: "1·6",
-      time: "자정 전후",
-    },
-    avoid: { direction: "남", color: "빨간색", time: "정오" },
+  // 수택절 (水澤節) ䷻
+  lucky: {
+    direction: "서쪽",
+    color: "은색",
+    number: "1·7",
+    time: "오후 3–7시",
   },
+  avoid: {
+    direction: "동쪽",
+    color: "청색·적색",
+    time: "새벽 3–7시",
+  },
+},
   "010101": {
-    // 수화기제
-    lucky: {
-      direction: "북",
-      color: "남색·주황색",
-      number: "1·6",
-      time: "자정 전후",
-    },
-    avoid: { direction: "남", color: "빨간색", time: "오전 11시–오후 1시" },
+  // 수화기제 (水火旣濟) ䷾
+  lucky: {
+    direction: "남쪽",
+    color: "적색·흑색",
+    number: "1·3",
+    time: "오전 9시–오후 1시",
   },
+  avoid: {
+    direction: "북쪽",
+    color: "청색·흰색",
+    time: "밤 11시–오전 3시",
+  },
+},
   "010001": {
     // 수뢰둔 (水雷屯) ䷂
     lucky: {
@@ -3931,35 +4063,47 @@ export const guaLuckyAvoid: Record<
     },
   },
   "010110": {
-    // 수풍정
-    lucky: {
-      direction: "북",
-      color: "남색·하늘색",
-      number: "1·3",
-      time: "오전 7–9시",
-    },
-    avoid: { direction: "남", color: "빨간색", time: "정오" },
+  // 수풍정 (水風井) ䷯
+  lucky: {
+    direction: "북쪽",
+    color: "청색·황색",
+    number: "1·4",
+    time: "오전 9시–오후 1시",
   },
+  avoid: {
+    direction: "남쪽",
+    color: "적색·흑색",
+    time: "밤 11시–오전 3시",
+  },
+},
   "010010": {
-    // 중수감
-    lucky: {
-      direction: "북",
-      color: "검은색·남색",
-      number: "1·6",
-      time: "자정 전후",
-    },
-    avoid: { direction: "남", color: "빨간색", time: "정오" },
+  // 중수감 (重水坎) ䷜
+  lucky: {
+    direction: "북쪽",
+    color: "흑색·청색",
+    number: "1·6",
+    time: "밤 11시–오전 3시",
   },
-  "010100": {
-    // 수산건
-    lucky: {
-      direction: "북",
-      color: "남색·황색",
-      number: "1·6",
-      time: "자정 전후",
-    },
-    avoid: { direction: "남", color: "빨간색", time: "오전 중" },
+  avoid: {
+    direction: "남쪽",
+    color: "적색·주황색",
+    time: "오전 11시–오후 1시",
   },
+},
+ "010100": {
+  // 수산건 (水山蹇) ䷦
+  lucky: {
+    direction: "서남쪽",
+    color: "황색·청색",
+    number: "2·8",
+    time: "오후 1–5시",
+  },
+  avoid: {
+    direction: "동북쪽",
+    color: "흑색·흰색",
+    time: "밤 11시–오전 3시",
+  },
+},
   "010000": {
     // 수지비 (水地比) ䷇
     lucky: {
@@ -3977,45 +4121,61 @@ export const guaLuckyAvoid: Record<
 
   // ── 山(艮) 상괘 ──────────────────────────────
   "100111": {
-    // 산천대축
-    lucky: {
-      direction: "동북",
-      color: "황색·금색",
-      number: "5·8",
-      time: "오전 3–5시",
-    },
-    avoid: { direction: "서남", color: "흰색", time: "오후" },
+  // 산천대축 (山天大畜) ䷙
+  lucky: {
+    direction: "동북쪽",
+    color: "흰색·황색",
+    number: "6·8",
+    time: "오전 1–5시",
   },
+  avoid: {
+    direction: "남쪽",
+    color: "적색·청색",
+    time: "오전 11시–오후 1시",
+  },
+},
   "100011": {
-    // 산택손
-    lucky: {
-      direction: "동북",
-      color: "황색·은색",
-      number: "5·8",
-      time: "오전 3–5시",
-    },
-    avoid: { direction: "서", color: "초록색", time: "오전" },
+  // 산택손 (山澤損) ䷨
+  lucky: {
+    direction: "동북쪽",
+    color: "황색·흰색",
+    number: "7·8",
+    time: "오전 7–11시",
   },
+  avoid: {
+    direction: "남쪽",
+    color: "적색·청색",
+    time: "오전 11시–오후 3시",
+  },
+},
   "100101": {
-    // 산화비
-    lucky: {
-      direction: "동북",
-      color: "황색·주황색",
-      number: "5·7",
-      time: "오전 9–11시",
-    },
-    avoid: { direction: "북", color: "검은색", time: "야간" },
+  // 산화비 (山火賁) ䷕
+  lucky: {
+    direction: "남쪽",
+    color: "황색·적색",
+    number: "8·3",
+    time: "오전 9시–오후 1시",
   },
+  avoid: {
+    direction: "북쪽",
+    color: "흑색·청색",
+    time: "밤 11시–오전 3시",
+  },
+},
   "100001": {
-    // 산뢰이
-    lucky: {
-      direction: "동",
-      color: "초록색·황색",
-      number: "3·8",
-      time: "오전 7–9시",
-    },
-    avoid: { direction: "서", color: "흰색", time: "오후" },
+  // 산뢰이 (山雷頤) ䷙
+  lucky: {
+    direction: "동북쪽",
+    color: "황색·청색",
+    number: "3·8",
+    time: "오전 1–7시",
   },
+  avoid: {
+    direction: "남쪽",
+    color: "적색·흰색",
+    time: "오전 11시–오후 1시",
+  },
+},
   "100110": {
     // 산풍고 (山風蠱) ䷑
     lucky: {
@@ -4041,25 +4201,33 @@ export const guaLuckyAvoid: Record<
     avoid: { direction: "서쪽", color: "회색", time: "밤 9시 이후" },
   },
   "100100": {
-    // 중산간
-    lucky: {
-      direction: "동북",
-      color: "황색·갈색",
-      number: "5·8",
-      time: "오전 3–5시",
-    },
-    avoid: { direction: "서남", color: "초록색", time: "오후" },
+  // 중산간 (重山艮) ䷳
+  lucky: {
+    direction: "동북쪽",
+    color: "황색·갈색",
+    number: "8·5",
+    time: "오전 1–5시",
   },
+  avoid: {
+    direction: "남쪽",
+    color: "적색·청색",
+    time: "오전 9시–오후 1시",
+  },
+},
   "100000": {
-    // 산지박
-    lucky: {
-      direction: "동북",
-      color: "황색·베이지색",
-      number: "5·8",
-      time: "오전 3–5시",
-    },
-    avoid: { direction: "서남", color: "초록색", time: "오후" },
+  // 산지박 (山地剝) ䷖
+  lucky: {
+    direction: "서남쪽",
+    color: "황색·갈색",
+    number: "2·8",
+    time: "오후 1–5시",
   },
+  avoid: {
+    direction: "동쪽",
+    color: "청색·녹색",
+    time: "새벽 3–7시",
+  },
+},
 
   // ── 地(坤) 상괘 ──────────────────────────────
   "000111": {
@@ -4077,45 +4245,61 @@ export const guaLuckyAvoid: Record<
     },
   },
   "000011": {
-    // 지택림
-    lucky: {
-      direction: "남서",
-      color: "황색·은색",
-      number: "2·5",
-      time: "오후 1–3시",
-    },
-    avoid: { direction: "동북", color: "파란색", time: "이른 아침" },
+  // 지택림 (地澤臨) ䷒
+  lucky: {
+    direction: "서쪽",
+    color: "황색·금색",
+    number: "2·7",
+    time: "오후 1–5시",
   },
+  avoid: {
+    direction: "동북쪽",
+    color: "흑색·청색",
+    time: "밤 9시 이후",
+  },
+},
   "000101": {
-    // 지화명이
-    lucky: {
-      direction: "남서",
-      color: "황색·주황색",
-      number: "2·5",
-      time: "오후 1–3시",
-    },
-    avoid: { direction: "동북", color: "검은색", time: "야간" },
+  // 지화명이 (地火明夷) ䷣
+  lucky: {
+    direction: "북쪽",
+    color: "황색·흑색",
+    number: "1·2",
+    time: "밤 9시–자정",
   },
+  avoid: {
+    direction: "남쪽",
+    color: "적색·금색",
+    time: "오전 11시–오후 3시",
+  },
+},
   "000001": {
-    // 지뢰복
-    lucky: {
-      direction: "동",
-      color: "초록색·황색",
-      number: "3·5",
-      time: "오전 5–7시",
-    },
-    avoid: { direction: "서", color: "흰색", time: "오후" },
+  // 지뢰복 (地雷復) ䷗
+  lucky: {
+    direction: "동쪽",
+    color: "청색·녹색",
+    number: "1·3",
+    time: "자정–오전 3시",
   },
+  avoid: {
+    direction: "서쪽",
+    color: "흰색·금색",
+    time: "오후 5–9시",
+  },
+},
   "000110": {
-    // 지풍승
-    lucky: {
-      direction: "남서",
-      color: "황색·하늘색",
-      number: "2·4",
-      time: "오전 9–11시",
-    },
-    avoid: { direction: "서", color: "흰색", time: "저녁" },
+  // 지풍승 (地風升) ䷭
+  lucky: {
+    direction: "남쪽",
+    color: "황색·청색",
+    number: "2·4",
+    time: "오전 9시–오후 1시",
   },
+  avoid: {
+    direction: "서쪽",
+    color: "흰색·금색",
+    time: "오후 7–11시",
+  },
+},
   "000010": {
     // 지수사 (地水師) ䷆
     lucky: {

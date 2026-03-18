@@ -11,6 +11,7 @@ import {
   getOhaengChart,
   postCareerChat,
   getMookAFortuneAPI,
+  getCoupleOhaengAnalysis,
 } from "../controllers/fortune.controller";
 
 const router = Router();
@@ -26,5 +27,6 @@ router.get("/woolwoon", getWoolwoonForYearAPI);
 router.get("/daewoon-relationships", getDaewoonRelationshipsAPI);
 router.get("/sewoon-relationships", getSewoonRelationshipsAPI);
 router.post("/mook-a", getMookAFortuneAPI);
+router.post("/couple-ohaeng", getCoupleOhaengAnalysis);
 
 export default router;

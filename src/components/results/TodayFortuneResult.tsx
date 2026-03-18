@@ -11,6 +11,50 @@ interface TodayFortuneResultProps {
   onReset: () => void;
 }
 
+const BRANCH_HOURS: Record<string, number[]> = {
+  子: [23, 0], 丑: [1, 2], 寅: [3, 4], 卯: [5, 6],
+  辰: [7, 8], 巳: [9, 10], 午: [11, 12], 未: [13, 14],
+  申: [15, 16], 酉: [17, 18], 戌: [19, 20], 亥: [21, 22],
+};
+
+function parseIchingTimeToHours(
+  timeStr: string
+): { start: number; end: number } | null {
+  if (!timeStr) return null;
+  let m: RegExpMatchArray | null;
+  m = timeStr.match(/오전\s*(\d+)시\s*[–\-]\s*오후\s*(\d+)시/);
+  if (m) return { start: parseInt(m[1]), end: parseInt(m[2]) + 12 };
+  m = timeStr.match(/밤\s*(\d+)시\s*[–\-]\s*오전\s*(\d+)시/);
+  if (m) return { start: parseInt(m[1]) + 12, end: parseInt(m[2]) };
+  m = timeStr.match(/밤\s*(\d+)시\s*[–\-]\s*새벽\s*(\d+)시/);
+  if (m) return { start: parseInt(m[1]) + 12, end: parseInt(m[2]) };
+  m = timeStr.match(/밤\s*(\d+)시\s*[–\-]\s*자정/);
+  if (m) return { start: parseInt(m[1]) + 12, end: 24 };
+  m = timeStr.match(/밤\s*(\d+)시\s*[–\-]\s*밤\s*(\d+)시/);
+  if (m) return { start: parseInt(m[1]) + 12, end: parseInt(m[2]) + 12 };
+  m = timeStr.match(/밤\s*(\d+)시\s*이후/);
+  if (m) return { start: parseInt(m[1]) + 12, end: 1 };
+  m = timeStr.match(/오전\s*(\d+)\s*[–\-]\s*(\d+)시/);
+  if (m) return { start: parseInt(m[1]), end: parseInt(m[2]) };
+  m = timeStr.match(/오후\s*(\d+)\s*[–\-]\s*(\d+)시/);
+  if (m) return { start: parseInt(m[1]) + 12, end: parseInt(m[2]) + 12 };
+  m = timeStr.match(/새벽\s*(\d+)\s*[–\-]\s*(\d+)시/);
+  if (m) return { start: parseInt(m[1]), end: parseInt(m[2]) };
+  return null;
+}
+
+function buildHourSet(start: number, end: number): Set<number> {
+  const hours = new Set<number>();
+  const target = end % 24;
+  let h = start % 24;
+  for (let i = 0; i < 25; i++) {
+    hours.add(h);
+    h = (h + 1) % 24;
+    if (h === target) break;
+  }
+  return hours;
+}
+
 export const TodayFortuneResult: React.FC<TodayFortuneResultProps> = ({
   data,
   onReset,
@@ -214,10 +258,47 @@ export const TodayFortuneResult: React.FC<TodayFortuneResultProps> = ({
   const collapseSlotMap = new Map(
     collapseSlotsData.map((slot) => [slot.branch, slot] as const)
   );
-  const collapseTopBranches = new Set(collapseData?.topBranches ?? []);
-  const collapseTopRanges = Array.from(collapseTopBranches)
-    .map((branch) => collapseSlotMeta[branch]?.range)
-    .filter(Boolean) as string[];
+  // 천을귀인 시점: 사용자 일간 기준
+  const cheonEulGwiinMap: Record<string, string[]> = {
+    甲: ["丑", "未"], 戊: ["丑", "未"], 庚: ["丑", "未"],
+    乙: ["子", "申"], 己: ["子", "申"],
+    丙: ["亥", "酉"], 丁: ["亥", "酉"],
+    辛: ["午", "寅"],
+    壬: ["巳", "卯"], 癸: ["巳", "卯"],
+  };
+  const userDayGan = data.sipsinOfToday?.dayGan ?? "";
+  const gwiinBranches = cheonEulGwiinMap[userDayGan] ?? [];
+
+  const luckyTimeStr = data.iching?.lucky?.time ?? fortune.lucky.time;
+  const luckyParsed = parseIchingTimeToHours(luckyTimeStr);
+  const luckyHourSet = luckyParsed
+    ? buildHourSet(luckyParsed.start, luckyParsed.end)
+    : null;
+  const overlappingBranches = luckyHourSet
+    ? gwiinBranches.filter((b) => {
+        const hrs = BRANCH_HOURS[b];
+        return hrs?.some((h) => luckyHourSet.has(h)) ?? false;
+      })
+    : gwiinBranches;
+
+  const gwiinTopBranches = new Set(overlappingBranches);
+  const gwiinMergedRange = (() => {
+    if (overlappingBranches.length === 0) return "";
+    if (overlappingBranches.length === 1) {
+      return collapseSlotMeta[overlappingBranches[0]]?.range ?? "";
+    }
+    const ranges = overlappingBranches
+      .map((branch) => {
+        const meta = collapseSlotMeta[branch];
+        if (!meta) return null;
+        const [start, end] = meta.range.split(" – ");
+        return { start, end, startHour: parseInt(start) };
+      })
+      .filter(Boolean) as { start: string; end: string; startHour: number }[];
+    if (ranges.length < 2) return ranges[0]?.start ?? "";
+    ranges.sort((a, b) => a.startHour - b.startHour);
+    return `${ranges[0].start} – ${ranges[ranges.length - 1].end}`;
+  })();
 
   const entanglementData = data.fortuneScore?.entanglement;
   const resonanceStrength = entanglementData?.resonanceStrength ?? 0;
@@ -611,10 +692,10 @@ export const TodayFortuneResult: React.FC<TodayFortuneResultProps> = ({
                     stroke="rgba(226, 232, 240, 0.8)"
                     strokeWidth="12"
                   />
-                  {collapseIndex >= 60 && collapseData && collapseSlotsData.length > 0 && (
+                  {gwiinTopBranches.size > 0 && (
                     <g>
                       {collapseDialOrder.map((branch, index) => {
-                        const isActive = collapseTopBranches.has(branch);
+                        const isActive = gwiinTopBranches.has(branch);
                         if (!isActive) {
                           return null;
                         }
@@ -663,30 +744,15 @@ export const TodayFortuneResult: React.FC<TodayFortuneResultProps> = ({
                 </svg>
               </div>
               <p className="mt-2 text-[11px] text-slate-400 text-center">
-                {collapseIndex >= 60 && collapseTopRanges.length > 0
-                  ? `용운 시점: ${collapseTopRanges.join(", ")}`
+                {gwiinMergedRange
+                  ? `천을귀인 × 길한 시점`
                   : "운이 강하게 작용하는 시점"}
               </p>
-              {collapseIndex >= 60 && collapseTopBranches.size > 0 && (
-                <div className="mt-2 flex flex-wrap justify-center gap-2 text-[11px] text-rose-500">
-                  {collapseDialOrder
-                    .filter((branch) => collapseTopBranches.has(branch))
-                    .map((branch, idx) => {
-                      const slotInfo = collapseSlotMeta[branch];
-                      const slotData = collapseSlotMap.get(branch);
-                      return (
-                        <span
-                          key={`${branch}-${idx}`}
-                          className="rounded-full bg-rose-100 px-2.5 py-1 font-medium"
-                          title={`${slotInfo.label} · ${slotInfo.elementLabel}`}
-                        >
-                          {slotInfo.range}
-                          <span className="ml-1 text-[10px] text-rose-400">
-                            Ct {slotData ? slotData.value.toFixed(2) : "0.00"}
-                          </span>
-                        </span>
-                      );
-                    })}
+              {gwiinMergedRange && (
+                <div className="mt-2 flex justify-center">
+                  <span className="rounded-full bg-rose-100 px-2.5 py-1 font-medium text-[11px] text-rose-500">
+                    {gwiinMergedRange}
+                  </span>
                 </div>
               )}
             </div>

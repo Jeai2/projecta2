@@ -1,7 +1,7 @@
 // src/components/results/CoupleResult.tsx
 // 커플 궁합 결과 — SectionFrame 스타일, 사주팔자/대운/세운/궁합 통일
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import {
   Zap,
@@ -11,6 +11,7 @@ import {
   BookOpen,
   FileText,
   Users,
+  ChevronDown,
   Clock,
   Shield,
   Heart,
@@ -74,14 +75,15 @@ const OHENG_LABEL: Record<string, string> = {
   水: "수",
 };
 
-/** 일간 박스용 오행별 색상 (배경·테두리·텍스트) */
-const OHENG_BOX_CLASS: Record<string, string> = {
-  木: "bg-emerald-50 border-emerald-200 text-emerald-800",
-  火: "bg-rose-50 border-rose-200 text-rose-800",
-  土: "bg-amber-50 border-amber-200 text-amber-800",
-  金: "bg-slate-50 border-slate-300 text-slate-700",
-  水: "bg-blue-50 border-blue-200 text-blue-800",
-};
+
+/** 오행별 색상 토큰 (bar 차트 및 보완 UI용) */
+const OHAENG_COLOR_MAP = {
+  木: { bar: "bg-emerald-500", barBonus: "bg-emerald-200", text: "text-emerald-700" },
+  火: { bar: "bg-rose-500",    barBonus: "bg-rose-200",    text: "text-rose-700"    },
+  土: { bar: "bg-amber-400",   barBonus: "bg-amber-200",   text: "text-amber-700"   },
+  金: { bar: "bg-slate-400",   barBonus: "bg-slate-200",   text: "text-slate-600"   },
+  水: { bar: "bg-blue-500",    barBonus: "bg-blue-200",    text: "text-blue-700"    },
+} as const;
 
 interface PersonBlockProps {
   pillars: {
@@ -375,6 +377,486 @@ const DETAIL_ITEMS: Record<DetailTabId, DetailItemData[]> = {
   ],
 };
 
+// ── 오행 분석 API 응답 타입 ───────────────────────────────────────────────────
+
+interface OhaengPersonAnalysis {
+  baseCount: Record<string, number>;
+  hapBonus: Record<string, number>;
+  totalCount: Record<string, number>;
+  lacking: string[];
+  excess: string[];
+  hapDetails: {
+    type: string;
+    characters: string[];
+    result: string;
+    resultName: string;
+    bonus: number;
+  }[];
+}
+
+interface OhaengFillInfo {
+  ohaeng: string;
+  canFill: boolean;
+  fillerCount: number;
+}
+
+interface IlganCompatibilityResult {
+  myAttractsPartner: boolean;
+  partnerAttractsMe: boolean;
+  myRepelsPartner: boolean;
+  partnerRepelsMe: boolean;
+  result: "쌍방인력" | "단방인력" | "쌍방척력" | "단방척력" | "인척혼재" | "중립";
+  label: "인력" | "척력" | "중립";
+}
+
+interface IljiPersonResult {
+  sentiment: "긍정" | "부정" | "중립";
+  reason: string;
+}
+
+interface IljiAnalysisResult {
+  relationshipType: "충" | "방합" | "삼합" | "애증" | "형" | "원진" | "귀문" | "없음";
+  targetOhaeng: string | null;
+  my: IljiPersonResult;
+  partner: IljiPersonResult;
+  summary: string;
+}
+
+interface CoupleOhaengApiResult {
+  my: OhaengPersonAnalysis;
+  partner: OhaengPersonAnalysis;
+  compatibility: {
+    partnerFillsMine: OhaengFillInfo[];
+    iFillPartner: OhaengFillInfo[];
+    bothLacking: string[];
+    complementScore: number;
+    summary: string;
+  };
+  ilji: IljiAnalysisResult;
+  ilgan: IlganCompatibilityResult;
+}
+
+// ── 오행 bar 한 줄 ────────────────────────────────────────────────────────────
+
+const OHAENG_LIST_ORDERED = ["木", "火", "土", "金", "水"] as const;
+
+const OhaengBar: React.FC<{
+  ohaeng: string;
+  base: number;
+  bonus: number;
+  maxCount: number;
+  isLacking: boolean;
+}> = ({ ohaeng, base, bonus, maxCount, isLacking }) => {
+  const total = base + bonus;
+  const color = OHAENG_COLOR_MAP[ohaeng as keyof typeof OHAENG_COLOR_MAP];
+  const baseW  = maxCount > 0 ? (base  / maxCount) * 100 : 0;
+  const bonusW = maxCount > 0 ? (bonus / maxCount) * 100 : 0;
+
+  return (
+    <div className="flex items-center gap-1.5">
+      <span
+        className={`w-4 text-center text-xs font-bold font-myeongjo shrink-0 ${
+          isLacking ? "text-gray-300" : (color?.text ?? "text-gray-500")
+        }`}
+      >
+        {ohaeng}
+      </span>
+
+      {/* bar: base(진함) + bonus(연함) */}
+      <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden flex">
+        <div
+          className={`h-full transition-all duration-500 ${color?.bar ?? "bg-gray-400"}`}
+          style={{ width: `${baseW}%` }}
+        />
+        {bonus > 0 && (
+          <div
+            className={`h-full transition-all duration-500 ${color?.barBonus ?? "bg-gray-200"}`}
+            style={{ width: `${bonusW}%` }}
+          />
+        )}
+      </div>
+
+      <span
+        className={`text-xs font-semibold w-5 text-right shrink-0 ${
+          isLacking ? "text-gray-300" : (color?.text ?? "text-gray-600")
+        }`}
+      >
+        {isLacking ? "─" : total}
+      </span>
+    </div>
+  );
+};
+
+// ── 오행분석 카드 (전체 너비) ─────────────────────────────────────────────────
+
+const OhaengCard: React.FC<{
+  result: CoupleOhaengApiResult | null;
+  loading: boolean;
+  item: DetailItemData;
+}> = ({ result, loading, item }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  /* 로딩 */
+  if (loading) {
+    return (
+      <div className={`rounded-xl border ${item.bgClass} ${item.borderClass}`}>
+        <div className="flex items-center gap-3 p-5">
+          <div className={`p-2 rounded-lg bg-white/70 border ${item.borderClass} shadow-sm shrink-0`}>
+            <Zap size={14} className={item.accentClass} />
+          </div>
+          <h5 className="text-sm font-bold text-text-light flex-1">{item.title}</h5>
+          <div className="flex items-center gap-2 text-xs text-text-muted">
+            <div className="w-3.5 h-3.5 border-2 border-amber-200 border-t-amber-500 rounded-full animate-spin shrink-0" />
+            분석 중…
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /* 데이터 없으면 준비 중 placeholder */
+  if (!result) return <DetailCard {...item} />;
+
+  const { my, partner, compatibility } = result;
+
+  const maxCount = Math.max(
+    ...OHAENG_LIST_ORDERED.map((o) =>
+      Math.max(my.totalCount[o] ?? 0, partner.totalCount[o] ?? 0),
+    ),
+    1,
+  );
+
+  return (
+    <div className={`rounded-xl border ${item.bgClass} ${item.borderClass}`}>
+      {/* 헤더 — 클릭으로 토글 */}
+      <button
+        onClick={() => setIsOpen((v) => !v)}
+        className="w-full flex items-center gap-3 p-5 text-left"
+      >
+        <div className={`p-2 rounded-lg bg-white/70 border ${item.borderClass} shadow-sm mt-0.5 shrink-0`}>
+          <Zap size={14} className={item.accentClass} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h5 className="text-sm font-bold text-text-light leading-tight mb-1">
+            {item.title}
+          </h5>
+          <p className="text-xs text-text-muted leading-relaxed">{item.subtitle}</p>
+        </div>
+        <ChevronDown
+          size={16}
+          className={`shrink-0 text-text-muted transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      {/* 접히는 콘텐츠 */}
+      {isOpen && <div className="px-5 pb-5">
+
+      {/* 오행 보완 관계 — 좌우 병렬 (막대 위) */}
+      <div className="grid grid-cols-2 gap-4 mb-4">
+        {/* 나의 부족 오행 */}
+        <div>
+          <p className="text-[11px] font-semibold text-text-muted mb-1.5">나의 부족 오행</p>
+          {compatibility.partnerFillsMine.filter((f) => f.canFill).length > 0 ? (
+            <div className="flex flex-col gap-1.5">
+              {compatibility.partnerFillsMine.filter((f) => f.canFill).map((f) => {
+                const color = OHAENG_COLOR_MAP[f.ohaeng as keyof typeof OHAENG_COLOR_MAP];
+                return (
+                  <span
+                    key={f.ohaeng}
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-lg border w-fit bg-white border-emerald-200 text-emerald-700"
+                  >
+                    <span className={`font-myeongjo ${color?.text ?? ""}`}>{f.ohaeng}</span>
+                    <span>✓ 상대가 채워줌</span>
+                  </span>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="text-[11px] text-text-subtle font-medium">—</p>
+          )}
+        </div>
+
+        {/* 상대방의 부족 오행 */}
+        <div>
+          <p className="text-[11px] font-semibold text-text-muted mb-1.5">상대방의 부족 오행</p>
+          {compatibility.iFillPartner.filter((f) => f.canFill).length > 0 ? (
+            <div className="flex flex-col gap-1.5">
+              {compatibility.iFillPartner.filter((f) => f.canFill).map((f) => {
+                const color = OHAENG_COLOR_MAP[f.ohaeng as keyof typeof OHAENG_COLOR_MAP];
+                return (
+                  <span
+                    key={f.ohaeng}
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-lg border w-fit bg-white border-emerald-200 text-emerald-700"
+                  >
+                    <span className={`font-myeongjo ${color?.text ?? ""}`}>{f.ohaeng}</span>
+                    <span>✓ 내가 채워줌</span>
+                  </span>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="text-[11px] text-text-subtle font-medium">—</p>
+          )}
+        </div>
+      </div>
+
+      {/* 요약 */}
+      <p className="text-xs text-text-muted leading-relaxed mb-5">
+        {compatibility.summary}
+      </p>
+
+      {/* 구분선 + 오행 막대 차트 */}
+      <div className="border-t border-amber-100/80 pt-4">
+        <div className="grid grid-cols-2 gap-5">
+          {/* 나 */}
+          <div>
+            <p className="text-[11px] font-semibold text-text-muted mb-2.5">나</p>
+            <div className="space-y-2.5">
+              {OHAENG_LIST_ORDERED.map((o) => (
+                <OhaengBar
+                  key={o}
+                  ohaeng={o}
+                  base={my.baseCount[o] ?? 0}
+                  bonus={my.hapBonus[o] ?? 0}
+                  maxCount={maxCount}
+                  isLacking={my.lacking.includes(o)}
+                />
+              ))}
+            </div>
+            {my.hapDetails.length > 0 && (
+              <div className="mt-2.5 flex flex-wrap gap-1">
+                {my.hapDetails.map((h, i) => (
+                  <span
+                    key={i}
+                    className="text-[9px] bg-white/60 border border-gray-200 px-1.5 py-0.5 rounded text-gray-400"
+                  >
+                    {h.resultName}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* 상대방 */}
+          <div>
+            <p className="text-[11px] font-semibold text-text-muted mb-2.5">상대방</p>
+            <div className="space-y-2.5">
+              {OHAENG_LIST_ORDERED.map((o) => (
+                <OhaengBar
+                  key={o}
+                  ohaeng={o}
+                  base={partner.baseCount[o] ?? 0}
+                  bonus={partner.hapBonus[o] ?? 0}
+                  maxCount={maxCount}
+                  isLacking={partner.lacking.includes(o)}
+                />
+              ))}
+            </div>
+            {partner.hapDetails.length > 0 && (
+              <div className="mt-2.5 flex flex-wrap gap-1">
+                {partner.hapDetails.map((h, i) => (
+                  <span
+                    key={i}
+                    className="text-[9px] bg-white/60 border border-gray-200 px-1.5 py-0.5 rounded text-gray-400"
+                  >
+                    {h.resultName}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+      </div>}
+    </div>
+  );
+};
+
+// ── 일간 인력/척력 카드 ───────────────────────────────────────────────────────
+
+const ILGAN_LABEL_MAP: Record<string, string> = {
+  甲: "갑목", 乙: "을목", 丙: "병화", 丁: "정화", 戊: "무토",
+  己: "기토", 庚: "경금", 辛: "신금", 壬: "임수", 癸: "계수",
+};
+
+const IlganCard: React.FC<{
+  result: CoupleOhaengApiResult | null;
+  loading: boolean;
+  item: DetailItemData;
+  myDayGan: string;
+  partnerDayGan: string;
+  myGender: "M" | "W";
+  partnerGender: "M" | "W";
+}> = ({ result, loading, item, myDayGan, partnerDayGan, myGender, partnerGender }) => {
+  const [open, setOpen] = useState(false);
+
+  const ilgan = result?.ilgan ?? null;
+  const labelColor =
+    ilgan?.label === "인력"
+      ? "bg-rose-50 text-rose-600 border border-rose-200"
+      : ilgan?.label === "척력"
+        ? "bg-blue-50 text-blue-600 border border-blue-200"
+        : "bg-stone-50 text-stone-500 border border-stone-200";
+
+  const myLabel = `${ILGAN_LABEL_MAP[myDayGan] ?? myDayGan}(${myGender === "M" ? "남" : "여"})`;
+  const partnerLabel = `${ILGAN_LABEL_MAP[partnerDayGan] ?? partnerDayGan}(${partnerGender === "M" ? "남" : "여"})`;
+
+  const RESULT_DESC: Record<string, string> = {
+    쌍방인력: "두 일간이 서로를 끌어당기는 쌍방 인력 관계입니다.",
+    단방인력: "한쪽의 일간이 상대를 끌어당기는 단방 인력 관계입니다.",
+    쌍방척력: "두 일간이 서로 밀어내는 쌍방 척력 관계입니다.",
+    단방척력: "한쪽의 일간이 상대를 밀어내는 단방 척력 관계입니다.",
+    인척혼재: "한쪽은 끌어당기고 한쪽은 밀어내는 복합적인 관계입니다.",
+    중립: "두 일간 사이에 특별한 인력 또는 척력이 없는 중립 관계입니다.",
+  };
+
+  return (
+    <div className="rounded-xl border border-stone-200 bg-white overflow-hidden">
+      {/* 헤더 */}
+      <button
+        className="w-full flex items-center justify-between px-4 py-3 text-left"
+        onClick={() => setOpen((v) => !v)}
+      >
+        <div className="flex items-center gap-2">
+          <Zap className="w-4 h-4 text-amber-500 shrink-0" />
+          <span className="text-sm font-semibold text-stone-700">{item.title}</span>
+          {!loading && ilgan && (
+            <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${labelColor}`}>
+              {ilgan.result}
+            </span>
+          )}
+          {loading && <span className="text-xs text-stone-400">분석 중…</span>}
+        </div>
+        <ChevronDown
+          className={`w-4 h-4 text-stone-400 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      {/* 본문 */}
+      {open && (
+        <div className="px-4 pb-4 space-y-3 border-t border-stone-100 pt-3">
+          {loading ? (
+            <p className="text-xs text-stone-400 text-center py-4">분석 중…</p>
+          ) : !ilgan ? (
+            <p className="text-xs text-stone-400 text-center py-4">데이터를 불러올 수 없습니다.</p>
+          ) : (
+            <>
+              {/* 좌우 인물 + 중앙 결과 */}
+              <div className="flex items-center gap-3">
+                <div className="flex-1 text-center space-y-1">
+                  <p className="text-xs text-stone-400">나의 일간</p>
+                  <p className="text-sm font-semibold text-stone-700">{myLabel}</p>
+                  <div className="text-[10px] space-y-0.5">
+                    {ilgan.myAttractsPartner && <p className="text-rose-500">→ 인력</p>}
+                    {ilgan.myRepelsPartner && <p className="text-blue-500">→ 척력</p>}
+                  </div>
+                </div>
+                <div className={`px-3 py-1.5 rounded-full text-sm font-bold shrink-0 ${labelColor}`}>
+                  {ilgan.result}
+                </div>
+                <div className="flex-1 text-center space-y-1">
+                  <p className="text-xs text-stone-400">상대 일간</p>
+                  <p className="text-sm font-semibold text-stone-700">{partnerLabel}</p>
+                  <div className="text-[10px] space-y-0.5">
+                    {ilgan.partnerAttractsMe && <p className="text-rose-500">← 인력</p>}
+                    {ilgan.partnerRepelsMe && <p className="text-blue-500">← 척력</p>}
+                  </div>
+                </div>
+              </div>
+              <p className="text-xs text-stone-500 leading-relaxed">
+                {RESULT_DESC[ilgan.result] ?? ""}
+              </p>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ── 일지 분석 카드 ────────────────────────────────────────────────────────────
+
+const REL_BADGE: Record<string, { bg: string; text: string }> = {
+  충:   { bg: "bg-red-50",    text: "text-red-600 border border-red-200" },
+  방합: { bg: "bg-emerald-50", text: "text-emerald-600 border border-emerald-200" },
+  삼합: { bg: "bg-green-50",  text: "text-green-600 border border-green-200" },
+  애증: { bg: "bg-purple-50", text: "text-purple-600 border border-purple-200" },
+  형:   { bg: "bg-orange-50", text: "text-orange-600 border border-orange-200" },
+  원진: { bg: "bg-slate-50",  text: "text-slate-600 border border-slate-200" },
+  귀문: { bg: "bg-slate-50",  text: "text-slate-600 border border-slate-200" },
+  없음: { bg: "bg-stone-50",  text: "text-stone-400 border border-stone-200" },
+};
+
+const SENT_STYLE: Record<string, string> = {
+  긍정: "text-emerald-600",
+  부정: "text-red-500",
+  중립: "text-stone-400",
+};
+const SENT_ICON: Record<string, string> = { 긍정: "●", 부정: "●", 중립: "○" };
+
+const IljiCard: React.FC<{
+  result: CoupleOhaengApiResult | null;
+  loading: boolean;
+  item: DetailItemData;
+}> = ({ result, loading, item }) => {
+  const [open, setOpen] = useState(false);
+  const ilji = result?.ilji ?? null;
+  const badge = ilji ? (REL_BADGE[ilji.relationshipType] ?? REL_BADGE["없음"]) : null;
+
+  return (
+    <div className="rounded-xl border border-stone-200 bg-white overflow-hidden">
+      <button
+        className="w-full flex items-center justify-between px-4 py-3 text-left"
+        onClick={() => setOpen((v) => !v)}
+      >
+        <div className="flex items-center gap-2">
+          <Zap className="w-4 h-4 text-amber-500 shrink-0" />
+          <span className="text-sm font-semibold text-stone-700">{item.title}</span>
+          {!loading && ilji && badge && (
+            <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${badge.text}`}>
+              {ilji.relationshipType}
+              {ilji.targetOhaeng ? ` · ${ilji.targetOhaeng}` : ""}
+            </span>
+          )}
+          {loading && <span className="text-xs text-stone-400">분석 중…</span>}
+        </div>
+        <ChevronDown
+          className={`w-4 h-4 text-stone-400 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      {open && (
+        <div className="px-4 pb-4 space-y-3 border-t border-stone-100 pt-3">
+          {loading ? (
+            <p className="text-xs text-stone-400 text-center py-4">분석 중…</p>
+          ) : !ilji ? (
+            <p className="text-xs text-stone-400 text-center py-4">데이터를 불러올 수 없습니다.</p>
+          ) : (
+            <>
+              {/* 나 / 상대 긍부정 */}
+              <div className="grid grid-cols-2 gap-3">
+                {(["my", "partner"] as const).map((who) => {
+                  const r = who === "my" ? ilji.my : ilji.partner;
+                  return (
+                    <div key={who} className="rounded-lg bg-stone-50 p-3 space-y-1">
+                      <p className="text-[10px] text-stone-400">{who === "my" ? "나" : "상대"}</p>
+                      <p className={`text-sm font-bold flex items-center gap-1 ${SENT_STYLE[r.sentiment]}`}>
+                        <span>{SENT_ICON[r.sentiment]}</span>
+                        {r.sentiment}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-stone-500 leading-relaxed">{ilji.summary}</p>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface CoupleResultProps {
@@ -392,15 +874,42 @@ export const CoupleResult: React.FC<CoupleResultProps> = ({
   const [seohoText, setSeohoText] = useState<string | null>(null);
   const [seohoLoading, setSeohoLoading] = useState(false);
 
+  const [ohaengResult, setOhaengResult] = useState<CoupleOhaengApiResult | null>(null);
+  const [ohaengLoading, setOhaengLoading] = useState(false);
+
   const myPillars = myFortune.saju.sajuData.pillars;
   const partnerPillars = partnerFortune.saju.sajuData.pillars;
   const myDayGan = myPillars.day.gan;
   const partnerDayGan = partnerPillars.day.gan;
+  const myGender = (myFortune.userInfo?.gender ?? "M") as "M" | "W";
+  const partnerGender = (partnerFortune.userInfo?.gender ?? "M") as "M" | "W";
   const myOhaeng = GAN_TO_OHENG[myDayGan] ?? "";
   const partnerOhaeng = GAN_TO_OHENG[partnerDayGan] ?? "";
   const relationship = getOhaengRelationship(myOhaeng, partnerOhaeng);
   const myAge = getKoreanAge(myFortune.userInfo?.birthDate);
   const partnerAge = getKoreanAge(partnerFortune.userInfo?.birthDate);
+
+  // 마운트 시 오행 분석 자동 호출
+  useEffect(() => {
+    const fetchOhaeng = async () => {
+      setOhaengLoading(true);
+      try {
+        const res = await axios.post<{ error: boolean; data: CoupleOhaengApiResult }>(
+          "/api/fortune/couple-ohaeng",
+          { myPillars, partnerPillars, myGender, partnerGender },
+        );
+        if (!res.data.error && res.data.data) {
+          setOhaengResult(res.data.data);
+        }
+      } catch {
+        // silent fail — 카드는 준비 중 상태 유지
+      } finally {
+        setOhaengLoading(false);
+      }
+    };
+    fetchOhaeng();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const fetchSeohoInterpretation = async () => {
     if (seohoLoading || seohoText) return;
@@ -543,11 +1052,44 @@ export const CoupleResult: React.FC<CoupleResultProps> = ({
         </div>
 
         {/* 탭 콘텐츠 */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {DETAIL_ITEMS[activeDetailTab].map((item) => (
-            <DetailCard key={item.id} {...item} />
-          ))}
-        </div>
+        {activeDetailTab === "basic" ? (
+          <div className="space-y-4">
+            {/* 오행분석 — 전체 너비 */}
+            <OhaengCard
+              result={ohaengResult}
+              loading={ohaengLoading}
+              item={DETAIL_ITEMS.basic[0]}
+            />
+            {/* 일간분석 — 전체 너비 */}
+            <IlganCard
+              result={ohaengResult}
+              loading={ohaengLoading}
+              item={DETAIL_ITEMS.basic[1]}
+              myDayGan={myDayGan}
+              partnerDayGan={partnerDayGan}
+              myGender={myGender}
+              partnerGender={partnerGender}
+            />
+            {/* 일지분석 — 전체 너비 */}
+            <IljiCard
+              result={ohaengResult}
+              loading={ohaengLoading}
+              item={DETAIL_ITEMS.basic[2]}
+            />
+            {/* 월지분석 */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {DETAIL_ITEMS.basic.slice(3).map((item) => (
+                <DetailCard key={item.id} {...item} />
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {DETAIL_ITEMS[activeDetailTab].map((item) => (
+              <DetailCard key={item.id} {...item} />
+            ))}
+          </div>
+        )}
 
       </SectionFrame>
 

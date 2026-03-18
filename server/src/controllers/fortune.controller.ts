@@ -11,6 +11,11 @@ import {
 import { ParamsDictionary } from "express-serve-static-core";
 // ✅ 1. 주석을 해제하고 AI 관련 모듈을 정식으로 import 합니다.
 import { getAiGeneratedResponse, AiGeneratedOutput } from "../ai/ai.service";
+import {
+  analyzeCoupleOhaeng,
+  type CoupleOhaengRequest,
+  type CoupleOhaengResult,
+} from "../services/couple-ohaeng.service";
 // ✅ 오늘의 운세 서비스 import
 import { getTodayFortune } from "../services/today-fortune.service";
 import type { MookADebounceResult } from "../services/mookA-debounce.service";
@@ -1132,5 +1137,49 @@ export const getMookAFortuneAPI = async (
       error: true,
       message: `묵설이가 잠들었나봐요! (${errMsg})`,
     });
+  }
+};
+
+// ══════════════════════════════════════════════════════════════════════════════
+// 커플 궁합 오행 분석 API
+// POST /api/fortune/couple-ohaeng
+// ══════════════════════════════════════════════════════════════════════════════
+
+export const getCoupleOhaengAnalysis = async (
+  req: Request<ParamsDictionary, any, CoupleOhaengRequest>,
+  res: Response,
+) => {
+  try {
+    const { myPillars, partnerPillars, myGender, partnerGender } = req.body;
+
+    if (!myPillars || !partnerPillars) {
+      return res.status(400).json({
+        error: true,
+        message: "myPillars와 partnerPillars 모두 필요합니다.",
+      });
+    }
+
+    // 필수 기둥 4개 존재 여부 검증
+    const requiredKeys = ["year", "month", "day", "hour"] as const;
+    for (const key of requiredKeys) {
+      if (!myPillars[key] || !partnerPillars[key]) {
+        return res.status(400).json({
+          error: true,
+          message: `${key} 기둥 데이터가 누락되었습니다.`,
+        });
+      }
+    }
+
+    const result: CoupleOhaengResult = analyzeCoupleOhaeng({
+      myPillars,
+      partnerPillars,
+      myGender: myGender ?? "M",
+      partnerGender: partnerGender ?? "M",
+    });
+
+    return res.status(200).json({ error: false, data: result });
+  } catch (error) {
+    console.error("[CoupleOhaeng] 오행 분석 오류:", error);
+    return res.status(500).json({ error: true, message: "서버 내부 오류" });
   }
 };
