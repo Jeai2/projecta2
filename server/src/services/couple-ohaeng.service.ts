@@ -6,6 +6,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { getSipsin } from "./sipsin.service";
+import { GANJI, SIPSIN_TABLE } from "../data/saju.data";
+import { JIJANGGAN_DATA } from "../data/jijanggan";
 
 // ══════════════════════════════════════════════════════════════════════════════
 // 타입 정의
@@ -71,6 +73,21 @@ export interface CoupleOhaengCompatibility {
   summary: string;
 }
 
+// ── 월지 분석 ─────────────────────────────────────────────────────────────────
+
+export interface WoljiPersonResult {
+  sentiment: "긍정" | "부정" | "중립";
+  reason: string;
+}
+
+export interface WoljiAnalysisResult {
+  relationshipType: "방합" | "삼합" | "충" | "귀문" | "원진" | "형" | "없음";
+  targetOhaeng: OhaengType | null;
+  my: WoljiPersonResult;
+  partner: WoljiPersonResult;
+  summary: string;
+}
+
 // ── 일지 분석 ─────────────────────────────────────────────────────────────────
 
 export interface IljiPersonResult {
@@ -87,6 +104,27 @@ export interface IljiAnalysisResult {
   my: IljiPersonResult;
   partner: IljiPersonResult;
   summary: string;
+}
+
+// ── 년주 비교 분석 ─────────────────────────────────────────────────────────────
+
+export interface NyeonjuAnalysisResult {
+  /** 년간끼리 십신 매핑 결과 */
+  a: "긍정" | "부정" | "중립";
+  /** 각자 일간→년간 십신 매핑 결과 */
+  b: "긍정" | "부정" | "중립";
+  /** a+b 조합 → 강/중/약 */
+  ab: "강" | "중" | "약";
+  /** 년지 관계 → 강/중/약 */
+  c: "강" | "중" | "약";
+  /** 최종 결과 ("강강" ~ "약약") */
+  final: string;
+  /** Step a 상세: 년간이 서로 보는 십신 */
+  aSipsin: { mySeesPartner: string; partnerSeesMe: string };
+  /** Step b 상세: 일간이 자기 년간 보는 십신 */
+  bSipsin: { my: string; partner: string };
+  /** 년지 관계 유형 */
+  cRelType: "방합" | "삼합" | "충" | "형" | "원진" | "귀문" | "없음";
 }
 
 // ── 일간 인력/척력 ────────────────────────────────────────────────────────────
@@ -106,8 +144,10 @@ export interface CoupleOhaengResult {
   my: PersonOhaengAnalysis;
   partner: PersonOhaengAnalysis;
   compatibility: CoupleOhaengCompatibility;
+  wolji: WoljiAnalysisResult;
   ilji: IljiAnalysisResult;
   ilgan: IlganCompatibilityResult;
+  nyeonju: NyeonjuAnalysisResult;
 }
 
 /** 컨트롤러 → 서비스로 전달하는 요청 타입 */
@@ -398,6 +438,244 @@ function calcCompatibility(
     bothLacking,
     complementScore,
     summary,
+  };
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// 월지 분석 — 상수 & 헬퍼
+// ══════════════════════════════════════════════════════════════════════════════
+
+/** 지지 목록 (순서 고정) */
+const JI_LIST = ["子","丑","寅","卯","辰","巳","午","未","申","酉","戌","亥"] as const;
+
+/** 한국어 천간 → 한자 천간 */
+const KOR_TO_HAN_GAN: Record<string, string> = {
+  갑: "甲", 을: "乙", 병: "丙", 정: "丁", 무: "戊",
+  기: "己", 경: "庚", 신: "辛", 임: "壬", 계: "癸",
+};
+
+/** 삼합 그룹 왕지: 그룹 [A,B,C] → 왕지(중심 지지) */
+const SAMHAP_WANGJI: [string, string, string, string][] = [
+  ["申", "子", "辰", "子"],
+  ["寅", "午", "戌", "午"],
+  ["巳", "酉", "丑", "酉"],
+  ["亥", "卯", "未", "卯"],
+];
+
+/** 공망 맵: 일주 가나지(干支) → 공망 지지 2개 */
+const GONGMANG_CYCLE_START = ["甲子","甲戌","甲申","甲午","甲辰","甲寅"] as const;
+const GONGMANG_JI: Record<string, [string, string]> = {
+  "甲子": ["戌","亥"], "甲戌": ["申","酉"], "甲申": ["午","未"],
+  "甲午": ["辰","巳"], "甲辰": ["寅","卯"], "甲寅": ["子","丑"],
+};
+
+/** 현재 연도의 세운 지지 */
+function getCurrentSeunJi(): string {
+  const year = new Date().getFullYear();
+  return JI_LIST[(year - 4 + 1200) % 12];
+}
+
+/** 일주 가나지(干支)로 공망 지지 2개 반환 */
+function getGongmangJi(dayGanji: string): [string, string] | null {
+  const idx = GANJI.indexOf(dayGanji);
+  if (idx < 0) return null;
+  for (const start of GONGMANG_CYCLE_START) {
+    const sIdx = GANJI.indexOf(start);
+    if (idx >= sIdx && idx < sIdx + 10) {
+      return GONGMANG_JI[start] ?? null;
+    }
+  }
+  return null;
+}
+
+/** 월지의 지장간 중 식신이 있는지 확인 */
+function hasShikshinInJijanggan(monthJi: string, dayGan: string): boolean {
+  const jijangganList = JIJANGGAN_DATA[monthJi];
+  if (!jijangganList) return false;
+  const sipsinH = (SIPSIN_TABLE as Record<string, Record<string, Record<string, string>>>)["h"];
+  const tableForDayGan = sipsinH?.[dayGan];
+  if (!tableForDayGan) return false;
+
+  for (const elem of jijangganList) {
+    const hanGan = KOR_TO_HAN_GAN[elem.gan];
+    if (!hanGan) continue;
+    if (tableForDayGan[hanGan] === "식신") return true;
+  }
+  return false;
+}
+
+/** 두 지지가 충인지 */
+function isChung(jiA: string, jiB: string): boolean {
+  return CHUNG_PAIRS_WOLJI.some(
+    ([x, y]) => (jiA === x && jiB === y) || (jiA === y && jiB === x),
+  );
+}
+
+/** 충 쌍 (월지용 별칭) */
+const CHUNG_PAIRS_WOLJI: [string, string][] = [
+  ["子","午"], ["丑","未"], ["寅","申"], ["卯","酉"], ["辰","戌"], ["巳","亥"],
+];
+
+// ══════════════════════════════════════════════════════════════════════════════
+// 월지 분석 — 메인
+// ══════════════════════════════════════════════════════════════════════════════
+
+function woljiSummary(
+  relType: string,
+  my: WoljiPersonResult,
+  partner: WoljiPersonResult,
+): string {
+  const myS = my.sentiment;
+  const parS = partner.sentiment;
+  if (myS === "긍정" && parS === "긍정")
+    return `월지의 ${relType} 관계로 서로에게 긍정적인 영향을 줍니다.`;
+  if (myS === "부정" && parS === "부정")
+    return `월지의 ${relType} 관계가 서로에게 부담이 될 수 있습니다.`;
+  return `월지의 ${relType} 관계로 한쪽에는 긍정, 한쪽에는 부담이 됩니다.`;
+}
+
+function calcWoljiAnalysis(
+  myPillars: PillarsInput,
+  partnerPillars: PillarsInput,
+  myAnalysis: PersonOhaengAnalysis,
+  partnerAnalysis: PersonOhaengAnalysis,
+): WoljiAnalysisResult {
+  const myJi      = myPillars.month.ji;
+  const partnerJi = partnerPillars.month.ji;
+
+  // ── a. 방합 ───────────────────────────────────────────────────────────────
+  const bangHapO = getBangHapOhaeng(myJi, partnerJi);
+  if (bangHapO) {
+    // 둘 다 과한 경우 → 긍정. 나머지는 lacking=긍정, excess=부정, 중립=중립
+    const rawMy      = ohaengSentiment(bangHapO, myAnalysis);
+    const rawPartner = ohaengSentiment(bangHapO, partnerAnalysis);
+
+    const bothExcess = rawMy === "부정" && rawPartner === "부정";
+    const mySent      = bothExcess ? "긍정" : rawMy;
+    const partnerSent = bothExcess ? "긍정" : rawPartner;
+
+    const my: WoljiPersonResult = {
+      sentiment: mySent,
+      reason: bothExcess
+        ? `방합의 ${bangHapO} 기운이 과하지만, 상대도 동일해 오히려 균형을 이룹니다`
+        : ohaengReason(mySent, "방합", bangHapO),
+    };
+    const partner: WoljiPersonResult = {
+      sentiment: partnerSent,
+      reason: bothExcess
+        ? `방합의 ${bangHapO} 기운이 과하지만, 상대도 동일해 오히려 균형을 이룹니다`
+        : ohaengReason(partnerSent, "방합", bangHapO),
+    };
+    return { relationshipType: "방합", targetOhaeng: bangHapO, my, partner,
+      summary: woljiSummary("방합", my, partner) };
+  }
+
+  // ── b. 삼합 ───────────────────────────────────────────────────────────────
+  const samHapO = getSamHapOhaeng(myJi, partnerJi);
+  if (samHapO) {
+    // 왕지를 가진 측이 현재 세운 지지와 충이면 부정
+    const seunJi = getCurrentSeunJi();
+    const group = SAMHAP_WANGJI.find(([a, b, c]) => [a,b,c].includes(myJi) && [a,b,c].includes(partnerJi));
+    const wangji = group?.[3] ?? null;
+
+    const myHasWangji      = myJi      === wangji;
+    const partnerHasWangji = partnerJi === wangji;
+
+    // 충 판정: 왕지 vs 세운 지지
+    const wangjiClash = wangji ? isChung(wangji, seunJi) : false;
+
+    const mySent: WoljiPersonResult["sentiment"] =
+      myHasWangji && wangjiClash ? "부정" : "긍정";
+    const partnerSent: WoljiPersonResult["sentiment"] =
+      partnerHasWangji && wangjiClash ? "부정" : "긍정";
+
+    const my: WoljiPersonResult = {
+      sentiment: mySent,
+      reason: mySent === "부정"
+        ? `삼합의 왕지(${wangji})가 현재 세운(${seunJi})과 충이 되어 부담이 됩니다`
+        : "삼합 관계로 좋은 기운이 흐릅니다",
+    };
+    const partner: WoljiPersonResult = {
+      sentiment: partnerSent,
+      reason: partnerSent === "부정"
+        ? `삼합의 왕지(${wangji})가 현재 세운(${seunJi})과 충이 되어 부담이 됩니다`
+        : "삼합 관계로 좋은 기운이 흐릅니다",
+    };
+    return { relationshipType: "삼합", targetOhaeng: samHapO, my, partner,
+      summary: woljiSummary("삼합", my, partner) };
+  }
+
+  // ── c. 충 ─────────────────────────────────────────────────────────────────
+  if (isChung(myJi, partnerJi)) {
+    // 공망이면 긍정
+    const myGongmang = getGongmangJi(myPillars.day.gan + myPillars.day.ji);
+    const partnerGongmang = getGongmangJi(partnerPillars.day.gan + partnerPillars.day.ji);
+
+    const myIsGongmang      = myGongmang?.includes(myJi) ?? false;
+    const partnerIsGongmang = partnerGongmang?.includes(partnerJi) ?? false;
+
+    const mySent: WoljiPersonResult["sentiment"]      = myIsGongmang ? "긍정" : "부정";
+    const partnerSent: WoljiPersonResult["sentiment"] = partnerIsGongmang ? "긍정" : "부정";
+
+    const my: WoljiPersonResult = {
+      sentiment: mySent,
+      reason: myIsGongmang
+        ? `월지(${myJi})가 공망이라 충의 영향이 약해져 오히려 긍정적입니다`
+        : `월지 충으로 상대와의 에너지 마찰이 발생할 수 있습니다`,
+    };
+    const partner: WoljiPersonResult = {
+      sentiment: partnerSent,
+      reason: partnerIsGongmang
+        ? `월지(${partnerJi})가 공망이라 충의 영향이 약해져 오히려 긍정적입니다`
+        : `월지 충으로 상대와의 에너지 마찰이 발생할 수 있습니다`,
+    };
+    return { relationshipType: "충", targetOhaeng: null, my, partner,
+      summary: woljiSummary("충", my, partner) };
+  }
+
+  // ── d. 귀문, 원진 ─────────────────────────────────────────────────────────
+  const isWonjin = pairMatch(myJi, partnerJi, WONJIN_PAIRS);
+  const isGwimun = pairMatch(myJi, partnerJi, GWIMUN_PAIRS);
+  if (isWonjin || isGwimun) {
+    // 지장간에 식신이 있으면 긍정
+    const myHasShikshin      = hasShikshinInJijanggan(myJi, myPillars.day.gan);
+    const partnerHasShikshin = hasShikshinInJijanggan(partnerJi, partnerPillars.day.gan);
+
+    const mySent: WoljiPersonResult["sentiment"]      = myHasShikshin ? "긍정" : "부정";
+    const partnerSent: WoljiPersonResult["sentiment"] = partnerHasShikshin ? "긍정" : "부정";
+
+    const relType = isWonjin && isGwimun ? "원진·귀문" : isWonjin ? "원진" : "귀문";
+    const my: WoljiPersonResult = {
+      sentiment: mySent,
+      reason: myHasShikshin
+        ? `월지 지장간의 식신이 ${relType} 에너지를 완화합니다`
+        : `${relType} 관계로 심리적 불안이나 집착이 생길 수 있습니다`,
+    };
+    const partner: WoljiPersonResult = {
+      sentiment: partnerSent,
+      reason: partnerHasShikshin
+        ? `월지 지장간의 식신이 ${relType} 에너지를 완화합니다`
+        : `${relType} 관계로 심리적 불안이나 집착이 생길 수 있습니다`,
+    };
+    return { relationshipType: isWonjin ? "원진" : "귀문", targetOhaeng: null, my, partner,
+      summary: `월지의 ${relType} 관계${mySent === "긍정" || partnerSent === "긍정" ? "이지만 식신이 이를 완화합니다." : "로 긴장이 흐를 수 있습니다."}` };
+  }
+
+  // ── e. 형 ─────────────────────────────────────────────────────────────────
+  const isSelfHyungW = myJi === partnerJi && SELF_HYUNG_CHARS.has(myJi);
+  if (isSelfHyungW || pairMatch(myJi, partnerJi, HYUNG_PAIRS)) {
+    const neg: WoljiPersonResult = { sentiment: "부정", reason: "월지 형 관계로 마찰이나 억압이 생길 수 있습니다" };
+    return { relationshipType: "형", targetOhaeng: null, my: neg, partner: { ...neg },
+      summary: "월지가 형 관계로 서로에게 긴장과 마찰이 생길 수 있습니다." };
+  }
+
+  // ── 없음 ──────────────────────────────────────────────────────────────────
+  return {
+    relationshipType: "없음",
+    targetOhaeng: null,
+    my:      { sentiment: "중립", reason: "특별한 월지 관계가 없습니다" },
+    partner: { sentiment: "중립", reason: "특별한 월지 관계가 없습니다" },
+    summary: "두 월지 사이에 특별한 신살 관계가 없습니다.",
   };
 }
 
@@ -767,6 +1045,121 @@ function calcIlganCompatibility(
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
+// 년주 비교 분석 — 상수 & 헬퍼
+// ══════════════════════════════════════════════════════════════════════════════
+
+/** 십신 정렬 순서 (쌍 키 정규화용) */
+const SIPSIN_ORDER = [
+  "비견", "겁재", "식신", "상관",
+  "정재", "편재", "정관", "편관",
+  "정인", "편인",
+];
+
+/**
+ * 십신 두 개의 쌍 → 궁합 긍(true)/부(false)
+ * 키: 앞 십신 index ≤ 뒤 십신 index 순으로 정규화
+ */
+const SIPSIN_COMPAT_MAP: Record<string, boolean> = {
+  "비견/비견": true,  "비견/겁재": false, "비견/식신": true,  "비견/상관": false,
+  "비견/정재": false, "비견/편재": false, "비견/정관": false, "비견/편관": false,
+  "비견/정인": true,  "비견/편인": false,
+  "겁재/겁재": false, "겁재/식신": true,  "겁재/상관": false, "겁재/정재": false,
+  "겁재/편재": false, "겁재/정관": false, "겁재/편관": false, "겁재/정인": true,
+  "겁재/편인": false,
+  "식신/식신": true,  "식신/상관": false, "식신/정재": true,  "식신/편재": true,
+  "식신/정관": false, "식신/편관": false, "식신/정인": true,  "식신/편인": false,
+  "상관/상관": false, "상관/정재": false, "상관/편재": true,  "상관/정관": false,
+  "상관/편관": false, "상관/정인": true,  "상관/편인": false,
+  "정재/정재": true,  "정재/편재": false, "정재/정관": true,  "정재/편관": false,
+  "정재/정인": true,  "정재/편인": false,
+  "편재/편재": false, "편재/정관": false, "편재/편관": false, "편재/정인": true,
+  "편재/편인": false,
+  "정관/정관": true,  "정관/편관": false, "정관/정인": true,  "정관/편인": false,
+  "편관/편관": false, "편관/정인": true,  "편관/편인": false,
+  "정인/정인": true,  "정인/편인": false,
+  "편인/편인": false,
+};
+
+/** 두 십신 이름으로 매핑 표 조회 → 긍정/부정/중립 */
+function lookupSipsinCompat(
+  sipsin1: string | undefined,
+  sipsin2: string | undefined,
+): "긍정" | "부정" | "중립" {
+  if (!sipsin1 || !sipsin2) return "중립";
+  const i1 = SIPSIN_ORDER.indexOf(sipsin1);
+  const i2 = SIPSIN_ORDER.indexOf(sipsin2);
+  if (i1 < 0 || i2 < 0) return "중립";
+  const key = i1 <= i2 ? `${sipsin1}/${sipsin2}` : `${sipsin2}/${sipsin1}`;
+  const result = SIPSIN_COMPAT_MAP[key];
+  return result !== undefined ? (result ? "긍정" : "부정") : "중립";
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// 년주 비교 분석 — 메인
+// ══════════════════════════════════════════════════════════════════════════════
+
+function calcNyeonjuAnalysis(
+  myPillars: PillarsInput,
+  partnerPillars: PillarsInput,
+): NyeonjuAnalysisResult {
+  const myYearGan      = myPillars.year.gan;
+  const partnerYearGan = partnerPillars.year.gan;
+  const myYearJi       = myPillars.year.ji;
+  const partnerYearJi  = partnerPillars.year.ji;
+  const myDayGan       = myPillars.day.gan;
+  const partnerDayGan  = partnerPillars.day.gan;
+
+  const sipsinH = (SIPSIN_TABLE as Record<string, Record<string, Record<string, string>>>)["h"];
+
+  // ── a. 년간끼리: A년간 기준 B년간 십신 + B년간 기준 A년간 십신 ────────────
+  const aMySeesPartner  = sipsinH?.[myYearGan]?.[partnerYearGan]  ?? "";
+  const aPartnerSeesMe  = sipsinH?.[partnerYearGan]?.[myYearGan]  ?? "";
+  const a = lookupSipsinCompat(aMySeesPartner, aPartnerSeesMe);
+
+  // ── b. 각자 일간으로 자기 년간 십신 ─────────────────────────────────────────
+  const bMy      = sipsinH?.[myDayGan]?.[myYearGan]           ?? "";
+  const bPartner = sipsinH?.[partnerDayGan]?.[partnerYearGan]  ?? "";
+  const b = lookupSipsinCompat(bMy, bPartner);
+
+  // ── a+b → 강/중/약 ──────────────────────────────────────────────────────────
+  let ab: "강" | "중" | "약";
+  if      (a === "긍정" && b === "긍정") ab = "강";
+  else if (a === "부정" && b === "부정") ab = "약";
+  else                                    ab = "중";
+
+  // ── c. 년지 관계 → 강/중/약 ──────────────────────────────────────────────────
+  let c: "강" | "중" | "약";
+  let cRelType: NyeonjuAnalysisResult["cRelType"];
+
+  if (getBangHapOhaeng(myYearJi, partnerYearJi)) {
+    c = "강"; cRelType = "방합";
+  } else if (getSamHapOhaeng(myYearJi, partnerYearJi)) {
+    c = "강"; cRelType = "삼합";
+  } else if (pairMatch(myYearJi, partnerYearJi, CHUNG_PAIRS)) {
+    c = "약"; cRelType = "충";
+  } else if (
+    (myYearJi === partnerYearJi && SELF_HYUNG_CHARS.has(myYearJi)) ||
+    pairMatch(myYearJi, partnerYearJi, HYUNG_PAIRS)
+  ) {
+    c = "약"; cRelType = "형";
+  } else if (pairMatch(myYearJi, partnerYearJi, WONJIN_PAIRS)) {
+    c = "약"; cRelType = "원진";
+  } else if (pairMatch(myYearJi, partnerYearJi, GWIMUN_PAIRS)) {
+    c = "약"; cRelType = "귀문";
+  } else {
+    c = "중"; cRelType = "없음";
+  }
+
+  return {
+    a, b, ab, c,
+    final: ab + c,
+    aSipsin: { mySeesPartner: aMySeesPartner, partnerSeesMe: aPartnerSeesMe },
+    bSipsin: { my: bMy, partner: bPartner },
+    cRelType,
+  };
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
 // 공개 엔트리 포인트
 // ══════════════════════════════════════════════════════════════════════════════
 
@@ -776,6 +1169,7 @@ export function analyzeCoupleOhaeng(
   const my = calcPersonOhaeng(req.myPillars);
   const partner = calcPersonOhaeng(req.partnerPillars);
   const compatibility = calcCompatibility(my, partner);
+  const wolji = calcWoljiAnalysis(req.myPillars, req.partnerPillars, my, partner);
   const ilji = calcIljiAnalysis(req.myPillars, req.partnerPillars, my, partner);
   const ilgan = calcIlganCompatibility(
     req.myPillars.day.gan,
@@ -783,5 +1177,6 @@ export function analyzeCoupleOhaeng(
     req.partnerPillars.day.gan,
     req.partnerGender,
   );
-  return { my, partner, compatibility, ilji, ilgan };
+  const nyeonju = calcNyeonjuAnalysis(req.myPillars, req.partnerPillars);
+  return { my, partner, compatibility, wolji, ilji, ilgan, nyeonju };
 }

@@ -10,7 +10,6 @@ import {
   CalendarDays,
   BookOpen,
   FileText,
-  Users,
   ChevronDown,
   Clock,
   Shield,
@@ -66,6 +65,37 @@ const OHENG_SANGGEUK: Record<string, string> = {
   金: "木",
   水: "火",
 };
+
+const GAN_POLARITY: Record<string, number> = {
+  甲: 0, 乙: 1, 丙: 0, 丁: 1, 戊: 0, 己: 1, 庚: 0, 辛: 1, 壬: 0, 癸: 1,
+};
+const OHAENG_CYCLE = ["木", "火", "土", "金", "水"];
+
+function getSipsin(dayGan: string, targetGan: string): string {
+  const dOh = GAN_TO_OHENG[dayGan];
+  const tOh = GAN_TO_OHENG[targetGan];
+  if (!dOh || !tOh) return "";
+  const same = GAN_POLARITY[dayGan] === GAN_POLARITY[targetGan];
+  const di = OHAENG_CYCLE.indexOf(dOh);
+  const ti = OHAENG_CYCLE.indexOf(tOh);
+  const diff = (ti - di + 5) % 5;
+  if (diff === 0) return same ? "비견" : "겁재";
+  if (diff === 1) return same ? "식신" : "상관";
+  if (diff === 2) return same ? "편재" : "정재";
+  if (diff === 3) return same ? "편관" : "정관";
+  return same ? "편인" : "정인";
+}
+
+const YUKAP_PAIRS: [string, string][] = [["子","丑"],["寅","亥"],["卯","戌"],["辰","酉"],["巳","申"],["午","未"]];
+const CHUNG_PAIRS: [string, string][] = [["子","午"],["丑","未"],["寅","申"],["卯","酉"],["辰","戌"],["巳","亥"]];
+
+function getJiRelation(ji1: string, ji2: string): { type: string; strength: "강" | "중" | "약" } {
+  for (const [a, b] of YUKAP_PAIRS)
+    if ((ji1 === a && ji2 === b) || (ji1 === b && ji2 === a)) return { type: "육합", strength: "강" };
+  for (const [a, b] of CHUNG_PAIRS)
+    if ((ji1 === a && ji2 === b) || (ji1 === b && ji2 === a)) return { type: "충", strength: "약" };
+  return { type: "없음", strength: "중" };
+}
 
 const OHENG_LABEL: Record<string, string> = {
   木: "목",
@@ -232,8 +262,8 @@ const DetailCard: React.FC<DetailItemData> = ({
 );
 
 const DETAIL_TABS: { id: DetailTabId; label: string }[] = [
-  { id: "basic", label: "기초 분석" },
-  { id: "pillar", label: "기둥 비교" },
+  { id: "basic", label: "기초 비교" },
+  { id: "pillar", label: "궁위 분석" },
   { id: "special", label: "충합·신살" },
 ];
 
@@ -306,16 +336,6 @@ const DETAIL_ITEMS: Record<DetailTabId, DetailItemData[]> = {
       bgClass: "bg-blue-50/60",
       borderClass: "border-blue-100",
       dotClass: "bg-blue-400",
-    },
-    {
-      id: "ilju",
-      title: "일주비교",
-      subtitle: "두 사람의 일주를 비교하여 일상 속 궁합을 분석합니다.",
-      icon: Users,
-      accentClass: "text-indigo-600",
-      bgClass: "bg-indigo-50/60",
-      borderClass: "border-indigo-100",
-      dotClass: "bg-indigo-400",
     },
     {
       id: "siju",
@@ -422,6 +442,30 @@ interface IljiAnalysisResult {
   summary: string;
 }
 
+interface WoljiPersonResult {
+  sentiment: "긍정" | "부정" | "중립";
+  reason: string;
+}
+
+interface WoljiAnalysisResult {
+  relationshipType: "방합" | "삼합" | "충" | "귀문" | "원진" | "형" | "없음";
+  targetOhaeng: string | null;
+  my: WoljiPersonResult;
+  partner: WoljiPersonResult;
+  summary: string;
+}
+
+interface NyeonjuAnalysisResult {
+  a: "긍정" | "부정" | "중립";
+  b: "긍정" | "부정" | "중립";
+  ab: "강" | "중" | "약";
+  c: "강" | "중" | "약";
+  final: string;
+  aSipsin: { mySeesPartner: string; partnerSeesMe: string };
+  bSipsin: { my: string; partner: string };
+  cRelType: "방합" | "삼합" | "충" | "형" | "원진" | "귀문" | "없음";
+}
+
 interface CoupleOhaengApiResult {
   my: OhaengPersonAnalysis;
   partner: OhaengPersonAnalysis;
@@ -432,8 +476,10 @@ interface CoupleOhaengApiResult {
     complementScore: number;
     summary: string;
   };
+  wolji: WoljiAnalysisResult;
   ilji: IljiAnalysisResult;
   ilgan: IlganCompatibilityResult;
+  nyeonju: NyeonjuAnalysisResult;
 }
 
 // ── 오행 bar 한 줄 ────────────────────────────────────────────────────────────
@@ -857,6 +903,503 @@ const IljiCard: React.FC<{
   );
 };
 
+// ── 월지 분석 카드 ────────────────────────────────────────────────────────────
+
+const WoljiCard: React.FC<{
+  result: CoupleOhaengApiResult | null;
+  loading: boolean;
+  item: DetailItemData;
+}> = ({ result, loading, item }) => {
+  const [open, setOpen] = useState(false);
+  const wolji = result?.wolji ?? null;
+  const badge = wolji ? (REL_BADGE[wolji.relationshipType] ?? REL_BADGE["없음"]) : null;
+
+  return (
+    <div className="rounded-xl border border-stone-200 bg-white overflow-hidden">
+      <button
+        className="w-full flex items-center justify-between px-4 py-3 text-left"
+        onClick={() => setOpen((v) => !v)}
+      >
+        <div className="flex items-center gap-2">
+          <Zap className="w-4 h-4 text-amber-500 shrink-0" />
+          <span className="text-sm font-semibold text-stone-700">{item.title}</span>
+          {!loading && wolji && badge && (
+            <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${badge.text}`}>
+              {wolji.relationshipType}
+              {wolji.targetOhaeng ? ` · ${wolji.targetOhaeng}` : ""}
+            </span>
+          )}
+          {loading && <span className="text-xs text-stone-400">분석 중…</span>}
+        </div>
+        <ChevronDown
+          className={`w-4 h-4 text-stone-400 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      {open && (
+        <div className="px-4 pb-4 space-y-3 border-t border-stone-100 pt-3">
+          {loading ? (
+            <p className="text-xs text-stone-400 text-center py-4">분석 중…</p>
+          ) : !wolji ? (
+            <p className="text-xs text-stone-400 text-center py-4">데이터를 불러올 수 없습니다.</p>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 gap-3">
+                {(["my", "partner"] as const).map((who) => {
+                  const r = who === "my" ? wolji.my : wolji.partner;
+                  return (
+                    <div key={who} className="rounded-lg bg-stone-50 p-3 space-y-1">
+                      <p className="text-[10px] text-stone-400">{who === "my" ? "나" : "상대"}</p>
+                      <p className={`text-sm font-bold flex items-center gap-1 ${SENT_STYLE[r.sentiment]}`}>
+                        <span>{SENT_ICON[r.sentiment]}</span>
+                        {r.sentiment}
+                      </p>
+                      <p className="text-[11px] text-stone-500 leading-relaxed">{r.reason}</p>
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-stone-500 leading-relaxed">{wolji.summary}</p>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ── 년주 비교 카드 ────────────────────────────────────────────────────────────
+
+const FINAL_STRENGTH: Record<string, { label: string; color: string }> = {
+  강강: { label: "강강", color: "text-emerald-600 border border-emerald-200 bg-emerald-50" },
+  강중: { label: "강중", color: "text-teal-600 border border-teal-200 bg-teal-50" },
+  강약: { label: "강약", color: "text-amber-600 border border-amber-200 bg-amber-50" },
+  중강: { label: "중강", color: "text-sky-600 border border-sky-200 bg-sky-50" },
+  중중: { label: "중중", color: "text-stone-500 border border-stone-200 bg-stone-50" },
+  중약: { label: "중약", color: "text-orange-500 border border-orange-200 bg-orange-50" },
+  약강: { label: "약강", color: "text-violet-600 border border-violet-200 bg-violet-50" },
+  약중: { label: "약중", color: "text-pink-500 border border-pink-200 bg-pink-50" },
+  약약: { label: "약약", color: "text-red-500 border border-red-200 bg-red-50" },
+};
+
+// ── 십신 라벨 — 가치관의 결 (수정 가능) ──────────────────────────────────────
+const SIPSIN_LABEL: Record<string, { main: string; sub: string }> = {
+  비견: { main: "각자 기준을 존중하는 구조를 원한다", sub: "간섭하지 말고, 독립적으로 굴러가길 바람" },
+  겁재: { main: "경쟁과 속도를 같이 맞출 수 있는 구조를 원한다", sub: "느리거나 수동적인 흐름을 싫어함" },
+  식신: { main: "무리하지 않고 지속 가능한 흐름을 원한다", sub: "과도한 변화나 압박 없이 꾸준함 유지" },
+  상관: { main: "정체되지 않고 계속 변화하는 구조를 원한다", sub: "틀에 묶인 관계를 답답해함" },
+  정재: { main: "예측 가능하고 안정적인 운영을 원한다", sub: "계획, 책임, 지속성 중요" },
+  편재: { main: "기회를 살리고 흐름을 타는 구조를 원한다", sub: "고정된 틀보다 유연한 선택 선호" },
+  정관: { main: "명확한 기준과 역할이 있는 구조를 원한다", sub: "선, 규칙, 책임 분명해야 안정" },
+  편관: { main: "결정이 빠르고 실행이 강한 구조를 원한다", sub: "우유부단, 애매한 상태를 견디지 못함" },
+  정인: { main: "서로를 이해하고 배워가는 관계를 원한다", sub: "안정적이고 끊기지 않는 관계" },
+  편인: { main: "정의되지 않고 열려있는 관계를 원한다", sub: "정답 강요, 획일화된 방식 거부" },
+};
+
+// ── 십신 라벨 — 내면의 뿌리 (수정 가능) ─────────────────────────────────────
+const SIPSIN_ROOT_LABEL: Record<string, { main: string; sub: string }> = {
+  비견: { main: "더 나은 삶을 위해 나답게 살것이다", sub: "자기 기준, 동등성, 자존" },
+  겁재: { main: "더 나은 삶을 위해 만들어 갈것이다", sub: "경쟁, 생존, 주도권" },
+  식신: { main: "안락한 삶을 위해 꾸준히 나아갈 것이다", sub: "여유, 안정, 자연스러움" },
+  상관: { main: "안락한 삶을 위해 깨고 도전할 것이다", sub: "직설, 반항, 개성" },
+  정재: { main: "매력적인 삶을 위해 꾸준히 만들어 나갈 것이다", sub: "관리, 책임, 현실성" },
+  편재: { main: "매력적인 삶을 위해 들어온 기회를 놓치지 않을 것이다", sub: "유동성, 사업성, 외향성" },
+  정관: { main: "안정된 삶을 위해서 책임을 다해 일궈나갈 것이다", sub: "규범, 책임, 사회성" },
+  편관: { main: "안정된 삶을 위해서 가만히 있지 않을 것이다", sub: "압박, 긴장, 돌파력" },
+  정인: { main: "지혜로운 삶을 위해 제대로 알고 삶을 터득할 것이다", sub: "보호, 수용, 안정적 해석" },
+  편인: { main: "지혜로운 삶을 위해 나만의 방식으로 삶을 터득할 것이다", sub: "주관, 독특함, 왜곡 가능성" },
+};
+
+// ── 월주비교 해석 (수정 가능) ─────────────────────────────────────────────────
+const WOLJU_MY_DESC: Record<string, { main: string; sub: string }> = {
+  비견: { main: "비견 — 월주 해석 예시 문구", sub: "키워드1, 키워드2" },
+  겁재: { main: "겁재 — 월주 해석 예시 문구", sub: "키워드1, 키워드2" },
+  식신: { main: "식신 — 월주 해석 예시 문구", sub: "키워드1, 키워드2" },
+  상관: { main: "상관 — 월주 해석 예시 문구", sub: "키워드1, 키워드2" },
+  정재: { main: "정재 — 월주 해석 예시 문구", sub: "키워드1, 키워드2" },
+  편재: { main: "편재 — 월주 해석 예시 문구", sub: "키워드1, 키워드2" },
+  정관: { main: "정관 — 월주 해석 예시 문구", sub: "키워드1, 키워드2" },
+  편관: { main: "편관 — 월주 해석 예시 문구", sub: "키워드1, 키워드2" },
+  정인: { main: "정인 — 월주 해석 예시 문구", sub: "키워드1, 키워드2" },
+  편인: { main: "편인 — 월주 해석 예시 문구", sub: "키워드1, 키워드2" },
+};
+
+// ── 시주비교 해석 (수정 가능) ─────────────────────────────────────────────────
+const SIJU_MY_DESC: Record<string, { main: string; sub: string }> = {
+  비견: { main: "비견 — 시주 해석 예시 문구", sub: "키워드1, 키워드2" },
+  겁재: { main: "겁재 — 시주 해석 예시 문구", sub: "키워드1, 키워드2" },
+  식신: { main: "식신 — 시주 해석 예시 문구", sub: "키워드1, 키워드2" },
+  상관: { main: "상관 — 시주 해석 예시 문구", sub: "키워드1, 키워드2" },
+  정재: { main: "정재 — 시주 해석 예시 문구", sub: "키워드1, 키워드2" },
+  편재: { main: "편재 — 시주 해석 예시 문구", sub: "키워드1, 키워드2" },
+  정관: { main: "정관 — 시주 해석 예시 문구", sub: "키워드1, 키워드2" },
+  편관: { main: "편관 — 시주 해석 예시 문구", sub: "키워드1, 키워드2" },
+  정인: { main: "정인 — 시주 해석 예시 문구", sub: "키워드1, 키워드2" },
+  편인: { main: "편인 — 시주 해석 예시 문구", sub: "키워드1, 키워드2" },
+};
+
+const NYEONJU_COMPAT_DESC: Record<string, string> = {
+  강강: "가치관·뿌리가 잘 맞고 년지 에너지도 상호 보완적인 최상의 조합입니다.",
+  강중: "가치관이 잘 맞으며 년지는 중립적으로 큰 충돌 없이 흐릅니다.",
+  강약: "내면의 가치관은 잘 맞지만, 년지의 긴장 에너지를 함께 다독일 필요가 있습니다.",
+  중강: "가치관은 중간 정도 맞으며, 년지의 강한 기운이 관계를 보완합니다.",
+  중중: "특별히 튀지 않는 안정적인 중간 조합으로, 노력 여부에 따라 방향이 결정됩니다.",
+  중약: "가치관이 어긋나고 년지도 충돌하는 에너지가 있어 배려와 소통이 중요합니다.",
+  약강: "근본적 가치관 차이가 있지만, 년지가 강하게 서로를 묶어주는 독특한 관계입니다.",
+  약중: "가치관 충돌이 있으며 년지도 중립적이어서 서로 이해하려는 노력이 필요합니다.",
+  약약: "가치관과 년지 모두 에너지 충돌이 있어 깊은 이해와 인내가 요구됩니다.",
+};
+
+const NyeonjuCard: React.FC<{
+  result: CoupleOhaengApiResult | null;
+  loading: boolean;
+  item: DetailItemData;
+  myYearGan: string;
+  partnerYearGan: string;
+  myYearJi: string;
+  partnerYearJi: string;
+}> = ({ result, loading, item, myYearGan, partnerYearGan, myYearJi, partnerYearJi }) => {
+  const [open, setOpen] = useState(false);
+  const nyeonju = result?.nyeonju ?? null;
+  const finalInfo = nyeonju ? (FINAL_STRENGTH[nyeonju.final] ?? null) : null;
+
+  return (
+    <div className="rounded-xl border border-stone-200 bg-white overflow-hidden">
+      <button
+        className="w-full flex items-center justify-between px-4 py-3 text-left"
+        onClick={() => setOpen((v) => !v)}
+      >
+        <div className="flex items-center gap-2">
+          <BookOpen className="w-4 h-4 text-violet-500 shrink-0" />
+          <span className="text-sm font-semibold text-stone-700">{item.title}</span>
+          {!loading && nyeonju && finalInfo && (
+            <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${finalInfo.color}`}>
+              {nyeonju.final}
+            </span>
+          )}
+          {loading && <span className="text-xs text-stone-400">분석 중…</span>}
+        </div>
+        <ChevronDown
+          className={`w-4 h-4 text-stone-400 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      {open && (
+        <div className="px-4 pb-4 space-y-3 border-t border-stone-100 pt-3">
+          {loading ? (
+            <p className="text-xs text-stone-400 text-center py-4">분석 중…</p>
+          ) : !nyeonju ? (
+            <p className="text-xs text-stone-400 text-center py-4">데이터를 불러올 수 없습니다.</p>
+          ) : (
+            <>
+              {/* 년주 글자 표시 */}
+              <div className="flex items-center justify-center gap-6 py-2">
+                <div className="text-center">
+                  <p className="text-[10px] text-stone-400 mb-1">나의 년주</p>
+                  <p className="text-lg font-bold font-myeongjo text-stone-700">{myYearGan}{myYearJi}</p>
+                </div>
+                <div className={`px-3 py-1.5 rounded-full text-sm font-bold shrink-0 ${finalInfo?.color ?? "text-stone-500"}`}>
+                  {nyeonju.final}
+                </div>
+                <div className="text-center">
+                  <p className="text-[10px] text-stone-400 mb-1">상대 년주</p>
+                  <p className="text-lg font-bold font-myeongjo text-stone-700">{partnerYearGan}{partnerYearJi}</p>
+                </div>
+              </div>
+
+              {/* Step a: 가치관의 결 */}
+              <div className="rounded-lg bg-violet-50/60 border border-violet-100 p-3 space-y-2">
+                <p className="text-[11px] font-semibold text-violet-700">가치관의 결</p>
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  {(["나", "상대"] as const).map((who, i) => {
+                    const raw = i === 0 ? nyeonju.aSipsin.mySeesPartner : nyeonju.aSipsin.partnerSeesMe;
+                    const label = SIPSIN_LABEL[raw];
+                    return (
+                      <div key={who} className="space-y-0.5">
+                        <p className="text-[10px] text-stone-400">{who}의 시선</p>
+                        {label ? (
+                          <>
+                            <p className="font-semibold text-stone-700 leading-snug">{label.main}</p>
+                            <p className="text-[10px] text-stone-400 leading-snug">{label.sub}</p>
+                          </>
+                        ) : (
+                          <p className="font-semibold text-stone-700">{raw || "—"}</p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+                <p className={`text-xs font-semibold ${SENT_STYLE[nyeonju.a]} hidden`}>
+                  {SENT_ICON[nyeonju.a]} {nyeonju.a}
+                </p>
+              </div>
+
+              {/* Step b: 내면의 뿌리 */}
+              <div className="rounded-lg bg-sky-50/60 border border-sky-100 p-3 space-y-2">
+                <p className="text-[11px] font-semibold text-sky-700">내면의 뿌리</p>
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  {(["나", "상대"] as const).map((who, i) => {
+                    const raw = i === 0 ? nyeonju.bSipsin.my : nyeonju.bSipsin.partner;
+                    const label = SIPSIN_ROOT_LABEL[raw];
+                    return (
+                      <div key={who} className="space-y-0.5">
+                        <p className="text-[10px] text-stone-400">{who}의 뿌리</p>
+                        {label ? (
+                          <>
+                            <p className="font-semibold text-stone-700 leading-snug">{label.main}</p>
+                            <p className="text-[10px] text-stone-400 leading-snug">{label.sub}</p>
+                          </>
+                        ) : (
+                          <p className="font-semibold text-stone-700">{raw || "—"}</p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+                <p className={`text-xs font-semibold ${SENT_STYLE[nyeonju.b]} hidden`}>
+                  {SENT_ICON[nyeonju.b]} {nyeonju.b}
+                </p>
+              </div>
+
+              {/* Step c: 환경의 조화 */}
+              <div className="rounded-lg bg-stone-50 border border-stone-200 p-3 flex items-center justify-between">
+                <div>
+                  <p className="text-[11px] font-semibold text-stone-600">환경의 조화</p>
+                  <p className="text-xs text-stone-500 mt-0.5">
+                    {nyeonju.cRelType === "없음" ? "자연스러운 흐름" : nyeonju.cRelType}
+                  </p>
+                </div>
+                <span className={`text-sm font-bold px-3 py-1 rounded-full border ${
+                  nyeonju.c === "강" ? "bg-emerald-50 text-emerald-600 border-emerald-200" :
+                  nyeonju.c === "약" ? "bg-red-50 text-red-500 border-red-200" :
+                  "bg-stone-100 text-stone-500 border-stone-200"
+                }`}>
+                  {nyeonju.c === "강" ? "잘 맞아요" : nyeonju.c === "약" ? "차이 있어요" : "무난해요"}
+                </span>
+              </div>
+
+              {/* 최종 요약 */}
+              <p className="text-xs text-stone-500 leading-relaxed">
+                {NYEONJU_COMPAT_DESC[nyeonju.final] ?? ""}
+              </p>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ── 월주비교 카드 ─────────────────────────────────────────────────────────────
+const WoljuCard: React.FC<{
+  item: DetailItemData;
+  myMonthGan: string; partnerMonthGan: string;
+  myMonthJi: string; partnerMonthJi: string;
+  myDayGan: string; partnerDayGan: string;
+}> = ({ item, myMonthGan, partnerMonthGan, myMonthJi, partnerMonthJi, myDayGan, partnerDayGan }) => {
+  const [open, setOpen] = useState(false);
+  const jiRel = getJiRelation(myMonthJi, partnerMonthJi);
+  const aMy = getSipsin(myMonthGan, partnerMonthGan);
+  const aPartner = getSipsin(partnerMonthGan, myMonthGan);
+  const bMy = getSipsin(myDayGan, myMonthGan);
+  const bPartner = getSipsin(partnerDayGan, partnerMonthGan);
+
+  const renderLabel = (
+    raw: string,
+    descMap: Record<string, { main: string; sub: string }>,
+    label: string,
+  ) => {
+    const d = descMap[raw];
+    return (
+      <div className="space-y-0.5">
+        <p className="text-[10px] text-stone-400">{label}</p>
+        {d ? (
+          <>
+            <p className="font-semibold text-stone-700 leading-snug text-xs">{d.main}</p>
+            <p className="text-[10px] text-stone-400 leading-snug">{d.sub}</p>
+          </>
+        ) : (
+          <p className="font-semibold text-stone-700 text-xs">{raw || "—"}</p>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className="rounded-xl border border-stone-200 bg-white overflow-hidden">
+      <button
+        className="w-full flex items-center justify-between px-4 py-3 text-left"
+        onClick={() => setOpen((v) => !v)}
+      >
+        <div className="flex items-center gap-2">
+          <FileText className="w-4 h-4 text-blue-500 shrink-0" />
+          <span className="text-sm font-semibold text-stone-700">{item.title}</span>
+        </div>
+        <ChevronDown
+          className={`w-4 h-4 text-stone-400 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      {open && (
+        <div className="px-4 pb-4 space-y-3 border-t border-stone-100 pt-3">
+          {/* 월주 글자 */}
+          <div className="flex items-center justify-center gap-6 py-2">
+            <div className="text-center">
+              <p className="text-[10px] text-stone-400 mb-1">나의 월주</p>
+              <p className="text-lg font-bold font-myeongjo text-stone-700">{myMonthGan}{myMonthJi}</p>
+            </div>
+            <div className="w-8 h-px bg-stone-200" />
+            <div className="text-center">
+              <p className="text-[10px] text-stone-400 mb-1">상대 월주</p>
+              <p className="text-lg font-bold font-myeongjo text-stone-700">{partnerMonthGan}{partnerMonthJi}</p>
+            </div>
+          </div>
+
+          {/* Step a: 사회적 시선 */}
+          <div className="rounded-lg bg-blue-50/60 border border-blue-100 p-3 space-y-2">
+            <p className="text-[11px] font-semibold text-blue-700">사회적 시선</p>
+            <div className="grid grid-cols-2 gap-3">
+              {renderLabel(aMy, SIPSIN_LABEL, "나의 시선")}
+              {renderLabel(aPartner, SIPSIN_LABEL, "상대의 시선")}
+            </div>
+          </div>
+
+          {/* Step b: 사회적 성향 */}
+          <div className="rounded-lg bg-sky-50/60 border border-sky-100 p-3 space-y-2">
+            <p className="text-[11px] font-semibold text-sky-700">사회적 성향</p>
+            <div className="grid grid-cols-2 gap-3">
+              {renderLabel(bMy, WOLJU_MY_DESC, "나의 성향")}
+              {renderLabel(bPartner, WOLJU_MY_DESC, "상대의 성향")}
+            </div>
+          </div>
+
+          {/* Step c: 사회적 환경 */}
+          <div className="rounded-lg bg-stone-50 border border-stone-200 p-3 flex items-center justify-between">
+            <div>
+              <p className="text-[11px] font-semibold text-stone-600">사회적 환경</p>
+              <p className="text-xs text-stone-500 mt-0.5">
+                {jiRel.type === "없음" ? "자연스러운 흐름" : jiRel.type}
+              </p>
+            </div>
+            <span className={`text-sm font-bold px-3 py-1 rounded-full border ${
+              jiRel.strength === "강" ? "bg-emerald-50 text-emerald-600 border-emerald-200" :
+              jiRel.strength === "약" ? "bg-red-50 text-red-500 border-red-200" :
+              "bg-stone-100 text-stone-500 border-stone-200"
+            }`}>
+              {jiRel.strength === "강" ? "잘 맞아요" : jiRel.strength === "약" ? "차이 있어요" : "무난해요"}
+            </span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ── 시주비교 카드 ─────────────────────────────────────────────────────────────
+const SijuCard: React.FC<{
+  item: DetailItemData;
+  myHourGan: string; partnerHourGan: string;
+  myHourJi: string; partnerHourJi: string;
+  myDayGan: string; partnerDayGan: string;
+}> = ({ item, myHourGan, partnerHourGan, myHourJi, partnerHourJi, myDayGan, partnerDayGan }) => {
+  const [open, setOpen] = useState(false);
+  const jiRel = getJiRelation(myHourJi, partnerHourJi);
+  const aMy = getSipsin(myHourGan, partnerHourGan);
+  const aPartner = getSipsin(partnerHourGan, myHourGan);
+  const bMy = getSipsin(myDayGan, myHourGan);
+  const bPartner = getSipsin(partnerDayGan, partnerHourGan);
+
+  const renderLabel = (
+    raw: string,
+    descMap: Record<string, { main: string; sub: string }>,
+    label: string,
+  ) => {
+    const d = descMap[raw];
+    return (
+      <div className="space-y-0.5">
+        <p className="text-[10px] text-stone-400">{label}</p>
+        {d ? (
+          <>
+            <p className="font-semibold text-stone-700 leading-snug text-xs">{d.main}</p>
+            <p className="text-[10px] text-stone-400 leading-snug">{d.sub}</p>
+          </>
+        ) : (
+          <p className="font-semibold text-stone-700 text-xs">{raw || "—"}</p>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className="rounded-xl border border-stone-200 bg-white overflow-hidden">
+      <button
+        className="w-full flex items-center justify-between px-4 py-3 text-left"
+        onClick={() => setOpen((v) => !v)}
+      >
+        <div className="flex items-center gap-2">
+          <Clock className="w-4 h-4 text-slate-500 shrink-0" />
+          <span className="text-sm font-semibold text-stone-700">{item.title}</span>
+        </div>
+        <ChevronDown
+          className={`w-4 h-4 text-stone-400 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      {open && (
+        <div className="px-4 pb-4 space-y-3 border-t border-stone-100 pt-3">
+          {/* 시주 글자 */}
+          <div className="flex items-center justify-center gap-6 py-2">
+            <div className="text-center">
+              <p className="text-[10px] text-stone-400 mb-1">나의 시주</p>
+              <p className="text-lg font-bold font-myeongjo text-stone-700">{myHourGan}{myHourJi}</p>
+            </div>
+            <div className="w-8 h-px bg-stone-200" />
+            <div className="text-center">
+              <p className="text-[10px] text-stone-400 mb-1">상대 시주</p>
+              <p className="text-lg font-bold font-myeongjo text-stone-700">{partnerHourGan}{partnerHourJi}</p>
+            </div>
+          </div>
+
+          {/* Step a: 미래의 시선 */}
+          <div className="rounded-lg bg-violet-50/60 border border-violet-100 p-3 space-y-2">
+            <p className="text-[11px] font-semibold text-violet-700">미래의 시선</p>
+            <div className="grid grid-cols-2 gap-3">
+              {renderLabel(aMy, SIPSIN_LABEL, "나의 시선")}
+              {renderLabel(aPartner, SIPSIN_LABEL, "상대의 시선")}
+            </div>
+          </div>
+
+          {/* Step b: 미래 성향 */}
+          <div className="rounded-lg bg-sky-50/60 border border-sky-100 p-3 space-y-2">
+            <p className="text-[11px] font-semibold text-sky-700">미래 성향</p>
+            <div className="grid grid-cols-2 gap-3">
+              {renderLabel(bMy, SIJU_MY_DESC, "나의 성향")}
+              {renderLabel(bPartner, SIJU_MY_DESC, "상대의 성향")}
+            </div>
+          </div>
+
+          {/* Step c: 미래 환경 */}
+          <div className="rounded-lg bg-stone-50 border border-stone-200 p-3 flex items-center justify-between">
+            <div>
+              <p className="text-[11px] font-semibold text-stone-600">미래 환경</p>
+              <p className="text-xs text-stone-500 mt-0.5">
+                {jiRel.type === "없음" ? "자연스러운 흐름" : jiRel.type}
+              </p>
+            </div>
+            <span className={`text-sm font-bold px-3 py-1 rounded-full border ${
+              jiRel.strength === "강" ? "bg-emerald-50 text-emerald-600 border-emerald-200" :
+              jiRel.strength === "약" ? "bg-red-50 text-red-500 border-red-200" :
+              "bg-stone-100 text-stone-500 border-stone-200"
+            }`}>
+              {jiRel.strength === "강" ? "잘 맞아요" : jiRel.strength === "약" ? "차이 있어요" : "무난해요"}
+            </span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface CoupleResultProps {
@@ -1002,9 +1545,9 @@ export const CoupleResult: React.FC<CoupleResultProps> = ({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
             <h4 className="text-lg font-bold text-gray-800 mb-4">
-              대운 비교
+              대운 흐름
               <span className="ml-2 text-xs font-normal text-gray-500">
-                궁합 그래프
+                10 Luck Lines
               </span>
             </h4>
             <DaewoonWaveChart
@@ -1014,9 +1557,9 @@ export const CoupleResult: React.FC<CoupleResultProps> = ({
           </div>
           <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
             <h4 className="text-lg font-bold text-gray-800 mb-4">
-              세운 비교
+              세운 흐름
               <span className="ml-2 text-xs font-normal text-gray-500">
-                궁합 그래프
+                Annual Lines
               </span>
             </h4>
             <SewoonWaveChart
@@ -1076,11 +1619,45 @@ export const CoupleResult: React.FC<CoupleResultProps> = ({
               loading={ohaengLoading}
               item={DETAIL_ITEMS.basic[2]}
             />
-            {/* 월지분석 */}
+            {/* 월지분석 — 전체 너비 */}
+            <WoljiCard
+              result={ohaengResult}
+              loading={ohaengLoading}
+              item={DETAIL_ITEMS.basic[3]}
+            />
+          </div>
+        ) : activeDetailTab === "pillar" ? (
+          <div className="space-y-4">
+            {/* 년주비교 — 전체 너비 */}
+            <NyeonjuCard
+              result={ohaengResult}
+              loading={ohaengLoading}
+              item={DETAIL_ITEMS.pillar[0]}
+              myYearGan={myPillars.year.gan}
+              partnerYearGan={partnerPillars.year.gan}
+              myYearJi={myPillars.year.ji}
+              partnerYearJi={partnerPillars.year.ji}
+            />
+            {/* 월주·시주 — 2열 그리드 */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {DETAIL_ITEMS.basic.slice(3).map((item) => (
-                <DetailCard key={item.id} {...item} />
-              ))}
+              <WoljuCard
+                item={DETAIL_ITEMS.pillar[1]}
+                myMonthGan={myPillars.month.gan}
+                partnerMonthGan={partnerPillars.month.gan}
+                myMonthJi={myPillars.month.ji}
+                partnerMonthJi={partnerPillars.month.ji}
+                myDayGan={myDayGan}
+                partnerDayGan={partnerDayGan}
+              />
+              <SijuCard
+                item={DETAIL_ITEMS.pillar[2]}
+                myHourGan={myPillars.hour.gan}
+                partnerHourGan={partnerPillars.hour.gan}
+                myHourJi={myPillars.hour.ji}
+                partnerHourJi={partnerPillars.hour.ji}
+                myDayGan={myDayGan}
+                partnerDayGan={partnerDayGan}
+              />
             </div>
           </div>
         ) : (
