@@ -1,7 +1,7 @@
 // src/pages/FortuneServicePage.tsx
 // 운세 놀이터 — 클릭하면 해당 페이지로 이동하는 카드 모음
 
-import { Star, Heart, Sparkles, Cookie, Dices, Compass, Users, Coins } from "lucide-react";
+import { Star, Heart, Sparkles, Cookie, Dices, Compass, Users, Coins, Moon } from "lucide-react";
 
 interface FortuneServicePageProps {
   onNavigate: (page: string) => void;
@@ -78,6 +78,15 @@ const FortuneServicePage = ({ onNavigate }: FortuneServicePageProps) => {
       icon: Dices,
       iconBg: "bg-indigo-50",
       iconColor: "text-indigo-500",
+      badge: "soon" as const,
+      onClick: () => {},
+    },
+    {
+      title: "동양타로 천음(天音)",
+      description: "천음을 통한 동양적 운세 해석",
+      icon: Moon,
+      iconBg: "bg-violet-50",
+      iconColor: "text-violet-500",
       badge: "soon" as const,
       onClick: () => {},
     },
