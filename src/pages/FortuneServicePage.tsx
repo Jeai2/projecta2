@@ -69,8 +69,8 @@ const FortuneServicePage = ({ onNavigate }: FortuneServicePageProps) => {
       icon: Cookie,
       iconBg: "bg-orange-50",
       iconColor: "text-orange-500",
-      badge: "soon" as const,
-      onClick: () => {},
+      badge: "free" as const,
+      onClick: () => onNavigate("cookie"),
     },
     {
       title: "윷점",
@@ -78,8 +78,8 @@ const FortuneServicePage = ({ onNavigate }: FortuneServicePageProps) => {
       icon: Dices,
       iconBg: "bg-indigo-50",
       iconColor: "text-indigo-500",
-      badge: "soon" as const,
-      onClick: () => {},
+      badge: "free" as const,
+      onClick: () => onNavigate("yut"),
     },
     {
       title: "동양타로 천음(天音)",

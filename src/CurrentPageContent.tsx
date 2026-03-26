@@ -15,6 +15,8 @@ import CareerPage from "./pages/CareerPage";
 import AIConsultPage from "./pages/AIConsultPage";
 import FortuneServicePage from "./pages/FortuneServicePage";
 import LoginPage from "./pages/LoginPage";
+import FortuneCookiePage from "./pages/FortuneCookiePage";
+import YutJeomPage from "./pages/YutJeomPage";
 import { useUiStore } from "./store/uiStore";
 
 const HomePageContent = ({
@@ -63,6 +65,12 @@ export const CurrentPageContent = ({
   }
   if (currentPage === "service" || currentPage === "fortune") {
     return <FortuneServicePage onNavigate={onNavigate} />;
+  }
+  if (currentPage === "cookie") {
+    return <FortuneCookiePage />;
+  }
+  if (currentPage === "yut") {
+    return <YutJeomPage />;
   }
   if (currentPage === "login") {
     return <LoginPage onNavigate={onNavigate} />;

@@ -12,8 +12,6 @@ import {
   FileText,
   ChevronDown,
   Clock,
-  Shield,
-  Heart,
   Eye,
   Activity,
   type LucideIcon,
@@ -86,16 +84,6 @@ function getSipsin(dayGan: string, targetGan: string): string {
   return same ? "편인" : "정인";
 }
 
-const YUKAP_PAIRS: [string, string][] = [["子","丑"],["寅","亥"],["卯","戌"],["辰","酉"],["巳","申"],["午","未"]];
-const CHUNG_PAIRS: [string, string][] = [["子","午"],["丑","未"],["寅","申"],["卯","酉"],["辰","戌"],["巳","亥"]];
-
-function getJiRelation(ji1: string, ji2: string): { type: string; strength: "강" | "중" | "약" } {
-  for (const [a, b] of YUKAP_PAIRS)
-    if ((ji1 === a && ji2 === b) || (ji1 === b && ji2 === a)) return { type: "육합", strength: "강" };
-  for (const [a, b] of CHUNG_PAIRS)
-    if ((ji1 === a && ji2 === b) || (ji1 === b && ji2 === a)) return { type: "충", strength: "약" };
-  return { type: "없음", strength: "중" };
-}
 
 const OHENG_LABEL: Record<string, string> = {
   木: "목",
@@ -261,10 +249,358 @@ const DetailCard: React.FC<DetailItemData> = ({
   </div>
 );
 
+/** 십이운성 궁합 평가 */
+type SiwiLevel = "위험" | "경계" | "보통" | "안정" | "긍정";
+
+const SIWI_LEVEL_INFO: Record<SiwiLevel, { color: string; desc: string }> = {
+  위험: { color: "bg-red-50 text-red-600 border-red-200", desc: "두 사람의 십이운성이 서로 충돌하는 흐름이다" },
+  경계: { color: "bg-orange-50 text-orange-600 border-orange-200", desc: "두 사람의 십이운성이 긴장된 흐름이다" },
+  보통: { color: "bg-stone-50 text-stone-500 border-stone-200", desc: "두 사람의 십이운성이 무난한 흐름이다" },
+  안정: { color: "bg-emerald-50 text-emerald-600 border-emerald-200", desc: "두 사람의 십이운성이 안정적인 흐름이다" },
+  긍정: { color: "bg-sky-50 text-sky-600 border-sky-200", desc: "두 사람의 십이운성이 서로 조화를 이루는 흐름이다" },
+};
+
+interface SiwiPersonData {
+  all: string[];
+  byPos: { year: string; month: string; day: string; hour: string };
+  sipsin: string[];
+  isStrong: boolean;
+  isWeak: boolean;
+}
+
+function extractSiwiData(fortune: FortuneResponseData): SiwiPersonData {
+  const p = fortune.saju.sajuData.pillars;
+  const s = fortune.saju.sajuData.sipsin;
+  const level = fortune.saju.sajuData.wangseStrength?.level ?? "중화";
+  const byPos = {
+    year: p.year.sibiwunseong,
+    month: p.month.sibiwunseong,
+    day: p.day.sibiwunseong,
+    hour: p.hour.sibiwunseong,
+  };
+  return {
+    all: [byPos.year, byPos.month, byPos.day, byPos.hour],
+    byPos,
+    sipsin: [s.year.gan, s.month.gan, s.day.gan, s.hour.gan].filter(Boolean) as string[],
+    isStrong: level === "신강" || level === "태강",
+    isWeak: level === "신약" || level === "태약",
+  };
+}
+
+const hasW = (d: SiwiPersonData, ...vals: string[]) => d.all.some((w) => vals.includes(w));
+const hasS = (d: SiwiPersonData, ...vals: string[]) => d.sipsin.some((s) => vals.includes(s));
+const hasWAt = (
+  d: SiwiPersonData,
+  pos: ("year" | "month" | "day" | "hour")[],
+  ...vals: string[]
+) => pos.some((p) => vals.includes(d.byPos[p]));
+const crossSiwi = (
+  a: SiwiPersonData,
+  b: SiwiPersonData,
+  ca: (d: SiwiPersonData) => boolean,
+  cb: (d: SiwiPersonData) => boolean,
+) => (ca(a) && cb(b)) || (ca(b) && cb(a));
+
+const SIWI_SCORE: Record<SiwiLevel, number> = { 위험: 1, 경계: 2, 보통: 3, 안정: 4, 긍정: 5 };
+const SIWI_LEVELS_BY_SCORE: SiwiLevel[] = ["위험", "경계", "보통", "안정", "긍정"];
+
+function evalSiwiRules(a: SiwiPersonData, b: SiwiPersonData): SiwiLevel {
+  const scores: number[] = [];
+  const collect = (cond: boolean, lv: SiwiLevel) => { if (cond) scores.push(SIWI_SCORE[lv]); };
+
+  collect(hasW(a, "제왕") || hasW(b, "제왕"), "경계");                                                        // 1
+  collect(crossSiwi(a, b, (d) => hasW(d, "제왕"), (d) => hasS(d, "겁재")), "위험");                          // 2
+  collect(crossSiwi(a, b, (d) => hasW(d, "제왕"), (d) => hasS(d, "정재", "편재")), "보통");                  // 3
+  collect(crossSiwi(a, b, (d) => hasW(d, "제왕"), (d) => hasW(d, "태")), "경계");                            // 4
+  collect(hasWAt(a, ["day", "month"], "태") || hasWAt(b, ["day", "month"], "태"), "경계");                    // 5
+  collect(crossSiwi(a, b, (d) => hasW(d, "태"), (d) => hasS(d, "정관", "편관")), "안정");                    // 6
+  collect(                                                                                                     // 7
+    crossSiwi(a, b, (d) => hasW(d, "태"), (d) => hasS(d, "정관", "편관")) &&
+      (hasS(a, "정재", "편재") || hasS(b, "정재", "편재")),
+    "긍정",
+  );
+  collect(crossSiwi(a, b, (d) => hasW(d, "태"), (d) => hasW(d, "관대", "병")), "안정");                      // 8
+  collect(crossSiwi(a, b, (d) => hasW(d, "태"), (d) => hasW(d, "제왕")), "경계");                            // 9
+  collect(crossSiwi(a, b, (d) => hasW(d, "사"), (d) => hasS(d, "상관")), "긍정");                            // 10
+  collect(crossSiwi(a, b, (d) => hasW(d, "사"), (d) => hasW(d, "건록")), "안정");                            // 11
+  collect(crossSiwi(a, b, (d) => hasW(d, "사"), (d) => hasW(d, "목욕")), "위험");                            // 12
+  collect(crossSiwi(a, b, (d) => hasW(d, "쇠"), (d) => hasW(d, "절", "목욕", "건록")), "안정");              // 13
+  collect(crossSiwi(a, b, (d) => hasW(d, "쇠"), (d) => hasW(d, "병", "사", "절")), "경계");                  // 14
+  collect(crossSiwi(a, b, (d) => hasW(d, "양"), (d) => hasS(d, "편재")), "긍정");                            // 15
+  collect(crossSiwi(a, b, (d) => hasW(d, "양"), (d) => hasS(d, "편인")), "경계");                            // 16
+  collect(crossSiwi(a, b, (d) => hasW(d, "양"), (d) => hasS(d, "정관")), "안정");                            // 17
+  collect(crossSiwi(a, b, (d) => hasW(d, "양"), (d) => hasW(d, "사", "건록")), "안정");                      // 18
+  collect(crossSiwi(a, b, (d) => hasW(d, "양"), (d) => hasW(d, "쇠")), "위험");                              // 19
+  collect(crossSiwi(a, b, (d) => hasW(d, "묘"), (d) => hasS(d, "식신")), "안정");                            // 20
+  collect(crossSiwi(a, b, (d) => hasW(d, "묘"), (d) => hasS(d, "편관", "비견")), "경계");                    // 21
+  collect(crossSiwi(a, b, (d) => hasW(d, "묘"), (d) => hasW(d, "장생", "제왕")), "긍정");                    // 22
+  collect(crossSiwi(a, b, (d) => hasW(d, "묘"), (d) => hasW(d, "묘")), "위험");                              // 23
+  collect(crossSiwi(a, b, (d) => hasW(d, "관대"), (d) => hasW(d, "병", "태")), "긍정");                      // 24
+  collect(crossSiwi(a, b, (d) => hasW(d, "병"), (d) => hasS(d, "식신")), "경계");                            // 25
+  collect(crossSiwi(a, b, (d) => hasW(d, "병"), (d) => hasW(d, "쇠")), "위험");                              // 26
+  collect(crossSiwi(a, b, (d) => hasW(d, "병"), (d) => hasW(d, "장생")), "경계");                            // 27
+  collect(crossSiwi(a, b, (d) => hasW(d, "건록"), (d) => hasW(d, "양")), "안정");                            // 28
+  collect(crossSiwi(a, b, (d) => hasW(d, "건록"), (d) => d.isStrong), "경계");                                // 29
+  collect(crossSiwi(a, b, (d) => hasW(d, "건록"), (d) => d.isWeak), "안정");                                  // 30
+  collect(hasW(a, "목욕") || hasW(b, "목욕"), "경계");                                                         // 31
+  collect(crossSiwi(a, b, (d) => hasW(d, "목욕"), (d) => hasW(d, "쇠", "절")), "안정");                      // 32
+  collect(hasW(a, "장생") || hasW(b, "장생"), "안정");                                                         // 33
+  collect(hasW(a, "절") || hasW(b, "절"), "경계");                                                             // 34
+  collect(crossSiwi(a, b, (d) => hasW(d, "절"), (d) => hasW(d, "절")), "경계");                               // 35
+  collect(crossSiwi(a, b, (d) => hasW(d, "절"), (d) => hasW(d, "목욕", "쇠")), "안정");                      // 36
+  collect(crossSiwi(a, b, (d) => hasW(d, "절"), (d) => hasW(d, "건록")), "위험");                             // 37
+
+  if (scores.length === 0) return "보통";
+  const avg = scores.reduce((s, v) => s + v, 0) / scores.length;
+  const idx = Math.min(Math.round(avg) - 1, 4);
+  return SIWI_LEVELS_BY_SCORE[Math.max(0, idx)];
+}
+
+/** 십이운성 표시 순서: 시 → 일 → 월 → 년 */
+const SIWI_PILLAR_LABELS = ["시", "일", "월", "년"] as const;
+const SIWI_PILLAR_KEYS = ["hour", "day", "month", "year"] as const;
+
+const SibiwunseongRuleCard: React.FC<{
+  item: DetailItemData;
+  myFortune: FortuneResponseData;
+  partnerFortune: FortuneResponseData;
+}> = ({ item, myFortune, partnerFortune }) => {
+  const Icon = item.icon;
+  const myData = extractSiwiData(myFortune);
+  const ptData = extractSiwiData(partnerFortune);
+  const level = evalSiwiRules(myData, ptData);
+  const info = SIWI_LEVEL_INFO[level];
+
+  return (
+    <div className={`rounded-xl p-5 border ${item.bgClass} ${item.borderClass} sm:col-span-2`}>
+      <div className="flex items-start gap-3">
+        <div
+          className={`p-2 rounded-lg bg-white/70 border ${item.borderClass} shadow-sm mt-0.5 shrink-0`}
+        >
+          <Icon size={14} className={item.accentClass} />
+        </div>
+        <div className="flex-1 min-w-0 space-y-3">
+          <div className="flex items-center justify-between gap-2">
+            <h5 className="text-sm font-bold text-text-light leading-tight">십이운성 분석</h5>
+            <span
+              className={`shrink-0 inline-flex items-center text-[10px] font-bold px-2.5 py-1 rounded-full border ${info.color}`}
+            >
+              {level}
+            </span>
+          </div>
+
+          {/* 십이운성 표 — 기둥별 열 정렬 */}
+          <div className="rounded-xl border border-teal-100/90 bg-white/80 shadow-sm overflow-hidden">
+            <div
+              className="grid w-full min-w-0"
+              style={{
+                gridTemplateColumns: "minmax(3.25rem,4rem) repeat(4, minmax(0, 1fr))",
+              }}
+            >
+              <div className="border-b border-r border-teal-100/70 bg-teal-50/50" aria-hidden />
+              {SIWI_PILLAR_LABELS.map((lab) => (
+                <div
+                  key={lab}
+                  className="border-b border-teal-100/70 bg-teal-50/50 px-1 py-2 text-center"
+                >
+                  <span className="inline-block text-[10px] font-bold tracking-[0.14em] text-teal-800/80">
+                    {lab}
+                  </span>
+                </div>
+              ))}
+              {(
+                [
+                  { key: "me" as const, label: "나", data: myData, rowBg: "bg-teal-50/35", labelCls: "text-teal-900 bg-teal-100/90 border-teal-200/80" },
+                  { key: "pt" as const, label: "상대", data: ptData, rowBg: "bg-white", labelCls: "text-slate-700 bg-slate-100/90 border-slate-200/80" },
+                ] as const
+              ).map(({ key, label, data, rowBg, labelCls }) => (
+                <React.Fragment key={key}>
+                  <div
+                    className={`flex items-center justify-end border-b border-r border-teal-100/50 px-2 py-2.5 ${rowBg}`}
+                  >
+                    <span
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded-md border shadow-sm ${labelCls}`}
+                    >
+                      {label}
+                    </span>
+                  </div>
+                  {SIWI_PILLAR_KEYS.map((pk) => (
+                    <div
+                      key={`${key}-${pk}`}
+                      className={`flex items-center justify-center border-b border-teal-100/40 px-1 py-2.5 ${rowBg}`}
+                    >
+                      <span className="font-myeongjo text-[13px] sm:text-sm font-semibold text-stone-800 tracking-tight text-center leading-tight">
+                        {data.byPos[pk]}
+                      </span>
+                    </div>
+                  ))}
+                </React.Fragment>
+              ))}
+            </div>
+          </div>
+
+          {/* 결과 설명 */}
+          <div className={`rounded-lg border px-3 py-2 text-xs leading-relaxed ${info.color}`}>
+            {info.desc}
+          </div>
+
+          <p className="text-[10px] text-text-subtle leading-relaxed">
+            관계 매칭은 나와 상대방이 서로 교차할 때만 성립합니다.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/** 궁합 API — 교차 신살 (서버 couple-cross-sinsal), SinsalCrossCard보다 위에 둠 */
+interface CrossPillarSinsalApi {
+  gan: string;
+  ji: string;
+  cheonEulGwiin: boolean;
+  sinsal12: string | null;
+  hyungSal: string[];
+}
+interface CrossSinsalDirectionApi {
+  refDayGan: string;
+  refDayJi: string;
+  refYearJi: string;
+  pillars: Record<"year" | "month" | "day" | "hour", CrossPillarSinsalApi>;
+}
+interface CoupleCrossSinsalApiResult {
+  aToB: CrossSinsalDirectionApi;
+  bToA: CrossSinsalDirectionApi;
+}
+
+const CROSS_SINSAL_PILLAR_KEYS = ["year", "month", "day", "hour"] as const;
+
+const SinsalCrossCard: React.FC<{
+  result: CoupleOhaengApiResult | null;
+  loading: boolean;
+  item: DetailItemData;
+}> = ({ result, loading, item }) => {
+  const [open, setOpen] = useState(false);
+  const Icon = item.icon;
+  const cs = result?.crossSinsal;
+
+  const renderDirection = (
+    dir: CrossSinsalDirectionApi | undefined,
+    refName: string,
+    targetName: string,
+  ) => {
+    if (!dir) return null;
+    const refGanji = `${dir.refDayGan}${dir.refDayJi}`;
+
+    const hasGwiin = CROSS_SINSAL_PILLAR_KEYS.some((k) => dir.pillars[k].cheonEulGwiin);
+    const sinsal12Line = CROSS_SINSAL_PILLAR_KEYS.map((k) => dir.pillars[k].sinsal12).filter(
+      (x): x is string => x != null && x !== "",
+    );
+    const hyungLine = CROSS_SINSAL_PILLAR_KEYS.flatMap((k) => dir.pillars[k].hyungSal);
+
+    return (
+      <div className="rounded-xl border border-stone-200 bg-white overflow-hidden">
+        <div className="px-3 py-2 bg-amber-50/80 border-b border-amber-100">
+          <p className="text-[11px] font-semibold text-amber-900">
+            {refName}{" "}
+            <span className="font-myeongjo">{refGanji}</span>
+            {" → "}
+            {targetName}
+          </p>
+        </div>
+        <div className="p-3 space-y-2.5 text-[11px] leading-relaxed">
+          <div className="rounded-lg border border-emerald-100 bg-emerald-50/50 px-3 py-2">
+            <p className="text-[10px] font-semibold text-emerald-800 mb-1">길신</p>
+            <p className="text-emerald-900">
+              {hasGwiin ? "천을귀인" : <span className="text-stone-500">해당 없음</span>}
+            </p>
+          </div>
+          <div className="rounded-lg border border-stone-200 bg-stone-50/60 px-3 py-2">
+            <p className="text-[10px] font-semibold text-stone-700 mb-1">신살</p>
+            <p className="text-stone-800">
+              {sinsal12Line.length > 0 ? (
+                sinsal12Line.join(" · ")
+              ) : (
+                <span className="text-stone-500">—</span>
+              )}
+            </p>
+          </div>
+          <div className="rounded-lg border border-rose-100 bg-rose-50/40 px-3 py-2">
+            <p className="text-[10px] font-semibold text-rose-800 mb-1">흉살</p>
+            <p className="text-rose-900">
+              {hyungLine.length > 0 ? hyungLine.join(" · ") : <span className="text-stone-500">—</span>}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  if (loading) {
+    return (
+      <div className={`rounded-xl border ${item.bgClass} ${item.borderClass}`}>
+        <div className="flex items-center gap-3 p-5">
+          <div className={`p-2 rounded-lg bg-white/70 border ${item.borderClass} shadow-sm shrink-0`}>
+            <Icon size={14} className={item.accentClass} />
+          </div>
+          <h5 className="text-sm font-bold text-text-light flex-1">{item.title}</h5>
+          <div className="flex items-center gap-2 text-xs text-text-muted">
+            <div className="w-3.5 h-3.5 border-2 border-amber-200 border-t-amber-500 rounded-full animate-spin shrink-0" />
+            분석 중…
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!cs) {
+    return (
+      <div className={`rounded-xl border ${item.bgClass} ${item.borderClass} p-5`}>
+        <div className="flex items-start gap-3">
+          <div className={`p-2 rounded-lg bg-white/70 border ${item.borderClass} shadow-sm shrink-0`}>
+            <Icon size={14} className={item.accentClass} />
+          </div>
+          <p className="text-xs text-text-muted">신살 데이터를 불러올 수 없습니다.</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`rounded-xl border ${item.borderClass} bg-white overflow-hidden`}>
+      <button
+        type="button"
+        className="w-full flex items-center justify-between gap-3 px-4 py-3 text-left hover:bg-stone-50/80 transition-colors"
+        onClick={() => setOpen((v) => !v)}
+      >
+        <div className="flex items-start gap-3 min-w-0 flex-1">
+          <div className={`p-2 rounded-lg bg-white/70 border ${item.borderClass} shadow-sm shrink-0`}>
+            <Icon size={14} className={item.accentClass} />
+          </div>
+          <div className="min-w-0">
+            <h5 className="text-sm font-bold text-text-light">{item.title}</h5>
+            <p className="text-xs text-text-muted leading-relaxed mt-0.5 line-clamp-2">
+              {item.subtitle}
+            </p>
+          </div>
+        </div>
+        <ChevronDown
+          className={`w-4 h-4 text-stone-400 shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+      {open && (
+        <div className="px-3 pb-3 pt-0 space-y-3 border-t border-stone-100">
+          {renderDirection(cs.aToB, "나", "상대")}
+          {renderDirection(cs.bToA, "상대", "나")}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const DETAIL_TABS: { id: DetailTabId; label: string }[] = [
   { id: "basic", label: "기초 비교" },
   { id: "pillar", label: "궁위 분석" },
-  { id: "special", label: "충합·신살" },
+  { id: "special", label: "기타" },
 ];
 
 const DETAIL_ITEMS: Record<DetailTabId, DetailItemData[]> = {
@@ -350,28 +686,6 @@ const DETAIL_ITEMS: Record<DetailTabId, DetailItemData[]> = {
     },
   ],
   special: [
-    {
-      id: "hyeongchung",
-      title: "형충파해 분석",
-      subtitle:
-        "두 사람의 사주 사이에 발생하는 충돌 기운을 분석합니다.",
-      icon: Shield,
-      accentClass: "text-rose-600",
-      bgClass: "bg-rose-50/60",
-      borderClass: "border-rose-100",
-      dotClass: "bg-rose-500",
-    },
-    {
-      id: "hap",
-      title: "합 분석",
-      subtitle:
-        "삼합·방합·육합으로 두 사주 간 결합하는 기운과 시너지를 봅니다.",
-      icon: Heart,
-      accentClass: "text-emerald-600",
-      bgClass: "bg-emerald-50/60",
-      borderClass: "border-emerald-100",
-      dotClass: "bg-emerald-500",
-    },
     {
       id: "sinsal",
       title: "신살분석",
@@ -480,6 +794,28 @@ interface CoupleOhaengApiResult {
   ilji: IljiAnalysisResult;
   ilgan: IlganCompatibilityResult;
   nyeonju: NyeonjuAnalysisResult;
+  wolju: WoljuApiResult;
+  siju: SijuApiResult;
+  crossSinsal: CoupleCrossSinsalApiResult;
+}
+
+interface SijuApiResult {
+  result: "불편" | "부담" | "편안" | "여유" | "닮음" | "중립";
+  mySipsin: string;
+  partnerSipsin: string;
+  myGroup: string;
+  partnerGroup: string;
+}
+
+interface WoljuApiResult {
+  stage: "충돌" | "긴장" | "차이" | "균형" | "호응" | "조화" | "결속" | null;
+  desc: string;
+  mySipsin: string;
+  partnerSipsin: string;
+  myGroup: string;
+  partnerGroup: string;
+  ganRel: "A극B" | "B극A" | "A생B" | "B생A" | "동류" | "중립";
+  jiRelType: "삼합" | "방합" | "충" | "형" | "파" | "해" | "원진귀문" | "없음";
 }
 
 // ── 오행 bar 한 줄 ────────────────────────────────────────────────────────────
@@ -903,16 +1239,169 @@ const IljiCard: React.FC<{
   );
 };
 
+// ── 월지 분석 — 헬퍼 ─────────────────────────────────────────────────────────
+
+function getSipsinGroup(sipsin: string): "비겁" | "식상" | "재성" | "관성" | "인성" | "" {
+  if (sipsin === "비견" || sipsin === "겁재") return "비겁";
+  if (sipsin === "식신" || sipsin === "상관") return "식상";
+  if (sipsin === "정재" || sipsin === "편재") return "재성";
+  if (sipsin === "정관" || sipsin === "편관") return "관성";
+  if (sipsin === "정인" || sipsin === "편인") return "인성";
+  return "";
+}
+
+/** A그룹이 극하는 B그룹 */
+const SIPSIN_GEUK_MAP: Record<string, string> = {
+  비겁: "재성", 식상: "관성", 재성: "인성", 관성: "비겁", 인성: "식상",
+};
+/** A그룹이 생하는 B그룹 */
+const SIPSIN_SAENG_MAP: Record<string, string> = {
+  비겁: "식상", 식상: "재성", 재성: "관성", 관성: "인성", 인성: "비겁",
+};
+
+const WJ_SAMHAP: string[][] = [["亥","卯","未"],["寅","午","戌"],["巳","酉","丑"],["申","子","辰"]];
+const WJ_BANGHAP: string[][] = [["寅","卯","辰"],["巳","午","未"],["申","酉","戌"],["亥","子","丑"]];
+const WJ_CHUNG: [string,string][] = [["子","午"],["丑","未"],["寅","申"],["卯","酉"],["辰","戌"],["巳","亥"]];
+const WJ_HYEONG: [string,string][] = [["子","卯"],["寅","巳"],["巳","申"],["寅","申"],["丑","戌"],["丑","未"],["戌","未"]];
+const WJ_PA: [string,string][] = [["子","酉"],["午","卯"],["巳","申"],["寅","亥"],["辰","丑"],["戌","未"]];
+const WJ_HAE: [string,string][] = [["子","未"],["丑","午"],["寅","巳"],["卯","辰"],["申","亥"],["酉","戌"]];
+const WJ_WONJIN: [string,string][] = [["子","未"],["丑","午"],["寅","酉"],["卯","申"],["辰","亥"],["巳","戌"]];
+const WJ_GUIMUN: [string,string][] = [["子","酉"],["丑","午"],["寅","未"],["卯","申"],["辰","亥"],["巳","戌"]];
+
+type WoljiRelType = "삼합" | "방합" | "충" | "형" | "파" | "해" | "원진귀문" | "없음";
+
+function wjHasPair(pairs: [string,string][], a: string, b: string): boolean {
+  return pairs.some(([x,y]) => (a===x&&b===y)||(a===y&&b===x));
+}
+
+function getWoljiRelType(ji1: string, ji2: string): WoljiRelType {
+  if (ji1 === ji2) return "없음";
+  for (const g of WJ_SAMHAP) if (g.includes(ji1) && g.includes(ji2)) return "삼합";
+  for (const g of WJ_BANGHAP) if (g.includes(ji1) && g.includes(ji2)) return "방합";
+  if (wjHasPair(WJ_CHUNG,  ji1, ji2)) return "충";
+  if (wjHasPair(WJ_HYEONG, ji1, ji2)) return "형";
+  if (wjHasPair(WJ_PA,     ji1, ji2)) return "파";
+  if (wjHasPair(WJ_HAE,    ji1, ji2)) return "해";
+  if (wjHasPair(WJ_WONJIN, ji1, ji2) || wjHasPair(WJ_GUIMUN, ji1, ji2)) return "원진귀문";
+  return "없음";
+}
+
+type WoljiStageType = "충돌" | "긴장" | "차이" | "균형" | "호응" | "조화" | "결속";
+
+const WOLJI_STAGE_INFO: Record<WoljiStageType, { emoji: string; desc: string }> = {
+  충돌: { emoji: "⚡", desc: "생각과 방식이 자주 부딪히는 단계다" },
+  긴장: { emoji: "🌪", desc: "서로 맞춰가는 노력이 필요한 단계다" },
+  차이: { emoji: "🌫", desc: "서로 다른 점을 이해해가는 단계다" },
+  균형: { emoji: "🌿", desc: "편안하게 관계를 이어갈 수 있는 단계다" },
+  호응: { emoji: "🌸", desc: "서로의 흐름이 자연스럽게 맞는 단계다" },
+  조화: { emoji: "🌙", desc: "함께할수록 안정감이 커지는 단계다" },
+  결속: { emoji: "⭐", desc: "앞으로의 방향까지 함께 그리기 쉬운 단계다" },
+};
+
+const WOLJI_STAGE_COLOR: Record<WoljiStageType, string> = {
+  충돌: "bg-red-50 text-red-600 border-red-200",
+  긴장: "bg-orange-50 text-orange-600 border-orange-200",
+  차이: "bg-slate-50 text-slate-600 border-slate-200",
+  균형: "bg-emerald-50 text-emerald-600 border-emerald-200",
+  호응: "bg-pink-50 text-pink-600 border-pink-200",
+  조화: "bg-indigo-50 text-indigo-600 border-indigo-200",
+  결속: "bg-amber-50 text-amber-600 border-amber-200",
+};
+
+const WOLJI_REL_COLOR: Record<WoljiRelType, string> = {
+  삼합:    "bg-green-50 text-green-600 border-green-200",
+  방합:    "bg-emerald-50 text-emerald-600 border-emerald-200",
+  충:      "bg-red-50 text-red-600 border-red-200",
+  형:      "bg-orange-50 text-orange-600 border-orange-200",
+  파:      "bg-amber-50 text-amber-600 border-amber-200",
+  해:      "bg-yellow-50 text-yellow-600 border-yellow-200",
+  원진귀문: "bg-slate-50 text-slate-600 border-slate-200",
+  없음:    "bg-stone-50 text-stone-400 border-stone-200",
+};
+
+function getWoljiStage(
+  isA: boolean, isB: boolean, isC: boolean, isD: boolean, isSS: boolean,
+  rel: WoljiRelType,
+): WoljiStageType | null {
+  if (rel === "없음") return null;
+  if (isA || isB) {
+    if (rel === "삼합") return "조화";
+    if (rel === "방합") return "호응";
+    if (rel === "충")   return "차이";
+    if (rel === "형")   return "충돌";
+    if (rel === "파")   return "긴장";
+    if (rel === "해")   return "긴장";
+    if (rel === "원진귀문") return "차이";
+  }
+  if (isC || isD) {
+    if (rel === "삼합") return "결속";
+    if (rel === "방합") return "조화";
+    if (rel === "충")   return "차이";
+    if (rel === "형")   return "충돌";
+    if (rel === "파")   return "균형";
+    if (rel === "해")   return "균형";
+    if (rel === "원진귀문") return "호응";
+  }
+  if (isSS) {
+    if (rel === "삼합") return "호응";
+    if (rel === "방합") return "호응";
+    if (rel === "충")   return "긴장";
+    if (rel === "형")   return "차이";
+    if (rel === "파")   return "균형";
+    if (rel === "해")   return "균형";
+    if (rel === "원진귀문") return "충돌";
+  }
+  return null;
+}
+
 // ── 월지 분석 카드 ────────────────────────────────────────────────────────────
 
 const WoljiCard: React.FC<{
-  result: CoupleOhaengApiResult | null;
-  loading: boolean;
   item: DetailItemData;
-}> = ({ result, loading, item }) => {
+  myMonthGan: string;
+  partnerMonthGan: string;
+  myMonthJi: string;
+  partnerMonthJi: string;
+  myDayGan: string;
+  partnerDayGan: string;
+}> = ({ item, myMonthGan, partnerMonthGan, myMonthJi, partnerMonthJi, myDayGan, partnerDayGan }) => {
   const [open, setOpen] = useState(false);
-  const wolji = result?.wolji ?? null;
-  const badge = wolji ? (REL_BADGE[wolji.relationshipType] ?? REL_BADGE["없음"]) : null;
+
+  // 1-2: 월간 십신 (각자 일간 기준)
+  const sipsinA = getSipsin(myDayGan, myMonthGan);
+  const sipsinB = getSipsin(partnerDayGan, partnerMonthGan);
+  const groupA = getSipsinGroup(sipsinA);
+  const groupB = getSipsinGroup(sipsinB);
+
+  // 3-6: 십신 그룹 관계
+  const isA  = !!(groupA && groupB && SIPSIN_GEUK_MAP[groupA] === groupB);  // A극B
+  const isB  = !!(groupA && groupB && SIPSIN_GEUK_MAP[groupB] === groupA);  // B극A
+  const isC  = !!(groupA && groupB && SIPSIN_SAENG_MAP[groupA] === groupB); // A생B
+  const isD  = !!(groupA && groupB && SIPSIN_SAENG_MAP[groupB] === groupA); // B생A
+  const isSS = !!(groupA && groupB && groupA === groupB);                   // 동류
+
+  // 7-13: 월지 관계
+  const woljiRel = getWoljiRelType(myMonthJi, partnerMonthJi);
+
+  // 14-34: 최종 단계
+  const stage = getWoljiStage(isA, isB, isC, isD, isSS, woljiRel);
+  const stageInfo  = stage ? WOLJI_STAGE_INFO[stage]  : null;
+  const stageColor = stage ? WOLJI_STAGE_COLOR[stage] : "";
+
+  const ganRelLabel = isA ? `${groupA}이 ${groupB}를 극`
+    : isB  ? `${groupB}이 ${groupA}를 극`
+    : isC  ? `${groupA}이 ${groupB}를 생`
+    : isD  ? `${groupB}이 ${groupA}를 생`
+    : isSS ? `동류 (${groupA})`
+    : "중립";
+
+  const ganRelColor = (isA || isB)
+    ? "bg-red-50 text-red-600 border-red-200"
+    : (isC || isD)
+      ? "bg-emerald-50 text-emerald-600 border-emerald-200"
+      : isSS
+        ? "bg-sky-50 text-sky-600 border-sky-200"
+        : "bg-stone-50 text-stone-400 border-stone-200";
 
   return (
     <div className="rounded-xl border border-stone-200 bg-white overflow-hidden">
@@ -921,15 +1410,13 @@ const WoljiCard: React.FC<{
         onClick={() => setOpen((v) => !v)}
       >
         <div className="flex items-center gap-2">
-          <Zap className="w-4 h-4 text-amber-500 shrink-0" />
+          <CalendarDays className="w-4 h-4 text-teal-500 shrink-0" />
           <span className="text-sm font-semibold text-stone-700">{item.title}</span>
-          {!loading && wolji && badge && (
-            <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${badge.text}`}>
-              {wolji.relationshipType}
-              {wolji.targetOhaeng ? ` · ${wolji.targetOhaeng}` : ""}
+          {stage && stageInfo && (
+            <span className={`text-xs px-2 py-0.5 rounded-full font-bold border ${stageColor}`}>
+              {stageInfo.emoji} {stage}
             </span>
           )}
-          {loading && <span className="text-xs text-stone-400">분석 중…</span>}
         </div>
         <ChevronDown
           className={`w-4 h-4 text-stone-400 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
@@ -938,30 +1425,65 @@ const WoljiCard: React.FC<{
 
       {open && (
         <div className="px-4 pb-4 space-y-3 border-t border-stone-100 pt-3">
-          {loading ? (
-            <p className="text-xs text-stone-400 text-center py-4">분석 중…</p>
-          ) : !wolji ? (
-            <p className="text-xs text-stone-400 text-center py-4">데이터를 불러올 수 없습니다.</p>
-          ) : (
-            <>
-              <div className="grid grid-cols-2 gap-3">
-                {(["my", "partner"] as const).map((who) => {
-                  const r = who === "my" ? wolji.my : wolji.partner;
-                  return (
-                    <div key={who} className="rounded-lg bg-stone-50 p-3 space-y-1">
-                      <p className="text-[10px] text-stone-400">{who === "my" ? "나" : "상대"}</p>
-                      <p className={`text-sm font-bold flex items-center gap-1 ${SENT_STYLE[r.sentiment]}`}>
-                        <span>{SENT_ICON[r.sentiment]}</span>
-                        {r.sentiment}
-                      </p>
-                      <p className="text-[11px] text-stone-500 leading-relaxed">{r.reason}</p>
-                    </div>
-                  );
-                })}
+          {/* 월주 글자 + 단계 */}
+          <div className="flex items-center justify-center gap-6 py-2">
+            <div className="text-center">
+              <p className="text-[10px] text-stone-400 mb-1">나의 월주</p>
+              <p className="text-lg font-bold font-myeongjo text-stone-700">{myMonthGan}{myMonthJi}</p>
+            </div>
+            {stage && stageInfo ? (
+              <div className={`px-3 py-1.5 rounded-full text-sm font-bold shrink-0 border ${stageColor}`}>
+                {stageInfo.emoji} {stage}
               </div>
-              <p className="text-xs text-stone-500 leading-relaxed">{wolji.summary}</p>
-            </>
+            ) : (
+              <div className="w-8 h-px bg-stone-200" />
+            )}
+            <div className="text-center">
+              <p className="text-[10px] text-stone-400 mb-1">상대 월주</p>
+              <p className="text-lg font-bold font-myeongjo text-stone-700">{partnerMonthGan}{partnerMonthJi}</p>
+            </div>
+          </div>
+
+          {/* 단계 해석 */}
+          {stage && stageInfo && (
+            <p className="text-xs text-stone-600 font-medium text-center leading-relaxed">
+              {stageInfo.desc}
+            </p>
           )}
+
+          {/* 월간 십신 + 천간 기운 관계 */}
+          <div className="rounded-lg bg-teal-50/60 border border-teal-100 p-3 space-y-2">
+            <p className="text-[11px] font-semibold text-teal-700">월간 십신</p>
+            <div className="grid grid-cols-2 gap-3 text-xs">
+              <div className="space-y-0.5">
+                <p className="text-[10px] text-stone-400">나의 월간 ({myMonthGan})</p>
+                <p className="font-bold text-stone-700">{sipsinA || "—"}</p>
+                {groupA && <p className="text-[10px] text-stone-400">{groupA}</p>}
+              </div>
+              <div className="space-y-0.5">
+                <p className="text-[10px] text-stone-400">상대 월간 ({partnerMonthGan})</p>
+                <p className="font-bold text-stone-700">{sipsinB || "—"}</p>
+                {groupB && <p className="text-[10px] text-stone-400">{groupB}</p>}
+              </div>
+            </div>
+            <div className="pt-1.5 border-t border-teal-100">
+              <p className="text-[10px] text-stone-400 mb-1">천간 기운 관계</p>
+              <span className={`inline-block text-[11px] font-semibold px-2 py-0.5 rounded border ${ganRelColor}`}>
+                {ganRelLabel}
+              </span>
+            </div>
+          </div>
+
+          {/* 월지 관계 */}
+          <div className="rounded-lg bg-stone-50 border border-stone-200 p-3 flex items-center justify-between">
+            <div>
+              <p className="text-[11px] font-semibold text-stone-600">월지 관계</p>
+              <p className="text-xs text-stone-500 mt-0.5 font-myeongjo">{myMonthJi} ↔ {partnerMonthJi}</p>
+            </div>
+            <span className={`text-sm font-bold px-3 py-1 rounded-full border ${WOLJI_REL_COLOR[woljiRel]}`}>
+              {woljiRel === "없음" ? "무관계" : woljiRel === "원진귀문" ? "원진·귀문" : woljiRel}
+            </span>
+          </div>
         </div>
       )}
     </div>
@@ -1010,33 +1532,7 @@ const SIPSIN_ROOT_LABEL: Record<string, { main: string; sub: string }> = {
   편인: { main: "지혜로운 삶을 위해 나만의 방식으로 삶을 터득할 것이다", sub: "주관, 독특함, 왜곡 가능성" },
 };
 
-// ── 월주비교 해석 (수정 가능) ─────────────────────────────────────────────────
-const WOLJU_MY_DESC: Record<string, { main: string; sub: string }> = {
-  비견: { main: "비견 — 월주 해석 예시 문구", sub: "키워드1, 키워드2" },
-  겁재: { main: "겁재 — 월주 해석 예시 문구", sub: "키워드1, 키워드2" },
-  식신: { main: "식신 — 월주 해석 예시 문구", sub: "키워드1, 키워드2" },
-  상관: { main: "상관 — 월주 해석 예시 문구", sub: "키워드1, 키워드2" },
-  정재: { main: "정재 — 월주 해석 예시 문구", sub: "키워드1, 키워드2" },
-  편재: { main: "편재 — 월주 해석 예시 문구", sub: "키워드1, 키워드2" },
-  정관: { main: "정관 — 월주 해석 예시 문구", sub: "키워드1, 키워드2" },
-  편관: { main: "편관 — 월주 해석 예시 문구", sub: "키워드1, 키워드2" },
-  정인: { main: "정인 — 월주 해석 예시 문구", sub: "키워드1, 키워드2" },
-  편인: { main: "편인 — 월주 해석 예시 문구", sub: "키워드1, 키워드2" },
-};
 
-// ── 시주비교 해석 (수정 가능) ─────────────────────────────────────────────────
-const SIJU_MY_DESC: Record<string, { main: string; sub: string }> = {
-  비견: { main: "비견 — 시주 해석 예시 문구", sub: "키워드1, 키워드2" },
-  겁재: { main: "겁재 — 시주 해석 예시 문구", sub: "키워드1, 키워드2" },
-  식신: { main: "식신 — 시주 해석 예시 문구", sub: "키워드1, 키워드2" },
-  상관: { main: "상관 — 시주 해석 예시 문구", sub: "키워드1, 키워드2" },
-  정재: { main: "정재 — 시주 해석 예시 문구", sub: "키워드1, 키워드2" },
-  편재: { main: "편재 — 시주 해석 예시 문구", sub: "키워드1, 키워드2" },
-  정관: { main: "정관 — 시주 해석 예시 문구", sub: "키워드1, 키워드2" },
-  편관: { main: "편관 — 시주 해석 예시 문구", sub: "키워드1, 키워드2" },
-  정인: { main: "정인 — 시주 해석 예시 문구", sub: "키워드1, 키워드2" },
-  편인: { main: "편인 — 시주 해석 예시 문구", sub: "키워드1, 키워드2" },
-};
 
 const NYEONJU_COMPAT_DESC: Record<string, string> = {
   강강: "가치관·뿌리가 잘 맞고 년지 에너지도 상호 보완적인 최상의 조합입니다.",
@@ -1190,40 +1686,35 @@ const NyeonjuCard: React.FC<{
   );
 };
 
+// ── 월주비교 — 천간 관계 자연어 ──────────────────────────────────────────────
+const GAN_REL_DESC: Record<string, { main: string; sub: string }> = {
+  A극B: { main: "나의 에너지가 상대의 흐름을 주도한다",       sub: "이끄는 쪽 / 따라가는 쪽" },
+  B극A: { main: "상대의 에너지가 나의 흐름을 주도한다",       sub: "따라가는 쪽 / 이끄는 쪽" },
+  A생B: { main: "나의 에너지가 상대를 자연스럽게 지원한다",   sub: "주는 쪽 / 받는 쪽" },
+  B생A: { main: "상대의 에너지가 나를 자연스럽게 지원한다",   sub: "받는 쪽 / 주는 쪽" },
+  동류: { main: "두 사람의 사회적 방향이 같다",               sub: "같은 결 / 같은 결" },
+  중립: { main: "서로의 에너지가 독립적으로 흐른다",          sub: "각자의 결 / 각자의 결" },
+};
+
 // ── 월주비교 카드 ─────────────────────────────────────────────────────────────
 const WoljuCard: React.FC<{
   item: DetailItemData;
+  result: CoupleOhaengApiResult | null;
+  loading: boolean;
   myMonthGan: string; partnerMonthGan: string;
   myMonthJi: string; partnerMonthJi: string;
-  myDayGan: string; partnerDayGan: string;
-}> = ({ item, myMonthGan, partnerMonthGan, myMonthJi, partnerMonthJi, myDayGan, partnerDayGan }) => {
+}> = ({ item, result, loading, myMonthGan, partnerMonthGan, myMonthJi, partnerMonthJi }) => {
   const [open, setOpen] = useState(false);
-  const jiRel = getJiRelation(myMonthJi, partnerMonthJi);
-  const aMy = getSipsin(myMonthGan, partnerMonthGan);
-  const aPartner = getSipsin(partnerMonthGan, myMonthGan);
-  const bMy = getSipsin(myDayGan, myMonthGan);
-  const bPartner = getSipsin(partnerDayGan, partnerMonthGan);
+  const wolju = result?.wolju ?? null;
+  const stage = wolju?.stage ?? null;
+  const stageInfo  = stage ? WOLJI_STAGE_INFO[stage]  : null;
+  const stageColor = stage ? WOLJI_STAGE_COLOR[stage] : "";
 
-  const renderLabel = (
-    raw: string,
-    descMap: Record<string, { main: string; sub: string }>,
-    label: string,
-  ) => {
-    const d = descMap[raw];
-    return (
-      <div className="space-y-0.5">
-        <p className="text-[10px] text-stone-400">{label}</p>
-        {d ? (
-          <>
-            <p className="font-semibold text-stone-700 leading-snug text-xs">{d.main}</p>
-            <p className="text-[10px] text-stone-400 leading-snug">{d.sub}</p>
-          </>
-        ) : (
-          <p className="font-semibold text-stone-700 text-xs">{raw || "—"}</p>
-        )}
-      </div>
-    );
-  };
+  const ganRelColor = !wolju ? "bg-stone-50 text-stone-400 border-stone-200"
+    : (wolju.ganRel === "A극B" || wolju.ganRel === "B극A") ? "bg-red-50 text-red-600 border-red-200"
+    : (wolju.ganRel === "A생B" || wolju.ganRel === "B생A") ? "bg-emerald-50 text-emerald-600 border-emerald-200"
+    : wolju.ganRel === "동류" ? "bg-sky-50 text-sky-600 border-sky-200"
+    : "bg-stone-50 text-stone-400 border-stone-200";
 
   return (
     <div className="rounded-xl border border-stone-200 bg-white overflow-hidden">
@@ -1234,6 +1725,12 @@ const WoljuCard: React.FC<{
         <div className="flex items-center gap-2">
           <FileText className="w-4 h-4 text-blue-500 shrink-0" />
           <span className="text-sm font-semibold text-stone-700">{item.title}</span>
+          {!loading && stage && stageInfo && (
+            <span className={`text-xs px-2 py-0.5 rounded-full font-bold border ${stageColor}`}>
+              {stageInfo.emoji} {stage}
+            </span>
+          )}
+          {loading && <span className="text-xs text-stone-400">분석 중…</span>}
         </div>
         <ChevronDown
           className={`w-4 h-4 text-stone-400 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
@@ -1242,93 +1739,83 @@ const WoljuCard: React.FC<{
 
       {open && (
         <div className="px-4 pb-4 space-y-3 border-t border-stone-100 pt-3">
-          {/* 월주 글자 */}
-          <div className="flex items-center justify-center gap-6 py-2">
-            <div className="text-center">
-              <p className="text-[10px] text-stone-400 mb-1">나의 월주</p>
-              <p className="text-lg font-bold font-myeongjo text-stone-700">{myMonthGan}{myMonthJi}</p>
-            </div>
-            <div className="w-8 h-px bg-stone-200" />
-            <div className="text-center">
-              <p className="text-[10px] text-stone-400 mb-1">상대 월주</p>
-              <p className="text-lg font-bold font-myeongjo text-stone-700">{partnerMonthGan}{partnerMonthJi}</p>
-            </div>
-          </div>
+          {loading ? (
+            <p className="text-xs text-stone-400 text-center py-4">분석 중…</p>
+          ) : !wolju ? (
+            <p className="text-xs text-stone-400 text-center py-4">데이터를 불러올 수 없습니다.</p>
+          ) : (
+            <>
+              {/* 월주 글자 + 단계 */}
+              <div className="flex items-center justify-center gap-6 py-2">
+                <div className="text-center">
+                  <p className="text-[10px] text-stone-400 mb-1">나의 월주</p>
+                  <p className="text-lg font-bold font-myeongjo text-stone-700">{myMonthGan}{myMonthJi}</p>
+                </div>
+                {stage && stageInfo ? (
+                  <div className={`px-3 py-1.5 rounded-full text-sm font-bold shrink-0 border ${stageColor}`}>
+                    {stageInfo.emoji} {stage}
+                  </div>
+                ) : (
+                  <div className="w-8 h-px bg-stone-200" />
+                )}
+                <div className="text-center">
+                  <p className="text-[10px] text-stone-400 mb-1">상대 월주</p>
+                  <p className="text-lg font-bold font-myeongjo text-stone-700">{partnerMonthGan}{partnerMonthJi}</p>
+                </div>
+              </div>
 
-          {/* Step a: 사회적 시선 */}
-          <div className="rounded-lg bg-blue-50/60 border border-blue-100 p-3 space-y-2">
-            <p className="text-[11px] font-semibold text-blue-700">사회적 시선</p>
-            <div className="grid grid-cols-2 gap-3">
-              {renderLabel(aMy, SIPSIN_LABEL, "나의 시선")}
-              {renderLabel(aPartner, SIPSIN_LABEL, "상대의 시선")}
-            </div>
-          </div>
+              {/* 단계 해석 */}
+              {stage && wolju.desc && (
+                <p className="text-xs text-stone-600 font-medium text-center leading-relaxed">
+                  {wolju.desc}
+                </p>
+              )}
 
-          {/* Step b: 사회적 성향 */}
-          <div className="rounded-lg bg-sky-50/60 border border-sky-100 p-3 space-y-2">
-            <p className="text-[11px] font-semibold text-sky-700">사회적 성향</p>
-            <div className="grid grid-cols-2 gap-3">
-              {renderLabel(bMy, WOLJU_MY_DESC, "나의 성향")}
-              {renderLabel(bPartner, WOLJU_MY_DESC, "상대의 성향")}
-            </div>
-          </div>
+              {/* 천간 기운 관계 */}
+              <div className={`rounded-lg p-3 border ${ganRelColor}`}>
+                <p className="text-xs font-semibold text-stone-700 leading-snug">{GAN_REL_DESC[wolju.ganRel].main}</p>
+                <p className="text-[10px] text-stone-400 mt-0.5">{GAN_REL_DESC[wolju.ganRel].sub}</p>
+              </div>
 
-          {/* Step c: 사회적 환경 */}
-          <div className="rounded-lg bg-stone-50 border border-stone-200 p-3 flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-semibold text-stone-600">사회적 환경</p>
-              <p className="text-xs text-stone-500 mt-0.5">
-                {jiRel.type === "없음" ? "자연스러운 흐름" : jiRel.type}
-              </p>
-            </div>
-            <span className={`text-sm font-bold px-3 py-1 rounded-full border ${
-              jiRel.strength === "강" ? "bg-emerald-50 text-emerald-600 border-emerald-200" :
-              jiRel.strength === "약" ? "bg-red-50 text-red-500 border-red-200" :
-              "bg-stone-100 text-stone-500 border-stone-200"
-            }`}>
-              {jiRel.strength === "강" ? "잘 맞아요" : jiRel.strength === "약" ? "차이 있어요" : "무난해요"}
-            </span>
-          </div>
+              {/* 월지 관계 */}
+              <div className="rounded-lg bg-stone-50 border border-stone-200 p-3 flex items-center justify-between">
+                <div>
+                  <p className="text-[11px] font-semibold text-stone-600">월지 관계</p>
+                  <p className="text-xs text-stone-500 mt-0.5 font-myeongjo">{myMonthJi} ↔ {partnerMonthJi}</p>
+                </div>
+                <span className={`text-sm font-bold px-3 py-1 rounded-full border ${WOLJI_REL_COLOR[wolju.jiRelType]}`}>
+                  {wolju.jiRelType === "없음" ? "무관계" : wolju.jiRelType === "원진귀문" ? "원진·귀문" : wolju.jiRelType}
+                </span>
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>
   );
 };
 
+// ── 시주비교 — 결과 정보 ──────────────────────────────────────────────────────
+const SIJU_RESULT_INFO: Record<string, { label: string; desc: string; color: string }> = {
+  불편: { label: "불편", desc: "내가 상대의 일상 에너지를 압박하는 흐름이다", color: "bg-red-50 text-red-600 border-red-200" },
+  부담: { label: "부담", desc: "상대가 나의 일상 에너지를 압박하는 흐름이다", color: "bg-orange-50 text-orange-600 border-orange-200" },
+  편안: { label: "편안", desc: "내가 상대의 일상을 자연스럽게 지원하는 흐름이다", color: "bg-emerald-50 text-emerald-600 border-emerald-200" },
+  여유: { label: "여유", desc: "상대가 나의 일상을 자연스럽게 지원하는 흐름이다", color: "bg-sky-50 text-sky-600 border-sky-200" },
+  닮음: { label: "닮음", desc: "두 사람의 일상 에너지 방향이 닮아있다", color: "bg-violet-50 text-violet-600 border-violet-200" },
+  중립: { label: "중립", desc: "서로 독립적인 에너지로 흐른다", color: "bg-stone-50 text-stone-500 border-stone-200" },
+};
+
 // ── 시주비교 카드 ─────────────────────────────────────────────────────────────
 const SijuCard: React.FC<{
   item: DetailItemData;
+  result: CoupleOhaengApiResult | null;
+  loading: boolean;
   myHourGan: string; partnerHourGan: string;
   myHourJi: string; partnerHourJi: string;
-  myDayGan: string; partnerDayGan: string;
-}> = ({ item, myHourGan, partnerHourGan, myHourJi, partnerHourJi, myDayGan, partnerDayGan }) => {
+}> = ({ item, result, loading, myHourGan, partnerHourGan, myHourJi, partnerHourJi }) => {
   const [open, setOpen] = useState(false);
-  const jiRel = getJiRelation(myHourJi, partnerHourJi);
-  const aMy = getSipsin(myHourGan, partnerHourGan);
-  const aPartner = getSipsin(partnerHourGan, myHourGan);
-  const bMy = getSipsin(myDayGan, myHourGan);
-  const bPartner = getSipsin(partnerDayGan, partnerHourGan);
-
-  const renderLabel = (
-    raw: string,
-    descMap: Record<string, { main: string; sub: string }>,
-    label: string,
-  ) => {
-    const d = descMap[raw];
-    return (
-      <div className="space-y-0.5">
-        <p className="text-[10px] text-stone-400">{label}</p>
-        {d ? (
-          <>
-            <p className="font-semibold text-stone-700 leading-snug text-xs">{d.main}</p>
-            <p className="text-[10px] text-stone-400 leading-snug">{d.sub}</p>
-          </>
-        ) : (
-          <p className="font-semibold text-stone-700 text-xs">{raw || "—"}</p>
-        )}
-      </div>
-    );
-  };
+  const siju = result?.siju ?? null;
+  const info = siju ? (SIJU_RESULT_INFO[siju.result] ?? null) : null;
 
   return (
     <div className="rounded-xl border border-stone-200 bg-white overflow-hidden">
@@ -1339,6 +1826,12 @@ const SijuCard: React.FC<{
         <div className="flex items-center gap-2">
           <Clock className="w-4 h-4 text-slate-500 shrink-0" />
           <span className="text-sm font-semibold text-stone-700">{item.title}</span>
+          {!loading && info && (
+            <span className={`text-xs px-2 py-0.5 rounded-full font-bold border ${info.color}`}>
+              {info.label}
+            </span>
+          )}
+          {loading && <span className="text-xs text-stone-400">분석 중…</span>}
         </div>
         <ChevronDown
           className={`w-4 h-4 text-stone-400 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
@@ -1347,53 +1840,55 @@ const SijuCard: React.FC<{
 
       {open && (
         <div className="px-4 pb-4 space-y-3 border-t border-stone-100 pt-3">
-          {/* 시주 글자 */}
-          <div className="flex items-center justify-center gap-6 py-2">
-            <div className="text-center">
-              <p className="text-[10px] text-stone-400 mb-1">나의 시주</p>
-              <p className="text-lg font-bold font-myeongjo text-stone-700">{myHourGan}{myHourJi}</p>
-            </div>
-            <div className="w-8 h-px bg-stone-200" />
-            <div className="text-center">
-              <p className="text-[10px] text-stone-400 mb-1">상대 시주</p>
-              <p className="text-lg font-bold font-myeongjo text-stone-700">{partnerHourGan}{partnerHourJi}</p>
-            </div>
-          </div>
+          {loading ? (
+            <p className="text-xs text-stone-400 text-center py-4">분석 중…</p>
+          ) : !siju ? (
+            <p className="text-xs text-stone-400 text-center py-4">데이터를 불러올 수 없습니다.</p>
+          ) : (
+            <>
+              {/* 시주 글자 + 결과 뱃지 */}
+              <div className="flex items-center justify-center gap-6 py-2">
+                <div className="text-center">
+                  <p className="text-[10px] text-stone-400 mb-1">나의 시주</p>
+                  <p className="text-lg font-bold font-myeongjo text-stone-700">{myHourGan}{myHourJi}</p>
+                </div>
+                {info ? (
+                  <div className={`px-3 py-1.5 rounded-full text-sm font-bold shrink-0 border ${info.color}`}>
+                    {info.label}
+                  </div>
+                ) : (
+                  <div className="w-8 h-px bg-stone-200" />
+                )}
+                <div className="text-center">
+                  <p className="text-[10px] text-stone-400 mb-1">상대 시주</p>
+                  <p className="text-lg font-bold font-myeongjo text-stone-700">{partnerHourGan}{partnerHourJi}</p>
+                </div>
+              </div>
 
-          {/* Step a: 미래의 시선 */}
-          <div className="rounded-lg bg-violet-50/60 border border-violet-100 p-3 space-y-2">
-            <p className="text-[11px] font-semibold text-violet-700">미래의 시선</p>
-            <div className="grid grid-cols-2 gap-3">
-              {renderLabel(aMy, SIPSIN_LABEL, "나의 시선")}
-              {renderLabel(aPartner, SIPSIN_LABEL, "상대의 시선")}
-            </div>
-          </div>
+              {/* 해석 */}
+              {info && (
+                <p className="text-xs text-stone-600 font-medium text-center leading-relaxed">
+                  {info.desc}
+                </p>
+              )}
 
-          {/* Step b: 미래 성향 */}
-          <div className="rounded-lg bg-sky-50/60 border border-sky-100 p-3 space-y-2">
-            <p className="text-[11px] font-semibold text-sky-700">미래 성향</p>
-            <div className="grid grid-cols-2 gap-3">
-              {renderLabel(bMy, SIJU_MY_DESC, "나의 성향")}
-              {renderLabel(bPartner, SIJU_MY_DESC, "상대의 성향")}
-            </div>
-          </div>
-
-          {/* Step c: 미래 환경 */}
-          <div className="rounded-lg bg-stone-50 border border-stone-200 p-3 flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-semibold text-stone-600">미래 환경</p>
-              <p className="text-xs text-stone-500 mt-0.5">
-                {jiRel.type === "없음" ? "자연스러운 흐름" : jiRel.type}
-              </p>
-            </div>
-            <span className={`text-sm font-bold px-3 py-1 rounded-full border ${
-              jiRel.strength === "강" ? "bg-emerald-50 text-emerald-600 border-emerald-200" :
-              jiRel.strength === "약" ? "bg-red-50 text-red-500 border-red-200" :
-              "bg-stone-100 text-stone-500 border-stone-200"
-            }`}>
-              {jiRel.strength === "강" ? "잘 맞아요" : jiRel.strength === "약" ? "차이 있어요" : "무난해요"}
-            </span>
-          </div>
+              {/* 시간 십신 */}
+              <div className={`rounded-lg p-3 border ${info?.color ?? "bg-stone-50 text-stone-400 border-stone-200"}`}>
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div className="space-y-0.5">
+                    <p className="text-[10px] text-stone-400">나의 시간 ({myHourGan})</p>
+                    <p className="font-bold text-stone-700">{siju.mySipsin || "—"}</p>
+                    {siju.myGroup && <p className="text-[10px] text-stone-400">{siju.myGroup}</p>}
+                  </div>
+                  <div className="space-y-0.5">
+                    <p className="text-[10px] text-stone-400">상대 시간 ({partnerHourGan})</p>
+                    <p className="font-bold text-stone-700">{siju.partnerSipsin || "—"}</p>
+                    {siju.partnerGroup && <p className="text-[10px] text-stone-400">{siju.partnerGroup}</p>}
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>
@@ -1621,9 +2116,13 @@ export const CoupleResult: React.FC<CoupleResultProps> = ({
             />
             {/* 월지분석 — 전체 너비 */}
             <WoljiCard
-              result={ohaengResult}
-              loading={ohaengLoading}
               item={DETAIL_ITEMS.basic[3]}
+              myMonthGan={myPillars.month.gan}
+              partnerMonthGan={partnerPillars.month.gan}
+              myMonthJi={myPillars.month.ji}
+              partnerMonthJi={partnerPillars.month.ji}
+              myDayGan={myDayGan}
+              partnerDayGan={partnerDayGan}
             />
           </div>
         ) : activeDetailTab === "pillar" ? (
@@ -1638,33 +2137,47 @@ export const CoupleResult: React.FC<CoupleResultProps> = ({
               myYearJi={myPillars.year.ji}
               partnerYearJi={partnerPillars.year.ji}
             />
-            {/* 월주·시주 — 2열 그리드 */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <WoljuCard
-                item={DETAIL_ITEMS.pillar[1]}
-                myMonthGan={myPillars.month.gan}
-                partnerMonthGan={partnerPillars.month.gan}
-                myMonthJi={myPillars.month.ji}
-                partnerMonthJi={partnerPillars.month.ji}
-                myDayGan={myDayGan}
-                partnerDayGan={partnerDayGan}
-              />
-              <SijuCard
-                item={DETAIL_ITEMS.pillar[2]}
-                myHourGan={myPillars.hour.gan}
-                partnerHourGan={partnerPillars.hour.gan}
-                myHourJi={myPillars.hour.ji}
-                partnerHourJi={partnerPillars.hour.ji}
-                myDayGan={myDayGan}
-                partnerDayGan={partnerDayGan}
-              />
-            </div>
+            <WoljuCard
+              item={DETAIL_ITEMS.pillar[1]}
+              result={ohaengResult}
+              loading={ohaengLoading}
+              myMonthGan={myPillars.month.gan}
+              partnerMonthGan={partnerPillars.month.gan}
+              myMonthJi={myPillars.month.ji}
+              partnerMonthJi={partnerPillars.month.ji}
+            />
+            <SijuCard
+              item={DETAIL_ITEMS.pillar[2]}
+              result={ohaengResult}
+              loading={ohaengLoading}
+              myHourGan={myPillars.hour.gan}
+              partnerHourGan={partnerPillars.hour.gan}
+              myHourJi={myPillars.hour.ji}
+              partnerHourJi={partnerPillars.hour.ji}
+            />
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {DETAIL_ITEMS[activeDetailTab].map((item) => (
-              <DetailCard key={item.id} {...item} />
-            ))}
+            {DETAIL_ITEMS[activeDetailTab].map((item) =>
+              item.id === "sinsal" ? (
+                <div key={item.id} className="sm:col-span-2">
+                  <SinsalCrossCard
+                    item={item}
+                    result={ohaengResult}
+                    loading={ohaengLoading}
+                  />
+                </div>
+              ) : item.id === "sibiwunseong" ? (
+                <SibiwunseongRuleCard
+                  key={item.id}
+                  item={item}
+                  myFortune={myFortune}
+                  partnerFortune={partnerFortune}
+                />
+              ) : (
+                <DetailCard key={item.id} {...item} />
+              ),
+            )}
           </div>
         )}
 

@@ -8,6 +8,8 @@
 import { getSipsin } from "./sipsin.service";
 import { GANJI, SIPSIN_TABLE } from "../data/saju.data";
 import { JIJANGGAN_DATA } from "../data/jijanggan";
+import type { CoupleCrossSinsalResult } from "./couple-cross-sinsal.service";
+import { calcCoupleCrossSinsalAnalysis } from "./couple-cross-sinsal.service";
 
 // ══════════════════════════════════════════════════════════════════════════════
 // 타입 정의
@@ -127,6 +129,29 @@ export interface NyeonjuAnalysisResult {
   cRelType: "방합" | "삼합" | "충" | "형" | "원진" | "귀문" | "없음";
 }
 
+// ── 시주 비교 분석 ─────────────────────────────────────────────────────────────
+
+export interface SijuAnalysisResult {
+  result: "불편" | "부담" | "편안" | "여유" | "닮음" | "중립";
+  mySipsin: string;
+  partnerSipsin: string;
+  myGroup: string;
+  partnerGroup: string;
+}
+
+// ── 월주 비교 분석 ─────────────────────────────────────────────────────────────
+
+export interface WoljuAnalysisResult {
+  stage: "충돌" | "긴장" | "차이" | "균형" | "호응" | "조화" | "결속" | null;
+  desc: string;
+  mySipsin: string;
+  partnerSipsin: string;
+  myGroup: string;
+  partnerGroup: string;
+  ganRel: "A극B" | "B극A" | "A생B" | "B생A" | "동류" | "중립";
+  jiRelType: "삼합" | "방합" | "충" | "형" | "파" | "해" | "원진귀문" | "없음";
+}
+
 // ── 일간 인력/척력 ────────────────────────────────────────────────────────────
 
 export interface IlganCompatibilityResult {
@@ -148,6 +173,10 @@ export interface CoupleOhaengResult {
   ilji: IljiAnalysisResult;
   ilgan: IlganCompatibilityResult;
   nyeonju: NyeonjuAnalysisResult;
+  wolju: WoljuAnalysisResult;
+  siju: SijuAnalysisResult;
+  /** 교차 신살: A 일간·일지 기준 → B 각 기둥 / 반대 방향 */
+  crossSinsal: CoupleCrossSinsalResult;
 }
 
 /** 컨트롤러 → 서비스로 전달하는 요청 타입 */
@@ -717,6 +746,15 @@ const GWIMUN_PAIRS: [string, string][] = [
   ["子", "酉"], ["丑", "午"], ["寅", "未"], ["卯", "申"], ["辰", "亥"], ["巳", "戌"],
 ];
 
+/** 파 쌍 */
+const WOLJU_PA_PAIRS: [string, string][] = [
+  ["子","酉"],["午","卯"],["巳","申"],["寅","亥"],["辰","丑"],["戌","未"],
+];
+/** 해 쌍 */
+const WOLJU_HAE_PAIRS: [string, string][] = [
+  ["子","未"],["丑","午"],["寅","巳"],["卯","辰"],["申","亥"],["酉","戌"],
+];
+
 /** 현침살 — ganji (천간+지지) 기준 */
 const HYUN_CHIM_SAL_SET = new Set([
   "甲申", "甲午", "辛未", "辛卯", "甲子", "甲戌", "甲辰", "甲寅",
@@ -1160,6 +1198,167 @@ function calcNyeonjuAnalysis(
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
+// 월주 비교 분석 — 헬퍼 & 메인
+// ══════════════════════════════════════════════════════════════════════════════
+
+const WOLJU_SIPSIN_GROUP: Record<string, string> = {
+  비견: "비겁", 겁재: "비겁",
+  식신: "식상", 상관: "식상",
+  정재: "재성", 편재: "재성",
+  정관: "관성", 편관: "관성",
+  정인: "인성", 편인: "인성",
+};
+
+/** A그룹이 극하는 B그룹 */
+const WOLJU_GEUK_MAP: Record<string, string> = {
+  비겁: "재성", 식상: "관성", 재성: "인성", 관성: "비겁", 인성: "식상",
+};
+
+/** A그룹이 생하는 B그룹 */
+const WOLJU_SAENG_MAP: Record<string, string> = {
+  비겁: "식상", 식상: "재성", 재성: "관성", 관성: "인성", 인성: "비겁",
+};
+
+const WOLJU_STAGE_DESC: Record<string, string> = {
+  충돌: "생각과 방식이 자주 부딪히는 단계다",
+  긴장: "서로 맞춰가는 노력이 필요한 단계다",
+  차이: "서로 다른 점을 이해해가는 단계다",
+  균형: "편안하게 관계를 이어갈 수 있는 단계다",
+  호응: "서로의 흐름이 자연스럽게 맞는 단계다",
+  조화: "함께할수록 안정감이 커지는 단계다",
+  결속: "앞으로의 방향까지 함께 그리기 쉬운 단계다",
+};
+
+function getWoljuJiRelType(ji1: string, ji2: string): WoljuAnalysisResult["jiRelType"] {
+  if (getSamHapOhaeng(ji1, ji2)) return "삼합";
+  if (getBangHapOhaeng(ji1, ji2)) return "방합";
+  if (ji1 !== ji2 && pairMatch(ji1, ji2, CHUNG_PAIRS)) return "충";
+  if ((ji1 === ji2 && SELF_HYUNG_CHARS.has(ji1)) || pairMatch(ji1, ji2, HYUNG_PAIRS)) return "형";
+  if (pairMatch(ji1, ji2, WOLJU_PA_PAIRS))  return "파";
+  if (pairMatch(ji1, ji2, WOLJU_HAE_PAIRS)) return "해";
+  if (pairMatch(ji1, ji2, WONJIN_PAIRS) || pairMatch(ji1, ji2, GWIMUN_PAIRS)) return "원진귀문";
+  return "없음";
+}
+
+function calcWoljuStage(
+  isA: boolean, isB: boolean, isC: boolean, isD: boolean, isSS: boolean,
+  rel: WoljuAnalysisResult["jiRelType"],
+): WoljuAnalysisResult["stage"] {
+  if (rel === "없음") return null;
+  if (isA || isB) {
+    if (rel === "삼합")     return "조화";
+    if (rel === "방합")     return "호응";
+    if (rel === "충")       return "차이";
+    if (rel === "형")       return "충돌";
+    if (rel === "파")       return "긴장";
+    if (rel === "해")       return "긴장";
+    if (rel === "원진귀문") return "차이";
+  }
+  if (isC || isD) {
+    if (rel === "삼합")     return "결속";
+    if (rel === "방합")     return "조화";
+    if (rel === "충")       return "차이";
+    if (rel === "형")       return "충돌";
+    if (rel === "파")       return "균형";
+    if (rel === "해")       return "균형";
+    if (rel === "원진귀문") return "호응";
+  }
+  if (isSS) {
+    if (rel === "삼합")     return "호응";
+    if (rel === "방합")     return "호응";
+    if (rel === "충")       return "긴장";
+    if (rel === "형")       return "차이";
+    if (rel === "파")       return "균형";
+    if (rel === "해")       return "균형";
+    if (rel === "원진귀문") return "충돌";
+  }
+  return null;
+}
+
+function calcWoljuAnalysis(
+  myPillars: PillarsInput,
+  partnerPillars: PillarsInput,
+): WoljuAnalysisResult {
+  const sipsinH = (SIPSIN_TABLE as Record<string, Record<string, Record<string, string>>>)["h"];
+  const myDayGan        = myPillars.day.gan;
+  const partnerDayGan   = partnerPillars.day.gan;
+  const myMonthGan      = myPillars.month.gan;
+  const partnerMonthGan = partnerPillars.month.gan;
+  const myMonthJi       = myPillars.month.ji;
+  const partnerMonthJi  = partnerPillars.month.ji;
+
+  // 1~2: 월간 십신 (각자 일간 기준)
+  const mySipsin      = sipsinH?.[myDayGan]?.[myMonthGan]           ?? "";
+  const partnerSipsin = sipsinH?.[partnerDayGan]?.[partnerMonthGan] ?? "";
+
+  // 그룹 분류
+  const myGroup      = WOLJU_SIPSIN_GROUP[mySipsin]      ?? "";
+  const partnerGroup = WOLJU_SIPSIN_GROUP[partnerSipsin] ?? "";
+
+  // 3~6-1: 관계 판정
+  const isA  = !!(myGroup && partnerGroup && WOLJU_GEUK_MAP[myGroup] === partnerGroup);
+  const isB  = !!(myGroup && partnerGroup && WOLJU_GEUK_MAP[partnerGroup] === myGroup);
+  const isC  = !!(myGroup && partnerGroup && WOLJU_SAENG_MAP[myGroup] === partnerGroup);
+  const isD  = !!(myGroup && partnerGroup && WOLJU_SAENG_MAP[partnerGroup] === myGroup);
+  const isSS = !!(myGroup && partnerGroup && myGroup === partnerGroup);
+
+  const ganRel: WoljuAnalysisResult["ganRel"] =
+    isA ? "A극B" : isB ? "B극A" : isC ? "A생B" : isD ? "B생A" : isSS ? "동류" : "중립";
+
+  // 7~13: 월지 관계
+  const jiRelType = getWoljuJiRelType(myMonthJi, partnerMonthJi);
+
+  // 14~34: 최종 단계
+  const stage = calcWoljuStage(isA, isB, isC, isD, isSS, jiRelType);
+
+  return {
+    stage,
+    desc: stage ? (WOLJU_STAGE_DESC[stage] ?? "") : "",
+    mySipsin,
+    partnerSipsin,
+    myGroup,
+    partnerGroup,
+    ganRel,
+    jiRelType,
+  };
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// 시주 비교 분석
+// ══════════════════════════════════════════════════════════════════════════════
+
+function calcSijuAnalysis(
+  myPillars: PillarsInput,
+  partnerPillars: PillarsInput,
+): SijuAnalysisResult {
+  const sipsinH = (SIPSIN_TABLE as Record<string, Record<string, Record<string, string>>>)["h"];
+  const myDayGan       = myPillars.day.gan;
+  const partnerDayGan  = partnerPillars.day.gan;
+  const myHourGan      = myPillars.hour.gan;
+  const partnerHourGan = partnerPillars.hour.gan;
+
+  // 시간 십신 (각자 일간 기준)
+  const mySipsin      = sipsinH?.[myDayGan]?.[myHourGan]           ?? "";
+  const partnerSipsin = sipsinH?.[partnerDayGan]?.[partnerHourGan] ?? "";
+
+  // 그룹 분류
+  const myGroup      = WOLJU_SIPSIN_GROUP[mySipsin]      ?? "";
+  const partnerGroup = WOLJU_SIPSIN_GROUP[partnerSipsin] ?? "";
+
+  // 관계 판정
+  let result: SijuAnalysisResult["result"] = "중립";
+  if (myGroup && partnerGroup) {
+    if      (WOLJU_GEUK_MAP[myGroup]      === partnerGroup) result = "불편";
+    else if (WOLJU_GEUK_MAP[partnerGroup] === myGroup)      result = "부담";
+    else if (WOLJU_SAENG_MAP[myGroup]     === partnerGroup) result = "편안";
+    else if (WOLJU_SAENG_MAP[partnerGroup] === myGroup)     result = "여유";
+    else if (myGroup === partnerGroup)                      result = "닮음";
+  }
+
+  return { result, mySipsin, partnerSipsin, myGroup, partnerGroup };
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
 // 공개 엔트리 포인트
 // ══════════════════════════════════════════════════════════════════════════════
 
@@ -1178,5 +1377,8 @@ export function analyzeCoupleOhaeng(
     req.partnerGender,
   );
   const nyeonju = calcNyeonjuAnalysis(req.myPillars, req.partnerPillars);
-  return { my, partner, compatibility, wolji, ilji, ilgan, nyeonju };
+  const wolju   = calcWoljuAnalysis(req.myPillars, req.partnerPillars);
+  const siju    = calcSijuAnalysis(req.myPillars, req.partnerPillars);
+  const crossSinsal = calcCoupleCrossSinsalAnalysis(req.myPillars, req.partnerPillars);
+  return { my, partner, compatibility, wolji, ilji, ilgan, nyeonju, wolju, siju, crossSinsal };
 }
