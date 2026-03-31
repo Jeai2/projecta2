@@ -117,7 +117,7 @@ export const SINSAL_INTERPRETATION: { [key: string]: SinsalDefinition } = {
       "특수 기술 기반의 퍼스널 브랜딩을 확립하여 외부 간섭 없는 독자적 수익 모델을 구축함이 권고됨.",
   },
   년살: {
-    name: "년살(年煞)",
+    name: "년살(年煞, 도화살)",
     type: "흉살",
     modalDisplayName: "년살(도화살)",
     description: "총명함과 창의성, 고독과 고립",

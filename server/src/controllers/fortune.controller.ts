@@ -22,6 +22,32 @@ import type { MookADebounceResult } from "../services/mookA-debounce.service";
 // ✅ 일주론 서비스 import
 import { getIljuAnalysis } from "../services/ilju.service";
 
+// 음력 → 양력 변환 헬퍼: calendarType이 "lunar"이면 korean-lunar-calendar로 양력 변환
+async function toSolarDate(
+  birthDate: string,
+  calendarType: "solar" | "lunar",
+  birthTime?: string,
+): Promise<Date> {
+  const timeStr = birthTime && birthTime.trim() !== "" ? birthTime : "12:00";
+  if (calendarType === "lunar") {
+    try {
+      const [yearStr, monthStr, dayStr] = birthDate.split("-");
+      const year = parseInt(yearStr);
+      const month = parseInt(monthStr);
+      const day = parseInt(dayStr);
+      const KoreanLunarCalendar = (await import("korean-lunar-calendar")).default;
+      const calendar = new KoreanLunarCalendar();
+      calendar.setLunarDate(year, month, day, false);
+      const solar = calendar.getSolarCalendar();
+      return new Date(`${solar.year}-${String(solar.month).padStart(2, "0")}-${String(solar.day).padStart(2, "0")}T${timeStr}:00`);
+    } catch {
+      // 변환 실패 시 입력값 그대로 사용
+      return new Date(`${birthDate}T${timeStr}:00`);
+    }
+  }
+  return new Date(`${birthDate}T${timeStr}:00`);
+}
+
 // 요청(Request)으로 들어올 데이터의 형태
 interface FortuneRequestBody {
   name?: string;
@@ -83,7 +109,7 @@ export const getTodaysFortune = async (
         .json({ error: true, message: "필수 정보가 누락되었습니다." });
     }
 
-    const birthDateObject = new Date(`${birthDate}T${birthTime || "12:00"}:00`);
+    const birthDateObject = await toSolarDate(birthDate, calendarType, birthTime);
     if (isNaN(birthDateObject.getTime())) {
       return res
         .status(400)
@@ -152,7 +178,7 @@ export const getManseFortune = async (
         .json({ error: true, message: "필수 정보가 누락되었습니다." });
     }
 
-    const birthDateObject = new Date(`${birthDate}T${birthTime || "12:00"}:00`);
+    const birthDateObject = await toSolarDate(birthDate, calendarType, birthTime);
     if (isNaN(birthDateObject.getTime())) {
       return res
         .status(400)
@@ -469,7 +495,7 @@ export const getIljuFortune = async (
       });
     }
 
-    const birthDateObject = new Date(`${birthDate}T12:00:00`);
+    const birthDateObject = await toSolarDate(birthDate, calendarType);
     if (isNaN(birthDateObject.getTime())) {
       return res.status(400).json({
         error: true,
@@ -523,7 +549,7 @@ export const getOhaengChart = async (
     }
 
     const hasHourInput = !!(birthTime && birthTime.trim() !== "");
-    const birthDateObject = new Date(`${birthDate}T${birthTime || "12:00"}:00`);
+    const birthDateObject = await toSolarDate(birthDate, calendarType, birthTime);
     if (isNaN(birthDateObject.getTime())) {
       return res.status(400).json({
         error: true,
@@ -712,7 +738,7 @@ export const getCareerAnalysis = async (
       });
     }
 
-    const birthDateObject = new Date(`${birthDate}T${birthTime || "12:00"}:00`);
+    const birthDateObject = await toSolarDate(birthDate, calendarType, birthTime);
     if (isNaN(birthDateObject.getTime())) {
       return res.status(400).json({
         error: true,
@@ -726,29 +752,25 @@ export const getCareerAnalysis = async (
 
     // 당사주 유산(직군): 년지 + 음력 생월(1–12) + 성별 → 남/여 각각 직군 매칭
     // 음력 생월: 음력 입력 시 생일 월 사용, 양력 입력 시 양→음 변환 후 월 사용
+    // birthDateObject는 toSolarDate()를 통해 항상 양력으로 변환된 값
     let lunarMonth: number;
-    if (calendarType === "lunar") {
-      lunarMonth = birthDateObject.getMonth() + 1; // JS month 0–11 → 1–12
-    } else {
-      try {
-        const KoreanLunarCalendar = (await import("korean-lunar-calendar"))
-          .default;
-        const calendar = new KoreanLunarCalendar();
-        calendar.setSolarDate(
-          birthDateObject.getFullYear(),
-          birthDateObject.getMonth() + 1,
-          birthDateObject.getDate(),
-        );
-        const lunar = calendar.getLunarCalendar();
-        lunarMonth = lunar?.month ?? birthDateObject.getMonth() + 1;
-      } catch {
-        const { jiToMonthNumber } = await import("../data/job-map.data");
-        lunarMonth = jiToMonthNumber(
-          sajuResult.sajuData.pillars.month.ji as Parameters<
-            typeof jiToMonthNumber
-          >[0],
-        );
-      }
+    try {
+      const KoreanLunarCalendar = (await import("korean-lunar-calendar")).default;
+      const calendar = new KoreanLunarCalendar();
+      calendar.setSolarDate(
+        birthDateObject.getFullYear(),
+        birthDateObject.getMonth() + 1,
+        birthDateObject.getDate(),
+      );
+      const lunar = calendar.getLunarCalendar();
+      lunarMonth = lunar?.month ?? birthDateObject.getMonth() + 1;
+    } catch {
+      const { jiToMonthNumber } = await import("../data/job-map.data");
+      lunarMonth = jiToMonthNumber(
+        sajuResult.sajuData.pillars.month.ji as Parameters<
+          typeof jiToMonthNumber
+        >[0],
+      );
     }
 
     const { getJobLegacyByGender } =

@@ -98,12 +98,6 @@ export interface SajuData {
   nextYearWoolwoon: import("../services/woolwoon.service").WoolwoonData[];
 }
 
-export interface Trait {
-  name: string; // 특징의 이름 (예: "강력한 리더십")
-  source: string; // 근거가 되는 사주 요소 (예: "일간 甲목")
-  description: string; // 해당 특징에 대한 설명
-}
-
 export interface DayPillarContent {
   title: string;
   symbol: string;
@@ -135,16 +129,17 @@ export interface DayPillarInterpretation {
   advice: string; // 해당 일주를 위한 조언
 }
 
-export interface PersonalityInterpretation {
-  summary: string; // 성격 종합 요약
-  positiveTraits: Trait[]; // 긍정적 성향 목록
-  negativeTraits: Trait[]; // 보완할 점 목록
-  advice: string; // 종합 조언
+/** 일주론(ilju.data)에서 뽑아 종합사주 일간 해석(요약/자세한 해석)에 쓰는 문구 */
+export interface IljuDayMasterTexts {
+  summary: string;
+  detail: string;
 }
 
 // --- 해석 결과 타입 정의 ---
 export interface InterpretationResult {
   dayMasterNature: { base: string; custom: string | null };
+  /** 있으면 DayMasterV2에서 요약/자세한 해석에 우선 사용 (ilju.data.ts 기반) */
+  iljuDayMaster?: IljuDayMasterTexts | null;
   dayMasterCharacter: string;
   sipsinAnalysis: string;
   sibiwunseongAnalysis: string;
@@ -152,7 +147,6 @@ export interface InterpretationResult {
   hwaEuiPrompt: string;
   sinsalAnalysis: StarData[];
   gilsinAnalysis: StarData[];
-  personality: PersonalityInterpretation;
   dayPillar?: DayPillarContent;
 }
 

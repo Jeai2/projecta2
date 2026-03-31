@@ -17,6 +17,7 @@ interface UserInfoFormProps {
 }
 
 export const UserInfoForm = ({ buttonText, onSuccess }: UserInfoFormProps) => {
+  const [userName, setUserName] = useState("");
   const [gender, setGender] = useState<"M" | "W">("M");
   const [calendarType, setCalendarType] = useState<"solar" | "lunar">("solar");
   const [birthDateTime, setBirthDateTime] = useState<string>("");
@@ -63,7 +64,7 @@ export const UserInfoForm = ({ buttonText, onSuccess }: UserInfoFormProps) => {
         : "12:00";
 
     const requestBody = {
-      name: "",
+      name: userName.trim(),
       gender,
       calendarType,
       birthDate: `${birthYear}-${birthMonth}-${birthDay}`,
@@ -96,6 +97,19 @@ export const UserInfoForm = ({ buttonText, onSuccess }: UserInfoFormProps) => {
     <Card className="max-w-2xl mx-auto border border-gray-200 bg-white shadow-lg rounded-3xl backdrop-blur-sm">
       <CardContent className="p-8 sm:p-10">
         <form onSubmit={handleFormSubmit} className="space-y-6">
+          <div className="space-y-2">
+            <Label className="text-gray-600 font-semibold">이름</Label>
+            <Input
+              type="text"
+              placeholder="이름을 입력해 주세요 (선택)"
+              value={userName}
+              onChange={(e) => setUserName(e.target.value)}
+              className="bg-gray-50 border-gray-200 rounded-2xl text-center text-lg"
+              maxLength={32}
+              autoComplete="name"
+            />
+          </div>
+
           {/* 성별 및 양력/음력 */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">

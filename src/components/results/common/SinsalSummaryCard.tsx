@@ -9,13 +9,24 @@ interface SinsalSummaryCardProps {
   layoutId: string;
 }
 
+const PILLAR_KR: Record<string, string> = {
+  year: "년주(年柱)",
+  month: "월주(月柱)",
+  day: "일주(日柱)",
+  hour: "시주(時柱)",
+};
+
 export const SinsalSummaryCard: React.FC<SinsalSummaryCardProps> = ({
   data,
   onClick,
   layoutId,
 }) => {
   const originDescription = data.elements
-    .map((el) => (el.character ? `${el.pillar}의 ${el.character.trim()}` : ""))
+    .map((el) =>
+      el.character
+        ? `${PILLAR_KR[el.pillar] ?? el.pillar}의 ${el.character.trim()}`
+        : ""
+    )
     .join("와 ");
 
   return (

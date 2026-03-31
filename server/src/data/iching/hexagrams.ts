@@ -3479,33 +3479,33 @@ export const guaLuckyAvoid: Record<
     },
   },
   "111001": {
-  // 천뢰무망 (天雷无妄) ䷘
-  lucky: {
-    direction: "동쪽",
-    color: "흰색·청색",
-    number: "1·6",
-    time: "새벽 3–7시",
+    // 천뢰무망 (天雷无妄) ䷘
+    lucky: {
+      direction: "동쪽",
+      color: "흰색·청색",
+      number: "1·6",
+      time: "새벽 3–7시",
+    },
+    avoid: {
+      direction: "남쪽",
+      color: "적색·자주색",
+      time: "오전 11시–오후 1시",
+    },
   },
-  avoid: {
-    direction: "남쪽",
-    color: "적색·자주색",
-    time: "오전 11시–오후 1시",
-  },
-},
   "111110": {
-  // 천풍구 (天風姤) ䷫
-  lucky: {
-    direction: "서북쪽",
-    color: "흰색·청색",
-    number: "4·6",
-    time: "오후 5–9시",
+    // 천풍구 (天風姤) ䷫
+    lucky: {
+      direction: "서북쪽",
+      color: "흰색·청색",
+      number: "4·6",
+      time: "오후 5–9시",
+    },
+    avoid: {
+      direction: "동쪽",
+      color: "흑색·적색",
+      time: "새벽 3–7시",
+    },
   },
-  avoid: {
-    direction: "동쪽",
-    color: "흑색·적색",
-    time: "새벽 3–7시",
-  },
-},
   "111010": {
     // 천수송 (天水訟) ䷅
     lucky: {
@@ -3521,19 +3521,19 @@ export const guaLuckyAvoid: Record<
     },
   },
   "111100": {
-  // 천산돈 (天山遯) ䷠
-  lucky: {
-    direction: "서북쪽",
-    color: "은색",
-    number: "6·8",
-    time: "오후 5–9시",
+    // 천산돈 (天山遯) ䷠
+    lucky: {
+      direction: "서북쪽",
+      color: "은색",
+      number: "6·8",
+      time: "오후 5–9시",
+    },
+    avoid: {
+      direction: "동쪽",
+      color: "흑색·청색",
+      time: "새벽 3–7시",
+    },
   },
-  avoid: {
-    direction: "동쪽",
-    color: "흑색·청색",
-    time: "새벽 3–7시",
-  },
-},
   "111000": {
     // 천지비 (天地否) ䷋
     lucky: {
@@ -3551,47 +3551,47 @@ export const guaLuckyAvoid: Record<
 
   // ── 澤(兌) 상괘 ──────────────────────────────
   "011111": {
-  // 택천쾌 (澤天夬) ䷪
-  lucky: {
-    direction: "서쪽",
-    color: "흰색·청색",
-    number: "6·7",
-    time: "오후 3–7시",
+    // 택천쾌 (澤天夬) ䷪
+    lucky: {
+      direction: "서쪽",
+      color: "흰색·청색",
+      number: "6·7",
+      time: "오후 3–7시",
+    },
+    avoid: {
+      direction: "동쪽",
+      color: "흑색·적색",
+      time: "새벽 3–7시",
+    },
   },
-  avoid: {
-    direction: "동쪽",
-    color: "흑색·적색",
-    time: "새벽 3–7시",
-  },
-},
   "011011": {
-  // 중택태 (重澤兌) ䷹
-  lucky: {
-    direction: "서쪽",
-    color: "흰색·황색",
-    number: "7·2",
-    time: "오후 3–7시",
+    // 중택태 (重澤兌) ䷹
+    lucky: {
+      direction: "서쪽",
+      color: "흰색·황색",
+      number: "7·2",
+      time: "오후 3–7시",
+    },
+    avoid: {
+      direction: "동쪽",
+      color: "청색·흑색",
+      time: "새벽 3–7시",
+    },
   },
-  avoid: {
-    direction: "동쪽",
-    color: "청색·흑색",
-    time: "새벽 3–7시",
-  },
-},
   "011101": {
-  // 택화혁 (澤火革) ䷰
-  lucky: {
-    direction: "남쪽",
-    color: "적색·흰색",
-    number: "3·7",
-    time: "오전 11시–오후 3시",
+    // 택화혁 (澤火革) ䷰
+    lucky: {
+      direction: "남쪽",
+      color: "적색·흰색",
+      number: "3·7",
+      time: "오전 11시–오후 3시",
+    },
+    avoid: {
+      direction: "북쪽",
+      color: "흑색·청색",
+      time: "밤 11시–오전 3시",
+    },
   },
-  avoid: {
-    direction: "북쪽",
-    color: "흑색·청색",
-    time: "밤 11시–오전 3시",
-  },
-},
   "011001": {
     // 택뢰수 (澤雷隨) ䷐
     lucky: {
@@ -3607,61 +3607,61 @@ export const guaLuckyAvoid: Record<
     },
   },
   "011110": {
-  // 택풍대과 (澤風大過) ䷛
-  lucky: {
-    direction: "서쪽",
-    color: "황색·청색",
-    number: "4·7",
-    time: "오후 3–7시",
+    // 택풍대과 (澤風大過) ䷛
+    lucky: {
+      direction: "서쪽",
+      color: "황색·청색",
+      number: "4·7",
+      time: "오후 3–7시",
+    },
+    avoid: {
+      direction: "동쪽",
+      color: "적색·흑색",
+      time: "새벽 3–7시",
+    },
   },
-  avoid: {
-    direction: "동쪽",
-    color: "적색·흑색",
-    time: "새벽 3–7시",
-  },
-},
   "011010": {
-  // 택수곤 (澤水困) ䷮
-  lucky: {
-    direction: "서쪽",
-    color: "흑색·흰색",
-    number: "1·7",
-    time: "밤 9시–자정",
+    // 택수곤 (澤水困) ䷮
+    lucky: {
+      direction: "서쪽",
+      color: "흑색·흰색",
+      number: "1·7",
+      time: "밤 9시–자정",
+    },
+    avoid: {
+      direction: "남쪽",
+      color: "적색·청색",
+      time: "오전 11시–오후 3시",
+    },
   },
-  avoid: {
-    direction: "남쪽",
-    color: "적색·청색",
-    time: "오전 11시–오후 3시",
-  },
-},
   "011100": {
-  // 택산함 (澤山咸) ䷞
-  lucky: {
-    direction: "서쪽",
-    color: "은색",
-    number: "7·8",
-    time: "오후 3–7시",
+    // 택산함 (澤山咸) ䷞
+    lucky: {
+      direction: "서쪽",
+      color: "은색",
+      number: "7·8",
+      time: "오후 3–7시",
+    },
+    avoid: {
+      direction: "동쪽",
+      color: "흑색·청색",
+      time: "새벽 3–7시",
+    },
   },
-  avoid: {
-    direction: "동쪽",
-    color: "흑색·청색",
-    time: "새벽 3–7시",
-  },
-},
   "011000": {
-  // 택지취 (澤地萃) ䷬
-  lucky: {
-    direction: "서쪽",
-    color: "황색·흰색",
-    number: "2·7",
-    time: "오후 1–5시",
+    // 택지취 (澤地萃) ䷬
+    lucky: {
+      direction: "서쪽",
+      color: "황색·흰색",
+      number: "2·7",
+      time: "오후 1–5시",
+    },
+    avoid: {
+      direction: "동쪽",
+      color: "청색·흑색",
+      time: "새벽 3–7시",
+    },
   },
-  avoid: {
-    direction: "동쪽",
-    color: "청색·흑색",
-    time: "새벽 3–7시",
-  },
-},
 
   // ── 火(離) 상괘 ──────────────────────────────
   "101111": {
@@ -3679,203 +3679,203 @@ export const guaLuckyAvoid: Record<
     },
   },
   "101011": {
-  // 화택규 (火澤睽) ䷥
-  lucky: {
-    direction: "남쪽",
-    color: "적색·흰색",
-    number: "7·9",
-    time: "오후 1–5시",
+    // 화택규 (火澤睽) ䷥
+    lucky: {
+      direction: "남쪽",
+      color: "적색·흰색",
+      number: "7·9",
+      time: "오후 1–5시",
+    },
+    avoid: {
+      direction: "동북쪽",
+      color: "흑색·청색",
+      time: "밤 9시 이후",
+    },
   },
-  avoid: {
-    direction: "동북쪽",
-    color: "흑색·청색",
-    time: "밤 9시 이후",
-  },
-},
   "101101": {
-  // 중화리 (重火離) ䷝
-  lucky: {
-    direction: "남쪽",
-    color: "적색·황색",
-    number: "3·9",
-    time: "오전 11시–오후 3시",
+    // 중화리 (重火離) ䷝
+    lucky: {
+      direction: "남쪽",
+      color: "적색·황색",
+      number: "3·9",
+      time: "오전 11시–오후 3시",
+    },
+    avoid: {
+      direction: "북쪽",
+      color: "흑색·감색",
+      time: "밤 11시–오전 3시",
+    },
   },
-  avoid: {
-    direction: "북쪽",
-    color: "흑색·감색",
-    time: "밤 11시–오전 3시",
-  },
-},
   "101001": {
-  // 화뢰서합 (火雷噬嗑) ䷔
-  lucky: {
-    direction: "남쪽",
-    color: "적색·청색",
-    number: "3·9",
-    time: "오전 11시–오후 3시",
+    // 화뢰서합 (火雷噬嗑) ䷔
+    lucky: {
+      direction: "남쪽",
+      color: "적색·청색",
+      number: "3·9",
+      time: "오전 11시–오후 3시",
+    },
+    avoid: {
+      direction: "북쪽",
+      color: "흑색·흰색",
+      time: "밤 11시–오전 3시",
+    },
   },
-  avoid: {
-    direction: "북쪽",
-    color: "흑색·흰색",
-    time: "밤 11시–오전 3시",
-  },
-},
   "101110": {
-  // 화풍정 (火風鼎) ䷱
-  lucky: {
-    direction: "남쪽",
-    color: "적색·청색",
-    number: "3·4",
-    time: "오전 11시–오후 3시",
+    // 화풍정 (火風鼎) ䷱
+    lucky: {
+      direction: "남쪽",
+      color: "적색·청색",
+      number: "3·4",
+      time: "오전 11시–오후 3시",
+    },
+    avoid: {
+      direction: "북쪽",
+      color: "흑색·흰색",
+      time: "밤 11시–오전 3시",
+    },
   },
-  avoid: {
-    direction: "북쪽",
-    color: "흑색·흰색",
-    time: "밤 11시–오전 3시",
-  },
-},
   "101010": {
-  // 화수미제 (火水未濟) ䷿
-  lucky: {
-    direction: "남쪽",
-    color: "적색·황색",
-    number: "1·9",
-    time: "오전 9시–오후 1시",
+    // 화수미제 (火水未濟) ䷿
+    lucky: {
+      direction: "남쪽",
+      color: "적색·황색",
+      number: "1·9",
+      time: "오전 9시–오후 1시",
+    },
+    avoid: {
+      direction: "북쪽",
+      color: "흑색·청색",
+      time: "밤 11시–오전 3시",
+    },
   },
-  avoid: {
-    direction: "북쪽",
-    color: "흑색·청색",
-    time: "밤 11시–오전 3시",
-  },
-},
   "101100": {
-  // 화산려 (火山旅) ䷷
-  lucky: {
-    direction: "남쪽",
-    color: "황색·적색",
-    number: "8·3",
-    time: "오전 9시–오후 1시",
+    // 화산려 (火山旅) ䷷
+    lucky: {
+      direction: "남쪽",
+      color: "황색·적색",
+      number: "8·3",
+      time: "오전 9시–오후 1시",
+    },
+    avoid: {
+      direction: "동쪽",
+      color: "청색·흑색",
+      time: "새벽 3–7시",
+    },
   },
-  avoid: {
-    direction: "동쪽",
-    color: "청색·흑색",
-    time: "새벽 3–7시",
-  },
-},
   "101000": {
-  // 화지진 (火地晉) ䷢
-  lucky: {
-    direction: "남쪽",
-    color: "적색·황색",
-    number: "3·2",
-    time: "오전 9시–오후 1시",
+    // 화지진 (火地晉) ䷢
+    lucky: {
+      direction: "남쪽",
+      color: "적색·황색",
+      number: "3·2",
+      time: "오전 9시–오후 1시",
+    },
+    avoid: {
+      direction: "북쪽",
+      color: "흑색·청색",
+      time: "밤 11시–오전 3시",
+    },
   },
-  avoid: {
-    direction: "북쪽",
-    color: "흑색·청색",
-    time: "밤 11시–오전 3시",
-  },
-},
 
   // ── 雷(震) 상괘 ──────────────────────────────
   "001111": {
-  // 뇌천대장 (雷天大壯) ䷡
-  lucky: {
-    direction: "동쪽",
-    color: "금색",
-    number: "1·3",
-    time: "새벽 3–7시",
+    // 뇌천대장 (雷天大壯) ䷡
+    lucky: {
+      direction: "동쪽",
+      color: "금색",
+      number: "1·3",
+      time: "새벽 3–7시",
+    },
+    avoid: {
+      direction: "서쪽",
+      color: "황색·갈색",
+      time: "오후 5–9시",
+    },
   },
-  avoid: {
-    direction: "서쪽",
-    color: "황색·갈색",
-    time: "오후 5–9시",
-  },
-},
   "001011": {
-  // 뇌택귀매 (雷澤歸妹) ䷵
-  lucky: {
-    direction: "서쪽",
-    color: "흰색·황색",
-    number: "3·7",
-    time: "오후 3–7시",
+    // 뇌택귀매 (雷澤歸妹) ䷵
+    lucky: {
+      direction: "서쪽",
+      color: "흰색·황색",
+      number: "3·7",
+      time: "오후 3–7시",
+    },
+    avoid: {
+      direction: "동쪽",
+      color: "청색·흑색",
+      time: "새벽 3–7시",
+    },
   },
-  avoid: {
-    direction: "동쪽",
-    color: "청색·흑색",
-    time: "새벽 3–7시",
-  },
-},
   "001101": {
-  // 뇌화풍 (雷火豐) ䷶
-  lucky: {
-    direction: "동쪽",
-    color: "적색·청색",
-    number: "3·9",
-    time: "오전 11시–오후 3시",
+    // 뇌화풍 (雷火豐) ䷶
+    lucky: {
+      direction: "동쪽",
+      color: "적색·청색",
+      number: "3·9",
+      time: "오전 11시–오후 3시",
+    },
+    avoid: {
+      direction: "서북쪽",
+      color: "흑색·황색",
+      time: "밤 9시 이후",
+    },
   },
-  avoid: {
-    direction: "서북쪽",
-    color: "흑색·황색",
-    time: "밤 9시 이후",
-  },
-},
   "001001": {
-  // 중뢰진 (重雷震) ䷲
-  lucky: {
-    direction: "동쪽",
-    color: "청색·녹색",
-    number: "3·1",
-    time: "새벽 3–7시",
+    // 중뢰진 (重雷震) ䷲
+    lucky: {
+      direction: "동쪽",
+      color: "청색·녹색",
+      number: "3·1",
+      time: "새벽 3–7시",
+    },
+    avoid: {
+      direction: "서쪽",
+      color: "흰색·금색",
+      time: "오후 5–9시",
+    },
   },
-  avoid: {
-    direction: "서쪽",
-    color: "흰색·금색",
-    time: "오후 5–9시",
-  },
-},
   "001110": {
-  // 뇌풍항 (雷風恒) ䷟
-  lucky: {
-    direction: "동쪽",
-    color: "청색·녹색",
-    number: "3·4",
-    time: "오전 5–9시",
+    // 뇌풍항 (雷風恒) ䷟
+    lucky: {
+      direction: "동쪽",
+      color: "청색·녹색",
+      number: "3·4",
+      time: "오전 5–9시",
+    },
+    avoid: {
+      direction: "서쪽",
+      color: "흰색·금색",
+      time: "오후 7–11시",
+    },
   },
-  avoid: {
-    direction: "서쪽",
-    color: "흰색·금색",
-    time: "오후 7–11시",
-  },
-},
   "001010": {
-  // 뇌수해 (雷水解) ䷧
-  lucky: {
-    direction: "동쪽",
-    color: "청색·황색",
-    number: "1·3",
-    time: "새벽 3–7시",
+    // 뇌수해 (雷水解) ䷧
+    lucky: {
+      direction: "동쪽",
+      color: "청색·황색",
+      number: "1·3",
+      time: "새벽 3–7시",
+    },
+    avoid: {
+      direction: "서쪽",
+      color: "흰색·금색",
+      time: "오후 7–11시",
+    },
   },
-  avoid: {
-    direction: "서쪽",
-    color: "흰색·금색",
-    time: "오후 7–11시",
-  },
-},
   "001100": {
-  // 뇌산소과 (雷山小過) ䷽
-  lucky: {
-    direction: "동북쪽",
-    color: "청색·황색",
-    number: "3·8",
-    time: "오전 1–7시",
+    // 뇌산소과 (雷山小過) ䷽
+    lucky: {
+      direction: "동북쪽",
+      color: "청색·황색",
+      number: "3·8",
+      time: "오전 1–7시",
+    },
+    avoid: {
+      direction: "남쪽",
+      color: "적색·흰색",
+      time: "오전 11시–오후 3시",
+    },
   },
-  avoid: {
-    direction: "남쪽",
-    color: "적색·흰색",
-    time: "오전 11시–오후 3시",
-  },
-},
   "001000": {
     // 뇌지예 (雷地豫) ䷏
     lucky: {
@@ -3907,103 +3907,103 @@ export const guaLuckyAvoid: Record<
     },
   },
   "110011": {
-  // 풍택중부 (風澤中孚) ䷼
-  lucky: {
-    direction: "동남쪽",
-    color: "청색·황색",
-    number: "4·7",
-    time: "오후 1–5시",
+    // 풍택중부 (風澤中孚) ䷼
+    lucky: {
+      direction: "동남쪽",
+      color: "청색·황색",
+      number: "4·7",
+      time: "오후 1–5시",
+    },
+    avoid: {
+      direction: "서북쪽",
+      color: "흰색·흑색",
+      time: "밤 9시 이후",
+    },
   },
-  avoid: {
-    direction: "서북쪽",
-    color: "흰색·흑색",
-    time: "밤 9시 이후",
-  },
-},
   "110101": {
-  // 풍화가인 (風火家人) ䷤
-  lucky: {
-    direction: "동남쪽",
-    color: "적색·청색",
-    number: "3·4",
-    time: "오전 7–11시",
+    // 풍화가인 (風火家人) ䷤
+    lucky: {
+      direction: "동남쪽",
+      color: "적색·청색",
+      number: "3·4",
+      time: "오전 7–11시",
+    },
+    avoid: {
+      direction: "서쪽",
+      color: "흑색·흰색",
+      time: "밤 9시 이후",
+    },
   },
-  avoid: {
-    direction: "서쪽",
-    color: "흑색·흰색",
-    time: "밤 9시 이후",
-  },
-},
   "110001": {
-  // 풍뢰익 (風雷益) ䷩
-  lucky: {
-    direction: "동쪽",
-    color: "청색·녹색",
-    number: "3·4",
-    time: "오전 5–9시",
+    // 풍뢰익 (風雷益) ䷩
+    lucky: {
+      direction: "동쪽",
+      color: "청색·녹색",
+      number: "3·4",
+      time: "오전 5–9시",
+    },
+    avoid: {
+      direction: "서쪽",
+      color: "흰색·금색",
+      time: "오후 7–11시",
+    },
   },
-  avoid: {
-    direction: "서쪽",
-    color: "흰색·금색",
-    time: "오후 7–11시",
-  },
-},
   "110110": {
-  // 중풍손 (重風巽) ䷸
-  lucky: {
-    direction: "동남쪽",
-    color: "청색·녹색",
-    number: "4·9",
-    time: "오전 7–11시",
+    // 중풍손 (重風巽) ䷸
+    lucky: {
+      direction: "동남쪽",
+      color: "청색·녹색",
+      number: "4·9",
+      time: "오전 7–11시",
+    },
+    avoid: {
+      direction: "서북쪽",
+      color: "흰색·황색",
+      time: "밤 9시 이후",
+    },
   },
-  avoid: {
-    direction: "서북쪽",
-    color: "흰색·황색",
-    time: "밤 9시 이후",
-  },
-},
   "110010": {
-  // 풍수환 (風水渙) ䷺
-  lucky: {
-    direction: "동남쪽",
-    color: "청색·황색",
-    number: "1·4",
-    time: "오전 9시–오후 1시",
+    // 풍수환 (風水渙) ䷺
+    lucky: {
+      direction: "동남쪽",
+      color: "청색·황색",
+      number: "1·4",
+      time: "오전 9시–오후 1시",
+    },
+    avoid: {
+      direction: "동북쪽",
+      color: "흑색·적색",
+      time: "밤 11시–오전 3시",
+    },
   },
-  avoid: {
-    direction: "동북쪽",
-    color: "흑색·적색",
-    time: "밤 11시–오전 3시",
-  },
-},
   "110100": {
-  // 풍산점 (風山漸) ䷴
-  lucky: {
-    direction: "동남쪽",
-    color: "황색·청색",
-    number: "4·8",
-    time: "오전 7–11시",
+    // 풍산점 (風山漸) ䷴
+    lucky: {
+      direction: "동남쪽",
+      color: "황색·청색",
+      number: "4·8",
+      time: "오전 7–11시",
+    },
+    avoid: {
+      direction: "서북쪽",
+      color: "흰색·적색",
+      time: "밤 9시 이후",
+    },
   },
-  avoid: {
-    direction: "서북쪽",
-    color: "흰색·적색",
-    time: "밤 9시 이후",
-  },
-},
   "110000": {
-  // 풍지관 (風地觀) ䷓
-  lucky: {
-    direction: "동남쪽",
-    color: "황색·청색",
-    number: "4·2",
-    time: "오전 9시–오후 1시",
+    // 풍지관 (風地觀) ䷓
+    lucky: {
+      direction: "동남쪽",
+      color: "황색·청색",
+      number: "4·2",
+      time: "오전 9시–오후 1시",
+    },
+    avoid: {
+      direction: "서북쪽",
+      color: "흰색·금색",
+      time: "밤 9시 이후",
+    },
   },
-  avoid: {
-    direction: "서북쪽",
-    color: "흰색·금색",
-    time: "밤 9시 이후",
-  },
-},
 
   // ── 水(坎) 상괘 ──────────────────────────────
   "010111": {
@@ -4021,33 +4021,33 @@ export const guaLuckyAvoid: Record<
     },
   },
   "010011": {
-  // 수택절 (水澤節) ䷻
-  lucky: {
-    direction: "서쪽",
-    color: "은색",
-    number: "1·7",
-    time: "오후 3–7시",
+    // 수택절 (水澤節) ䷻
+    lucky: {
+      direction: "서쪽",
+      color: "은색",
+      number: "1·7",
+      time: "오후 3–7시",
+    },
+    avoid: {
+      direction: "동쪽",
+      color: "청색·적색",
+      time: "새벽 3–7시",
+    },
   },
-  avoid: {
-    direction: "동쪽",
-    color: "청색·적색",
-    time: "새벽 3–7시",
-  },
-},
   "010101": {
-  // 수화기제 (水火旣濟) ䷾
-  lucky: {
-    direction: "남쪽",
-    color: "적색·흑색",
-    number: "1·3",
-    time: "오전 9시–오후 1시",
+    // 수화기제 (水火旣濟) ䷾
+    lucky: {
+      direction: "남쪽",
+      color: "적색·흑색",
+      number: "1·3",
+      time: "오전 9시–오후 1시",
+    },
+    avoid: {
+      direction: "북쪽",
+      color: "청색·흰색",
+      time: "밤 11시–오전 3시",
+    },
   },
-  avoid: {
-    direction: "북쪽",
-    color: "청색·흰색",
-    time: "밤 11시–오전 3시",
-  },
-},
   "010001": {
     // 수뢰둔 (水雷屯) ䷂
     lucky: {
@@ -4063,47 +4063,47 @@ export const guaLuckyAvoid: Record<
     },
   },
   "010110": {
-  // 수풍정 (水風井) ䷯
-  lucky: {
-    direction: "북쪽",
-    color: "청색·황색",
-    number: "1·4",
-    time: "오전 9시–오후 1시",
+    // 수풍정 (水風井) ䷯
+    lucky: {
+      direction: "북쪽",
+      color: "청색·황색",
+      number: "1·4",
+      time: "오전 9시–오후 1시",
+    },
+    avoid: {
+      direction: "남쪽",
+      color: "적색·흑색",
+      time: "밤 11시–오전 3시",
+    },
   },
-  avoid: {
-    direction: "남쪽",
-    color: "적색·흑색",
-    time: "밤 11시–오전 3시",
-  },
-},
   "010010": {
-  // 중수감 (重水坎) ䷜
-  lucky: {
-    direction: "북쪽",
-    color: "흑색·청색",
-    number: "1·6",
-    time: "밤 11시–오전 3시",
+    // 중수감 (重水坎) ䷜
+    lucky: {
+      direction: "북쪽",
+      color: "흑색·청색",
+      number: "1·6",
+      time: "밤 11시–오전 3시",
+    },
+    avoid: {
+      direction: "남쪽",
+      color: "적색·주황색",
+      time: "오전 11시–오후 1시",
+    },
   },
-  avoid: {
-    direction: "남쪽",
-    color: "적색·주황색",
-    time: "오전 11시–오후 1시",
+  "010100": {
+    // 수산건 (水山蹇) ䷦
+    lucky: {
+      direction: "서남쪽",
+      color: "황색·청색",
+      number: "2·8",
+      time: "오후 1–5시",
+    },
+    avoid: {
+      direction: "동북쪽",
+      color: "흑색·흰색",
+      time: "밤 11시–오전 3시",
+    },
   },
-},
- "010100": {
-  // 수산건 (水山蹇) ䷦
-  lucky: {
-    direction: "서남쪽",
-    color: "황색·청색",
-    number: "2·8",
-    time: "오후 1–5시",
-  },
-  avoid: {
-    direction: "동북쪽",
-    color: "흑색·흰색",
-    time: "밤 11시–오전 3시",
-  },
-},
   "010000": {
     // 수지비 (水地比) ䷇
     lucky: {
@@ -4121,61 +4121,61 @@ export const guaLuckyAvoid: Record<
 
   // ── 山(艮) 상괘 ──────────────────────────────
   "100111": {
-  // 산천대축 (山天大畜) ䷙
-  lucky: {
-    direction: "동북쪽",
-    color: "흰색·황색",
-    number: "6·8",
-    time: "오전 1–5시",
+    // 산천대축 (山天大畜) ䷙
+    lucky: {
+      direction: "동북쪽",
+      color: "흰색·황색",
+      number: "6·8",
+      time: "오전 1–5시",
+    },
+    avoid: {
+      direction: "남쪽",
+      color: "적색·청색",
+      time: "오전 11시–오후 1시",
+    },
   },
-  avoid: {
-    direction: "남쪽",
-    color: "적색·청색",
-    time: "오전 11시–오후 1시",
-  },
-},
   "100011": {
-  // 산택손 (山澤損) ䷨
-  lucky: {
-    direction: "동북쪽",
-    color: "황색·흰색",
-    number: "7·8",
-    time: "오전 7–11시",
+    // 산택손 (山澤損) ䷨
+    lucky: {
+      direction: "동북쪽",
+      color: "황색·흰색",
+      number: "7·8",
+      time: "오전 7–11시",
+    },
+    avoid: {
+      direction: "남쪽",
+      color: "적색·청색",
+      time: "오전 11시–오후 3시",
+    },
   },
-  avoid: {
-    direction: "남쪽",
-    color: "적색·청색",
-    time: "오전 11시–오후 3시",
-  },
-},
   "100101": {
-  // 산화비 (山火賁) ䷕
-  lucky: {
-    direction: "남쪽",
-    color: "황색·적색",
-    number: "8·3",
-    time: "오전 9시–오후 1시",
+    // 산화비 (山火賁) ䷕
+    lucky: {
+      direction: "남쪽",
+      color: "황색·적색",
+      number: "8·3",
+      time: "오전 9시–오후 1시",
+    },
+    avoid: {
+      direction: "북쪽",
+      color: "흑색·청색",
+      time: "밤 11시–오전 3시",
+    },
   },
-  avoid: {
-    direction: "북쪽",
-    color: "흑색·청색",
-    time: "밤 11시–오전 3시",
-  },
-},
   "100001": {
-  // 산뢰이 (山雷頤) ䷙
-  lucky: {
-    direction: "동북쪽",
-    color: "황색·청색",
-    number: "3·8",
-    time: "오전 1–7시",
+    // 산뢰이 (山雷頤) ䷙
+    lucky: {
+      direction: "동북쪽",
+      color: "황색·청색",
+      number: "3·8",
+      time: "오전 1–7시",
+    },
+    avoid: {
+      direction: "남쪽",
+      color: "적색·흰색",
+      time: "오전 11시–오후 1시",
+    },
   },
-  avoid: {
-    direction: "남쪽",
-    color: "적색·흰색",
-    time: "오전 11시–오후 1시",
-  },
-},
   "100110": {
     // 산풍고 (山風蠱) ䷑
     lucky: {
@@ -4201,33 +4201,33 @@ export const guaLuckyAvoid: Record<
     avoid: { direction: "서쪽", color: "회색", time: "밤 9시 이후" },
   },
   "100100": {
-  // 중산간 (重山艮) ䷳
-  lucky: {
-    direction: "동북쪽",
-    color: "황색·갈색",
-    number: "8·5",
-    time: "오전 1–5시",
+    // 중산간 (重山艮) ䷳
+    lucky: {
+      direction: "동북쪽",
+      color: "황색·갈색",
+      number: "8·5",
+      time: "오전 1–5시",
+    },
+    avoid: {
+      direction: "남쪽",
+      color: "적색·청색",
+      time: "오전 9시–오후 1시",
+    },
   },
-  avoid: {
-    direction: "남쪽",
-    color: "적색·청색",
-    time: "오전 9시–오후 1시",
-  },
-},
   "100000": {
-  // 산지박 (山地剝) ䷖
-  lucky: {
-    direction: "서남쪽",
-    color: "황색·갈색",
-    number: "2·8",
-    time: "오후 1–5시",
+    // 산지박 (山地剝) ䷖
+    lucky: {
+      direction: "서남쪽",
+      color: "황색·갈색",
+      number: "2·8",
+      time: "오후 1–5시",
+    },
+    avoid: {
+      direction: "동쪽",
+      color: "청색·녹색",
+      time: "새벽 3–7시",
+    },
   },
-  avoid: {
-    direction: "동쪽",
-    color: "청색·녹색",
-    time: "새벽 3–7시",
-  },
-},
 
   // ── 地(坤) 상괘 ──────────────────────────────
   "000111": {
@@ -4245,61 +4245,61 @@ export const guaLuckyAvoid: Record<
     },
   },
   "000011": {
-  // 지택림 (地澤臨) ䷒
-  lucky: {
-    direction: "서쪽",
-    color: "황색·금색",
-    number: "2·7",
-    time: "오후 1–5시",
+    // 지택림 (地澤臨) ䷒
+    lucky: {
+      direction: "서쪽",
+      color: "황색·금색",
+      number: "2·7",
+      time: "오후 1–5시",
+    },
+    avoid: {
+      direction: "동북쪽",
+      color: "흑색·청색",
+      time: "밤 9시 이후",
+    },
   },
-  avoid: {
-    direction: "동북쪽",
-    color: "흑색·청색",
-    time: "밤 9시 이후",
-  },
-},
   "000101": {
-  // 지화명이 (地火明夷) ䷣
-  lucky: {
-    direction: "북쪽",
-    color: "황색·흑색",
-    number: "1·2",
-    time: "밤 9시–자정",
+    // 지화명이 (地火明夷) ䷣
+    lucky: {
+      direction: "북쪽",
+      color: "황색·흑색",
+      number: "1·2",
+      time: "밤 9시–자정",
+    },
+    avoid: {
+      direction: "남쪽",
+      color: "적색·금색",
+      time: "오전 11시–오후 3시",
+    },
   },
-  avoid: {
-    direction: "남쪽",
-    color: "적색·금색",
-    time: "오전 11시–오후 3시",
-  },
-},
   "000001": {
-  // 지뢰복 (地雷復) ䷗
-  lucky: {
-    direction: "동쪽",
-    color: "청색·녹색",
-    number: "1·3",
-    time: "자정–오전 3시",
+    // 지뢰복 (地雷復) ䷗
+    lucky: {
+      direction: "동쪽",
+      color: "청색·녹색",
+      number: "1·3",
+      time: "자정–오전 3시",
+    },
+    avoid: {
+      direction: "서쪽",
+      color: "흰색·금색",
+      time: "오후 5–9시",
+    },
   },
-  avoid: {
-    direction: "서쪽",
-    color: "흰색·금색",
-    time: "오후 5–9시",
-  },
-},
   "000110": {
-  // 지풍승 (地風升) ䷭
-  lucky: {
-    direction: "남쪽",
-    color: "황색·청색",
-    number: "2·4",
-    time: "오전 9시–오후 1시",
+    // 지풍승 (地風升) ䷭
+    lucky: {
+      direction: "남쪽",
+      color: "황색·청색",
+      number: "2·4",
+      time: "오전 9시–오후 1시",
+    },
+    avoid: {
+      direction: "서쪽",
+      color: "흰색·금색",
+      time: "오후 7–11시",
+    },
   },
-  avoid: {
-    direction: "서쪽",
-    color: "흰색·금색",
-    time: "오후 7–11시",
-  },
-},
   "000010": {
     // 지수사 (地水師) ䷆
     lucky: {
@@ -4356,15 +4356,19 @@ export interface IchingYutInterpretation {
 }
 
 export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
-  "111111": { // 1. 중천건
+  "111111": {
+    // 1. 중천건
     해석: "지금 이 순간, 당신 안에는 훨씬 큰 힘이 깃들어 있어요. 하늘이 끝없이 펼쳐지듯, 올바른 방향을 선택한다면 그 길은 누구도 막을 수 없죠. 조급해하지 ㅇ낳아도 돼요. 꾸준히 쌓아온 것들이 결국 당신의 이야기가 되니까요. 믿을 수 있는 사람을 곁에 두는 것도 잊지 마세요.",
     직장운: "여기에 해석을 채워주세요",
-    사업운: "지금 당장 눈에 보이는 결과가 없다고 실망하지 마세요. 협상이나 중요한 결정 앞에서 서두르는 마음은 잠깐 내려놓으세요. 느린 것 같아도 흔들리지 않고 나아가는 사람이 결국 도착합니다.",
-    금전운: "일상을 유지하는 데 크게 부족함은 없는 시기예요. 다만 자금을 움직여야 한다면, 무리하지 않는 선에서 신중하게 접근하는 것이 현명해요.",
+    사업운:
+      "지금 당장 눈에 보이는 결과가 없다고 실망하지 마세요. 협상이나 중요한 결정 앞에서 서두르는 마음은 잠깐 내려놓으세요. 느린 것 같아도 흔들리지 않고 나아가는 사람이 결국 도착합니다.",
+    금전운:
+      "일상을 유지하는 데 크게 부족함은 없는 시기예요. 다만 자금을 움직여야 한다면, 무리하지 않는 선에서 신중하게 접근하는 것이 현명해요.",
     연애: "여성인 당신에게는 든든하고 신뢰감 있는 사람이 가까이 다가오는 시기예요. 말보다 행동으로 보여주는 그런 사람을 놓치지 마세요. 단, 나를 잃지 않는 것이 가장 좋은 사랑의 시작이에요.",
     건강: "전반적으로 균형은 잘 잡혀 있어요. 다만 신경이 예민해지기 쉬운 시기이니, 잘 자고 잘 먹고 가끔은 아무것도 안 해도 되는 하루를 스스로에게 선물해주세요.",
   },
-  "000000": { // 2. 중지곤
+  "000000": {
+    // 2. 중지곤
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4372,7 +4376,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "010001": { // 3. 수뢰준
+  "010001": {
+    // 3. 수뢰준
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4380,7 +4385,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "100010": { // 4. 산수몽
+  "100010": {
+    // 4. 산수몽
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4388,7 +4394,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "010111": { // 5. 수천수
+  "010111": {
+    // 5. 수천수
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4396,7 +4403,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "111010": { // 6. 천수송
+  "111010": {
+    // 6. 천수송
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4404,7 +4412,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "000010": { // 7. 지수사
+  "000010": {
+    // 7. 지수사
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4412,7 +4421,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "010000": { // 8. 수지비
+  "010000": {
+    // 8. 수지비
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4420,7 +4430,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "110111": { // 9. 풍천소축
+  "110111": {
+    // 9. 풍천소축
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4428,7 +4439,19 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "111011": { // 10. 천택리
+  "111011": {
+    // 10. 천택리
+    해석: "설령 호랑이 등 위에 올라탄 것처럼 아찔한 상황이 와도, 부드럽게 흐르는 물처럼 때를 기다릴 줄 아는 사람이 결국 살아남아요. 앞서려는 마음보다 살피는 눈이 지금의 당신에게 더 필요한 덕목이에요. 버겁게 느껴지는 일일수록, 해냈을 때의 결실은 의외로 크답니다. 나보다 나은 사람의 말에 귀 기울이고, 혼자 짊어지려 하지 마세요. 지금은 유연함이 가장 강한 무기예요.",
+    직장운: "여기에 해석을 채워주세요",
+    사업운:
+      "계획 없이 뛰어드는 건 금물이에요. 계약이든 협의든 처음 단추를 신중하게 꿰어야 해요. 사소한 감정 싸움에 에너지를 쏟지 말고, 윗사람의 조언을 열린 마음으로 받아들이세요. 차분하게만 가면, 시간이 흐를수록 분명히 나아져요.",
+    금전운:
+      "넉넉하진 않아도 불편하지 않은 시기예요. 겉으로 보이는 것보다 실속을 챙기는 선택이 지금은 훨씬 현명해요.",
+    연애: "선택지가 많다는 건 축복 같지만, 흔들리기도 쉬운 시기예요. 눈앞의 설렘보다 진심을 줄 수 있는 사람인지를 먼저 보세요. 나 자신에게도, 상대에게도 솔직한 태도가 후회 없는 사랑을 만들어요.",
+    건강: "전반적으로 건강한 편이에요. 다만 호흡기와 두통에 신경 쓰고, 몸의 작은 신호를 흘려듣지 마세요.",
+  },
+  "000111": {
+    // 11. 지천태
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4436,7 +4459,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "000111": { // 11. 지천태
+  "111000": {
+    // 12. 천지비
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4444,7 +4468,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "111000": { // 12. 천지비
+  "111101": {
+    // 13. 천화동인
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4452,7 +4477,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "111101": { // 13. 천화동인
+  "101111": {
+    // 14. 화천대유
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4460,7 +4486,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "101111": { // 14. 화천대유
+  "000100": {
+    // 15. 지산겸
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4468,7 +4495,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "000100": { // 15. 지산겸
+  "001000": {
+    // 16. 뇌지예
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4476,7 +4504,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "001000": { // 16. 뇌지예
+  "011001": {
+    // 17. 택뢰수
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4484,7 +4513,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "011001": { // 17. 택뢰수
+  "100110": {
+    // 18. 산풍고
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4492,7 +4522,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "100110": { // 18. 산풍고
+  "000011": {
+    // 19. 지택림
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4500,7 +4531,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "000011": { // 19. 지택림
+  "110000": {
+    // 20. 풍지관
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4508,7 +4540,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "110000": { // 20. 풍지관
+  "101001": {
+    // 21. 화뢰서합
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4516,7 +4549,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "101001": { // 21. 화뢰서합
+  "100101": {
+    // 22. 산화비
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4524,7 +4558,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "100101": { // 22. 산화비
+  "100000": {
+    // 23. 산지박
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4532,7 +4567,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "100000": { // 23. 산지박
+  "000001": {
+    // 24. 지뢰복
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4540,7 +4576,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "000001": { // 24. 지뢰복
+  "111001": {
+    // 25. 천뢰무망
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4548,7 +4585,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "111001": { // 25. 천뢰무망
+  "100111": {
+    // 26. 산천대축
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4556,7 +4594,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "100111": { // 26. 산천대축
+  "100001": {
+    // 27. 산뢰이
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4564,7 +4603,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "100001": { // 27. 산뢰이
+  "011110": {
+    // 28. 택풍대과
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4572,7 +4612,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "011110": { // 28. 택풍대과
+  "010010": {
+    // 29. 중수감
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4580,7 +4621,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "010010": { // 29. 중수감
+  "101101": {
+    // 30. 중화리
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4588,7 +4630,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "101101": { // 30. 중화리
+  "011100": {
+    // 31. 택산함
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4596,7 +4639,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "011100": { // 31. 택산함
+  "001110": {
+    // 32. 뇌풍항
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4604,7 +4648,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "001110": { // 32. 뇌풍항
+  "111100": {
+    // 33. 천산둔
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4612,7 +4657,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "111100": { // 33. 천산둔
+  "001111": {
+    // 34. 뇌천대장
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4620,7 +4666,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "001111": { // 34. 뇌천대장
+  "101000": {
+    // 35. 화지진
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4628,7 +4675,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "101000": { // 35. 화지진
+  "000101": {
+    // 36. 지화명이
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4636,7 +4684,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "000101": { // 36. 지화명이
+  "110101": {
+    // 37. 풍화가인
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4644,7 +4693,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "110101": { // 37. 풍화가인
+  "101011": {
+    // 38. 화택규
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4652,7 +4702,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "101011": { // 38. 화택규
+  "010100": {
+    // 39. 수산건
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4660,7 +4711,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "010100": { // 39. 수산건
+  "001010": {
+    // 40. 뇌수해
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4668,7 +4720,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "001010": { // 40. 뇌수해
+  "100011": {
+    // 41. 산택손
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4676,7 +4729,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "100011": { // 41. 산택손
+  "110001": {
+    // 42. 풍뢰익
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4684,7 +4738,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "110001": { // 42. 풍뢰익
+  "011111": {
+    // 43. 택천쾌
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4692,7 +4747,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "011111": { // 43. 택천쾌
+  "111110": {
+    // 44. 천풍구
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4700,7 +4756,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "111110": { // 44. 천풍구
+  "011000": {
+    // 45. 택지취
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4708,7 +4765,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "011000": { // 45. 택지취
+  "000110": {
+    // 46. 지풍승
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4716,7 +4774,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "000110": { // 46. 지풍승
+  "011010": {
+    // 47. 택수곤
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4724,7 +4783,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "011010": { // 47. 택수곤
+  "010110": {
+    // 48. 수풍정
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4732,7 +4792,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "010110": { // 48. 수풍정
+  "011101": {
+    // 49. 택화혁
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4740,7 +4801,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "011101": { // 49. 택화혁
+  "101110": {
+    // 50. 화풍정
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4748,7 +4810,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "101110": { // 50. 화풍정
+  "001001": {
+    // 51. 중뢰진
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4756,7 +4819,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "001001": { // 51. 중뢰진
+  "100100": {
+    // 52. 중산간
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4764,7 +4828,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "100100": { // 52. 중산간
+  "110100": {
+    // 53. 풍산점
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4772,7 +4837,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "110100": { // 53. 풍산점
+  "001011": {
+    // 54. 뇌택귀매
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4780,7 +4846,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "001011": { // 54. 뇌택귀매
+  "001101": {
+    // 55. 뇌화풍
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4788,7 +4855,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "001101": { // 55. 뇌화풍
+  "101100": {
+    // 56. 화산여
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4796,7 +4864,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "101100": { // 56. 화산여
+  "110110": {
+    // 57. 중풍손
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4804,7 +4873,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "110110": { // 57. 중풍손
+  "011011": {
+    // 58. 중택태
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4812,7 +4882,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "011011": { // 58. 중택태
+  "110010": {
+    // 59. 풍수환
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4820,7 +4891,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "110010": { // 59. 풍수환
+  "010011": {
+    // 60. 수택절
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4828,7 +4900,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "010011": { // 60. 수택절
+  "110011": {
+    // 61. 풍택중부
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4836,7 +4909,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "110011": { // 61. 풍택중부
+  "001100": {
+    // 62. 뇌산소과
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4844,7 +4918,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "001100": { // 62. 뇌산소과
+  "010101": {
+    // 63. 수화기제
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",
@@ -4852,15 +4927,8 @@ export const guaYutInterpretations: Record<string, IchingYutInterpretation> = {
     연애: "여기에 해석을 채워주세요",
     건강: "여기에 해석을 채워주세요",
   },
-  "010101": { // 63. 수화기제
-    해석: "여기에 해석을 채워주세요",
-    직장운: "여기에 해석을 채워주세요",
-    사업운: "여기에 해석을 채워주세요",
-    금전운: "여기에 해석을 채워주세요",
-    연애: "여기에 해석을 채워주세요",
-    건강: "여기에 해석을 채워주세요",
-  },
-  "101010": { // 64. 화수미제
+  "101010": {
+    // 64. 화수미제
     해석: "여기에 해석을 채워주세요",
     직장운: "여기에 해석을 채워주세요",
     사업운: "여기에 해석을 채워주세요",

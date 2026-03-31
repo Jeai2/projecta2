@@ -21,11 +21,33 @@ import {
 } from "./seasonal-data.loader";
 import { GAN, JI, GANJI, GAN_OHENG, JI_OHENG } from "../data/saju.data"; // ✅ 오행 데이터 import
 import { interpretSaju } from "./sajuInterpret.service";
+import { getIljuData, type IljuData } from "../data/ilju.data";
 import { getNapeumFromPillars } from "../hwa-eui/data/hwa-eui.data";
 import { JIJANGGAN_DATA } from "../data/jijanggan"; // ✅ 지장간 데이터 import
-import { SajuData, InterpretationResult, FortuneResult } from "../types/saju.d";
+import {
+  SajuData,
+  InterpretationResult,
+  FortuneResult,
+  IljuDayMasterTexts,
+} from "../types/saju.d";
 
 type SeasonalData = { [year: number]: { name: string; date: Date }[] };
+
+/** ilju.data.ts 일주 블록 → 종합사주 일간 해석(요약/자세한 해석)용 문구 (ilju.service와 동일 규칙) */
+function buildIljuDayMasterTexts(raw: IljuData): IljuDayMasterTexts {
+  const characteristic =
+    raw.characteristic ||
+    (raw.personality && raw.tendency
+      ? `${raw.personality} ${raw.tendency}`
+      : raw.personality || raw.tendency || "");
+  const summary =
+    raw.overallSummary ||
+    [raw.wealth, raw.health].filter(Boolean).join(" ");
+  return {
+    summary: summary.trim(),
+    detail: characteristic.trim(),
+  };
+}
 
 // 내부 계산 함수 (수정 없음)
 const getYearGanjiByYear = (year: number): string => {
@@ -326,7 +348,15 @@ export const getSajuDetails = async (
     console.error("용신 분석 중 오류 발생:", error);
   }
 
-  const interpretation: InterpretationResult = interpretSaju(sajuData);
+  const interpretationBase: InterpretationResult = interpretSaju(sajuData);
+
+  const iljuRaw = getIljuData(sajuData.pillars.day.gan, sajuData.pillars.day.ji);
+  const iljuDayMaster = iljuRaw ? buildIljuDayMasterTexts(iljuRaw) : null;
+
+  const interpretation: InterpretationResult = {
+    ...interpretationBase,
+    iljuDayMaster,
+  };
 
   return {
     sajuData,

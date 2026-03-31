@@ -6,11 +6,22 @@ import { SectionFrame } from "../SectionFrame";
 import type { StarData } from "@/types/fortune";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
+const PILLAR_KR: Record<string, string> = {
+  year: "년주(年柱)",
+  month: "월주(月柱)",
+  day: "일주(日柱)",
+  hour: "시주(時柱)",
+};
+
 const GilsinCard = ({ star }: { star: StarData }) => {
   const [open, setOpen] = useState(false);
 
   const originLabel = star.elements
-    .map((el) => (el.character ? `${el.pillar}의 ${el.character.trim()}` : ""))
+    .map((el) =>
+      el.character
+        ? `${PILLAR_KR[el.pillar] ?? el.pillar}의 ${el.character.trim()}`
+        : ""
+    )
     .filter(Boolean)
     .join(" + ");
 

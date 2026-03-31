@@ -2,12 +2,11 @@
 
 import {
   interpretDayGan,
-  interpretDayMasterCharacter, // ✅ 1. '일간 상세 성품' 해석 함수 import
+  interpretDayMasterCharacter,
   interpretSipsinPresence,
   interpretSibiwunseong,
   interpretSinsal,
   interpretDayPillar,
-  interpretPersonality,
   interpretCombinations,
   createLandscapePrompt,
 } from "../logic/rule-engine";
@@ -23,7 +22,6 @@ export const interpretSaju = (sajuData: SajuData): InterpretationResult => {
   const gilsinAnalysis = allStarData.filter((star) => star.type === "길신");
   const sinsalAnalysis = allStarData.filter((star) => star.type === "흉살");
   const dayPillarAnalysis = interpretDayPillar(sajuData);
-  const personalityAnalysis = interpretPersonality(sajuData, dayPillarAnalysis);
 
   // --- 🕵️‍♂️ 디버깅 로그 #1 ---
   console.log("--- [1단계] 최종 관문 (sajuInterpret.service) ---");
@@ -46,9 +44,8 @@ export const interpretSaju = (sajuData: SajuData): InterpretationResult => {
     sibiwunseongAnalysis: sibiwunseongAnalysis,
     combinationAnalysis: combinationAnalysis,
     hwaEuiPrompt: hwaEuiPrompt,
-    sinsalAnalysis: sinsalAnalysis, // 구조화된 흉살 데이터
-    gilsinAnalysis: gilsinAnalysis, // 구조화된 길신 데이터
-    personality: personalityAnalysis,
+    sinsalAnalysis: sinsalAnalysis,
+    gilsinAnalysis: gilsinAnalysis,
     dayPillar: dayPillarAnalysis || undefined,
   };
 

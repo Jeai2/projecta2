@@ -486,10 +486,24 @@ export const getTodayFortune = async (userInfo: {
   const today = new Date();
   const iljin = generateIljinData(today);
 
-  // 사용자 사주 계산
-  const birthDateObj = new Date(
-    `${userInfo.birthDate}T${userInfo.birthTime || "12:00"}:00`
-  );
+  // 사용자 사주 계산 (음력이면 양력으로 변환)
+  let birthDateObj: Date;
+  if (userInfo.calendarType === "lunar") {
+    try {
+      const [yearStr, monthStr, dayStr] = userInfo.birthDate.split("-");
+      const KoreanLunarCalendar = (await import("korean-lunar-calendar")).default;
+      const cal = new KoreanLunarCalendar();
+      cal.setLunarDate(parseInt(yearStr), parseInt(monthStr), parseInt(dayStr), false);
+      const solar = cal.getSolarCalendar();
+      birthDateObj = new Date(
+        `${solar.year}-${String(solar.month).padStart(2, "0")}-${String(solar.day).padStart(2, "0")}T${userInfo.birthTime || "12:00"}:00`
+      );
+    } catch {
+      birthDateObj = new Date(`${userInfo.birthDate}T${userInfo.birthTime || "12:00"}:00`);
+    }
+  } else {
+    birthDateObj = new Date(`${userInfo.birthDate}T${userInfo.birthTime || "12:00"}:00`);
+  }
   const sajuResult = await getSajuDetails(birthDateObj, userInfo.gender);
   const userPillars = sajuResult.sajuData.pillars;
   const userDayGan = userPillars.day.gan;
