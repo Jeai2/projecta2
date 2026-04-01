@@ -86,7 +86,7 @@ export const DayMasterV2 = () => {
   /** 일주(일주론) 해석 */
   const iljuText = iljuDayMaster?.detail?.trim() || "";
 
-  const summaryText = dayMasterNature.base;
+  const summaryText = iljuDayMaster?.iljuSummary?.trim() || dayMasterNature.base;
   const detailIntro = buildDayMasterDetailIntro(fortuneResult.userInfo?.name);
 
   return (

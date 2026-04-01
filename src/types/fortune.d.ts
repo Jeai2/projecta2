@@ -189,6 +189,7 @@ export interface DayPillarInterpretation {
 export interface IljuDayMasterTexts {
   summary: string;
   detail: string;
+  iljuSummary: string;
 }
 
 // 전체 해석 결과

@@ -133,6 +133,7 @@ export interface DayPillarInterpretation {
 export interface IljuDayMasterTexts {
   summary: string;
   detail: string;
+  iljuSummary: string;
 }
 
 // --- 해석 결과 타입 정의 ---

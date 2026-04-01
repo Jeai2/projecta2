@@ -22,6 +22,7 @@ import {
 import { GAN, JI, GANJI, GAN_OHENG, JI_OHENG } from "../data/saju.data"; // ✅ 오행 데이터 import
 import { interpretSaju } from "./sajuInterpret.service";
 import { getIljuData, type IljuData } from "../data/ilju.data";
+import { ILJU_FULL } from "../data/interpretation/ilju-full";
 import { getNapeumFromPillars } from "../hwa-eui/data/hwa-eui.data";
 import { JIJANGGAN_DATA } from "../data/jijanggan"; // ✅ 지장간 데이터 import
 import {
@@ -33,19 +34,30 @@ import {
 
 type SeasonalData = { [year: number]: { name: string; date: Date }[] };
 
-/** ilju.data.ts 일주 블록 → 종합사주 일간 해석(요약/자세한 해석)용 문구 (ilju.service와 동일 규칙) */
-function buildIljuDayMasterTexts(raw: IljuData): IljuDayMasterTexts {
-  const characteristic =
+/** 종합사주 일주 해석 문구 — ILJU_FULL 우선, 없으면 ilju.data.ts 폴백 */
+function buildIljuDayMasterTexts(ganji: string, raw: IljuData): IljuDayMasterTexts {
+  const full = ILJU_FULL[ganji];
+
+  const traitsText = raw.traits
+    ? [raw.traits.base, raw.traits.psychological, raw.traits.emotionPattern]
+        .filter(Boolean)
+        .join("\n\n")
+    : "";
+
+  const legacyText =
     raw.characteristic ||
     (raw.personality && raw.tendency
       ? `${raw.personality} ${raw.tendency}`
       : raw.personality || raw.tendency || "");
-  const summary =
+
+  const fallbackSummary =
     raw.overallSummary ||
     [raw.wealth, raw.health].filter(Boolean).join(" ");
+
   return {
-    summary: summary.trim(),
-    detail: characteristic.trim(),
+    summary: fallbackSummary.trim(),
+    detail: (full?.detail || traitsText || legacyText).trim(),
+    iljuSummary: (full?.summary || raw.summary || "").trim(),
   };
 }
 
@@ -350,8 +362,9 @@ export const getSajuDetails = async (
 
   const interpretationBase: InterpretationResult = interpretSaju(sajuData);
 
+  const dayGanji = sajuData.pillars.day.gan + sajuData.pillars.day.ji;
   const iljuRaw = getIljuData(sajuData.pillars.day.gan, sajuData.pillars.day.ji);
-  const iljuDayMaster = iljuRaw ? buildIljuDayMasterTexts(iljuRaw) : null;
+  const iljuDayMaster = iljuRaw ? buildIljuDayMasterTexts(dayGanji, iljuRaw) : null;
 
   const interpretation: InterpretationResult = {
     ...interpretationBase,

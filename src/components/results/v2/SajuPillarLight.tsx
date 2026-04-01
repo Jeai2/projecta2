@@ -4,6 +4,7 @@
 import React from "react";
 import type { PillarData, SinsalHit } from "@/types/fortune";
 import { cn } from "@/lib/utils";
+import { sibiwunseongDescriptions } from "@/data/sibiwunseongDescriptions";
 
 const ohaengLight: Record<string, string> = {
   木: "bg-emerald-50 border-emerald-200 text-emerald-800",
@@ -20,6 +21,8 @@ interface SajuPillarLightProps {
   shouldDimOthers?: boolean;
   /** 시주 등 시간 미입력 시 빈 박스로 표시 */
   isEmpty?: boolean;
+  /** 십이운성 강조 모드: 글자·십성 어둡게, 신살·귀인 숨김, 운성 강조 */
+  siwiMode?: boolean;
 }
 
 export const SajuPillarLight: React.FC<SajuPillarLightProps> = ({
@@ -28,6 +31,7 @@ export const SajuPillarLight: React.FC<SajuPillarLightProps> = ({
   isHighlighted,
   shouldDimOthers,
   isEmpty = false,
+  siwiMode = false,
 }) => {
   const guiin =
     data.sinsal.find((s: SinsalHit) => s.name.includes("귀인"))?.name || "";
@@ -66,7 +70,7 @@ export const SajuPillarLight: React.FC<SajuPillarLightProps> = ({
       </span>
 
       {/* 천간 십성 */}
-      <span className="text-[10px] text-text-subtle h-4 flex items-center">
+      <span className={cn("text-[10px] h-4 flex items-center", siwiMode ? "text-gray-300" : "text-text-subtle")}>
         {data.ganSipsin || ""}
       </span>
 
@@ -74,8 +78,10 @@ export const SajuPillarLight: React.FC<SajuPillarLightProps> = ({
       <div
         className={cn(
           "w-full rounded-lg border text-2xl font-bold font-myeongjo py-3 text-center",
-          ohaengLight[data.ganOhaeng] || "bg-gray-50 border-gray-200 text-gray-700",
-          isHighlighted && "ring-2 ring-accent-gold/40"
+          siwiMode
+            ? "bg-gray-50 border-gray-200 text-gray-300"
+            : (ohaengLight[data.ganOhaeng] || "bg-gray-50 border-gray-200 text-gray-700"),
+          isHighlighted && !siwiMode && "ring-2 ring-accent-gold/40"
         )}
       >
         {data.gan}
@@ -85,32 +91,50 @@ export const SajuPillarLight: React.FC<SajuPillarLightProps> = ({
       <div
         className={cn(
           "w-full rounded-lg border text-2xl font-bold font-myeongjo py-3 text-center",
-          ohaengLight[data.jiOhaeng] || "bg-gray-50 border-gray-200 text-gray-700",
-          isHighlighted && "ring-2 ring-accent-gold/40"
+          siwiMode
+            ? "bg-gray-50 border-gray-200 text-gray-300"
+            : (ohaengLight[data.jiOhaeng] || "bg-gray-50 border-gray-200 text-gray-700"),
+          isHighlighted && !siwiMode && "ring-2 ring-accent-gold/40"
         )}
       >
         {data.ji}
       </div>
 
       {/* 지지 십성 */}
-      <span className="text-[10px] text-text-subtle h-4 flex items-center">
+      <span className={cn("text-[10px] h-4 flex items-center", siwiMode ? "text-gray-300" : "text-text-subtle")}>
         {data.jiSipsin || ""}
       </span>
 
       {/* 십이운성 */}
-      <span className="text-[10px] text-accent-lavender h-4 flex items-center">
-        {data.sibiwunseong || ""}
-      </span>
+      {(() => {
+        const siwiName = data.sibiwunseong || "";
+        const siwiRgb = siwiName ? sibiwunseongDescriptions[siwiName]?.bongbeopRgb : undefined;
+        return (
+          <span
+            className={cn(
+              "h-4 flex items-center",
+              siwiMode ? "text-sm font-bold" : "text-[10px] text-accent-lavender"
+            )}
+            style={siwiMode && siwiRgb ? { color: `rgb(${siwiRgb})` } : undefined}
+          >
+            {siwiName}
+          </span>
+        );
+      })()}
 
-      {/* 신살 */}
-      <span className="text-[10px] text-accent-teal h-4 flex items-center text-center leading-tight">
-        {otherSinsal}
-      </span>
+      {/* 신살 — siwiMode에서는 숨김 */}
+      {!siwiMode && (
+        <span className="text-[10px] text-accent-teal h-4 flex items-center text-center leading-tight">
+          {otherSinsal}
+        </span>
+      )}
 
-      {/* 귀인 */}
-      <span className="text-[10px] text-accent-gold font-semibold h-4 flex items-center text-center">
-        {guiin}
-      </span>
+      {/* 귀인 — siwiMode에서는 숨김 */}
+      {!siwiMode && (
+        <span className="text-[10px] text-accent-gold font-semibold h-4 flex items-center text-center">
+          {guiin}
+        </span>
+      )}
     </div>
   );
 };
