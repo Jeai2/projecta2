@@ -3,7 +3,6 @@
 import { Request, Response } from "express";
 import { getSajuDetails, getSewoonForDaewoon } from "../services/saju.service";
 import { getAllWoolwoonForYear } from "../services/woolwoon.service";
-import { getJijiRelationships } from "../services/relationship.service";
 import {
   getDaewoonRelationships,
   getSewoonRelationships,
@@ -188,30 +187,7 @@ export const getManseFortune = async (
     // 만세력은 사주 데이터만 계산 (AI 해석 제외)
     const sajuResult = await getSajuDetails(birthDateObject, gender);
 
-    // 지지 간 관계 계산 추가
-    const relationships = getJijiRelationships({
-      year:
-        sajuResult.sajuData.pillars.year.gan +
-        sajuResult.sajuData.pillars.year.ji,
-      month:
-        sajuResult.sajuData.pillars.month.gan +
-        sajuResult.sajuData.pillars.month.ji,
-      day:
-        sajuResult.sajuData.pillars.day.gan +
-        sajuResult.sajuData.pillars.day.ji,
-      hour:
-        sajuResult.sajuData.pillars.hour.gan +
-        sajuResult.sajuData.pillars.hour.ji,
-    });
-
-    // 관계 데이터를 포함한 새로운 sajuResult 객체 생성
-    const sajuResultWithRelationships = {
-      ...sajuResult,
-      sajuData: {
-        ...sajuResult.sajuData,
-        relationships,
-      },
-    };
+    // relationships는 saju.service.ts 내에서 이미 계산됨 — 별도 계산 불필요
 
     // 만세력 응답 (AI 응답 없음)
     const finalResponse: SuccessResponseBody = {
@@ -224,7 +200,7 @@ export const getManseFortune = async (
         birthTime: birthTime ?? "12:00",
         timeUnknown: !birthTime || birthTime.trim() === "",
       },
-      saju: sajuResultWithRelationships,
+      saju: sajuResult,
       aiResponse: null, // 만세력은 AI 해석 없음
     };
 

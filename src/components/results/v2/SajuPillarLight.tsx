@@ -23,6 +23,8 @@ interface SajuPillarLightProps {
   isEmpty?: boolean;
   /** 십이운성 강조 모드: 글자·십성 어둡게, 신살·귀인 숨김, 운성 강조 */
   siwiMode?: boolean;
+  /** 십신 분석 모드: 십이운성·신살·귀인 숨김, 글자·십성만 표시 */
+  sipsinMode?: boolean;
 }
 
 export const SajuPillarLight: React.FC<SajuPillarLightProps> = ({
@@ -32,6 +34,7 @@ export const SajuPillarLight: React.FC<SajuPillarLightProps> = ({
   shouldDimOthers,
   isEmpty = false,
   siwiMode = false,
+  sipsinMode = false,
 }) => {
   const guiin =
     data.sinsal.find((s: SinsalHit) => s.name.includes("귀인"))?.name || "";
@@ -105,8 +108,8 @@ export const SajuPillarLight: React.FC<SajuPillarLightProps> = ({
         {data.jiSipsin || ""}
       </span>
 
-      {/* 십이운성 */}
-      {(() => {
+      {/* 십이운성 — siwiMode에서 강조, sipsinMode에서 숨김 */}
+      {!sipsinMode && (() => {
         const siwiName = data.sibiwunseong || "";
         const siwiRgb = siwiName ? sibiwunseongDescriptions[siwiName]?.bongbeopRgb : undefined;
         return (
@@ -122,15 +125,15 @@ export const SajuPillarLight: React.FC<SajuPillarLightProps> = ({
         );
       })()}
 
-      {/* 신살 — siwiMode에서는 숨김 */}
-      {!siwiMode && (
+      {/* 신살 — siwiMode·sipsinMode에서는 숨김 */}
+      {!siwiMode && !sipsinMode && (
         <span className="text-[10px] text-accent-teal h-4 flex items-center text-center leading-tight">
           {otherSinsal}
         </span>
       )}
 
-      {/* 귀인 — siwiMode에서는 숨김 */}
-      {!siwiMode && (
+      {/* 귀인 — siwiMode·sipsinMode에서는 숨김 */}
+      {!siwiMode && !sipsinMode && (
         <span className="text-[10px] text-accent-gold font-semibold h-4 flex items-center text-center">
           {guiin}
         </span>

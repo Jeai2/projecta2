@@ -15,6 +15,8 @@ import { analyzeDangnyeong } from "./dangnyeong.service"; // ✅ 당령 분석 i
 import { analyzeSaryeong } from "./saryeong.service"; // ✅ 사령 분석 import
 import { calculateJinsin } from "./jinsin.service"; // ✅ 진신 분석 import
 import { analyzeYongsin } from "./yongsin.service";
+import { buildSipsinV2Interpretation, buildDaewoonRelInterp } from "./sipsin-v2-interpretation.service"; // ✅ SipsinV2 해설
+import { getJijiRelationships, getDaewoonRelationships } from "./relationship.service"; // ✅ 지지 관계 계산
 import {
   getSeasonalDataForYear,
   getLoadedSeasonalData,
@@ -353,11 +355,42 @@ export const getSajuDetails = async (
     nextYearWoolwoon,
   };
 
+  // ✅ 지지 관계 계산 (sipsinV2Interpretation 이전에 반드시 선행)
+  sajuData.relationships = getJijiRelationships({
+    year:  yearPillar[0]  + yearPillar[1],
+    month: monthPillar[0] + monthPillar[1],
+    day:   dayPillar[0]   + dayPillar[1],
+    hour:  hourPillar[0]  + hourPillar[1],
+  });
+
   // ✅ 용신 분석 추가 (용희기구한 데이터)
   try {
     sajuData.yongsin = analyzeYongsin(sajuData, currentDaewoon);
   } catch (error) {
     console.error("용신 분석 중 오류 발생:", error);
+  }
+
+  // ✅ SipsinV2 전용 해설 추가 (relationships 계산 이후)
+  try {
+    sajuData.sipsinV2Interpretation = buildSipsinV2Interpretation(sajuData);
+  } catch (error) {
+    console.error("SipsinV2 해설 생성 중 오류 발생:", error);
+  }
+
+  // ✅ 현재 대운-원국 관계 계산
+  if (currentDaewoon) {
+    try {
+      const daewoonRels = getDaewoonRelationships(currentDaewoon.ganji, {
+        year:  yearPillar[0]  + yearPillar[1],
+        month: monthPillar[0] + monthPillar[1],
+        day:   dayPillar[0]   + dayPillar[1],
+        hour:  hourPillar[0]  + hourPillar[1],
+      });
+      sajuData.currentDaewoonRelationships = daewoonRels;
+      sajuData.currentDaewoonInterp = buildDaewoonRelInterp(daewoonRels);
+    } catch (error) {
+      console.error("대운 관계 계산 중 오류 발생:", error);
+    }
   }
 
   const interpretationBase: InterpretationResult = interpretSaju(sajuData);

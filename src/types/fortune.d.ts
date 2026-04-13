@@ -143,6 +143,21 @@ export interface SajuData {
   jinsin?: JinsinResult; // ✅ 진신 분석 추가 (선택적)
   gyeokguk?: GyeokgukAnalysis; // ✅ 격국 분석 추가 (선택적)
   yongsin?: YongsinResult; // ✅ 용희기구한 분석 추가 (선택적)
+  sipsinV2Interpretation?: SipsinV2Interpretation; // ✅ SipsinV2 전용 해설
+  currentDaewoonRelationships?: {
+    cheonganhap: string[];
+    cheonganchung: string[];
+    cheonganhapTypes?: ("합" | "합반" | "합거")[];
+    yukhap: string[];
+    samhap: string[];
+    amhap: string[];
+    banghap: string[];
+    yukchung: string[];
+    yukhyung: string[];
+    yukpa: string[];
+    yukae: string[];
+  };
+  currentDaewoonInterp?: DaewoonRelInterp;
   currentDaewoon: Daewoon | null;
   currentSewoon: SewoonData;
   daewoonFull: Daewoon[];
@@ -321,4 +336,123 @@ export interface GyeokgukAnalysis {
   yongsinType: string; // 용신 유형 ("印", "財", "官" 등)
   confidence: number; // 신뢰도 (0-100)
   reason: string; // 판단 근거
+}
+
+// ── SipsinV2 전용 해설 타입 ─────────────────────────────────────────────────
+
+export interface SipsinV2WoljiInterp {
+  title: string;
+  season: string;
+  essence: string;
+  description: string;
+  characteristics: string[];
+  dayMasterNote: string;
+}
+
+export interface SipsinV2DangnyeongInterp {
+  title: string;
+  essence: string;
+  meaning: string;
+  jeolgiNote: string;
+  aiNote: string;
+}
+
+export interface SipsinV2SaryeongRoleInterp {
+  role: string;
+  korName: string;
+  essence: string;
+  description: string;
+  powerLevel: string;
+}
+
+export interface SipsinV2CheonganhapInterp {
+  pair: string;
+  name: string;
+  hwaohaeng: string;
+  hapType?: "합" | "합반" | "합거"; // 대운 전용: 합 분류
+  essence: string;
+  description: string;
+  effect: string;
+  frozen: string;
+}
+
+export interface SipsinV2CheonganchungInterp {
+  pair: string;
+  name: string;
+  essence: string;
+  description: string;
+  effect: string;
+}
+
+export interface SipsinV2JiRelInterp {
+  key: string;
+  name: string;
+  hwaohaeng?: string;
+  essence: string;
+  description: string;
+  effect: string;
+}
+
+export interface SipsinV2GyeokgukInterp {
+  code: string;
+  name: string;
+  essence: string;
+  description: string;
+  successCondition: string;
+  breakCondition: string;
+  yongsinGuide: string;
+  aiNote: string;
+}
+
+export interface SipsinV2YongsinTypeInterp {
+  type: string;
+  essence: string;
+  description: string;
+  lifeTheme: string;
+  caution: string;
+}
+
+export interface SipsinV2SangsinInterp {
+  concept: string;
+  roles: { role: string; description: string; examples: string }[];
+  importanceNote: string;
+}
+
+export interface DaewoonRelInterp {
+  cheonganhap: SipsinV2CheonganhapInterp[];
+  cheonganchung: SipsinV2CheonganchungInterp[];
+  yukhap: SipsinV2JiRelInterp[];
+  samhap: SipsinV2JiRelInterp[];
+  banghap: SipsinV2JiRelInterp[];
+  yukchung: SipsinV2JiRelInterp[];
+  yukhyung: SipsinV2JiRelInterp[];
+  yukpa: SipsinV2JiRelInterp[];
+  yukae: SipsinV2JiRelInterp[];
+  amhap: { concept: string; note: string };
+}
+
+export interface SipsinV2Interpretation {
+  wolji: SipsinV2WoljiInterp | null;
+  dangnyeong: SipsinV2DangnyeongInterp | null;
+  saryeong: {
+    role: SipsinV2SaryeongRoleInterp | null;
+    ganNote: string | null;
+  } | null;
+  cheonganhap: SipsinV2CheonganhapInterp[];
+  cheonganchung: SipsinV2CheonganchungInterp[];
+  samhap: SipsinV2JiRelInterp[];
+  banghap: SipsinV2JiRelInterp[];
+  yukchung: SipsinV2JiRelInterp[];
+  yukhyung: SipsinV2JiRelInterp[];
+  yukpa: SipsinV2JiRelInterp[];
+  yukae: SipsinV2JiRelInterp[];
+  yukhap: SipsinV2JiRelInterp[];
+  amhap: { concept: string; note: string };
+  gyeokguk: SipsinV2GyeokgukInterp | null;
+  yongsin: SipsinV2YongsinTypeInterp | null;
+  sangsin: SipsinV2SangsinInterp;
+  daewoonGyeokgukInterp: Record<string, string>;
+  daewoonGanjiInterp: string | null;
+  /** 육십갑자 대운 × 일간(日干) 조합별 해석 */
+  daewoonGanjiIlganInterp: string | null;
 }

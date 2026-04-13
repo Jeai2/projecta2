@@ -33,6 +33,7 @@ export interface SinsalHit {
 export interface RelationshipResult {
   cheonganhap: string[]; // 천간합 관계
   cheonganchung: string[]; // 천간충 관계
+  cheonganhapTypes?: ("합" | "합반" | "합거")[]; // 천간합 종류 (대운 전용)
   yukhap: string[]; // 육합 관계
   samhap: string[]; // 삼합 관계
   amhap: string[]; // 암합 관계
@@ -91,6 +92,9 @@ export interface SajuData {
   jinsin?: import("../services/jinsin.service").JinsinResult; // ✅ 진신 분석 추가 (선택적)
   gyeokguk?: import("../services/gyeokguk.service").GyeokgukAnalysis; // ✅ 격국 분석 추가 (선택적)
   yongsin?: import("../data/yongsin.data").YongsinResult; // ✅ 용희기구한 분석 추가 (선택적)
+  sipsinV2Interpretation?: import("../services/sipsin-v2-interpretation.service").SipsinV2Interpretation; // ✅ SipsinV2 전용 해설
+  currentDaewoonRelationships?: RelationshipResult; // ✅ 현재 대운-원국 관계
+  currentDaewoonInterp?: import("../services/sipsin-v2-interpretation.service").DaewoonRelInterp; // ✅ 현재 대운 관계 해설
   currentDaewoon: Daewoon | null;
   currentSewoon: SewoonData;
   daewoonFull: Daewoon[];

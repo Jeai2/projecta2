@@ -2,10 +2,65 @@
 // 지지 간 관계 계산 서비스
 
 import { JIJI_RELATIONSHIPS } from "../data/relationship.data";
+import { GAN_OHENG, JI_OHENG } from "../data/saju.data";
+import { JIJANGGAN_DATA } from "../data/jijanggan";
+
+// ── 합화 오행 테이블 ──────────────────────────────────────────────────────────
+const CHEONGANHAP_HWA: Record<string, string> = {
+  "甲己": "土", "己甲": "土",
+  "庚乙": "金", "乙庚": "金",
+  "丙辛": "水", "辛丙": "水",
+  "戊癸": "火", "癸戊": "火",
+  "壬丁": "木", "丁壬": "木",
+};
+
+/** 지장간 한글 천간 → 오행 */
+const GAN_KO_OHAENG: Record<string, string> = {
+  갑: "木", 을: "木",
+  병: "火", 정: "火",
+  무: "土", 기: "土",
+  경: "金", 신: "金",
+  임: "水", 계: "水",
+};
+
+/**
+ * 대운 천간합의 종류를 판정한다.
+ * - "합" : 사주 4기둥 지지에 대운 천간과 같은 오행이 있음 (합이 묶이지 않음)
+ * - "합반": 지지에 같은 오행 없음 + 합거 조건 불충족
+ * - "합거": 지지에 같은 오행 없음 + (합화오행 == 대운지지오행 OR 대운지지 지장간 오행 중 합화오행 포함)
+ */
+function classifyCheonganhap(
+  dGan: string,
+  dJi: string,
+  pGan: string,
+  pillars: { year: string; month: string; day: string; hour: string }
+): "합" | "합반" | "합거" {
+  const dGanOhaeng = GAN_OHENG[dGan] ?? "";
+  const pillarKeys = ["year", "month", "day", "hour"] as const;
+  const jiOhaengs = pillarKeys.map((k) => JI_OHENG[pillars[k][1]] ?? "");
+
+  // 사주 지지에 대운 천간 오행이 있으면 → 그냥 합
+  if (jiOhaengs.includes(dGanOhaeng)) return "합";
+
+  const hwaOhaeng = CHEONGANHAP_HWA[`${dGan}${pGan}`] ?? "";
+  const dJiOhaeng = JI_OHENG[dJi] ?? "";
+
+  // 합거(1): 합화오행 == 대운 지지 오행
+  if (hwaOhaeng && hwaOhaeng === dJiOhaeng) return "합거";
+
+  // 합거(2/3): 대운 지지 지장간 오행 중 합화오행과 같은 것이 있으면
+  const jijangganOhaengs = (JIJANGGAN_DATA[dJi] ?? []).map(
+    (el) => GAN_KO_OHAENG[el.gan] ?? ""
+  );
+  if (hwaOhaeng && jijangganOhaengs.includes(hwaOhaeng)) return "합거";
+
+  return "합반";
+}
 
 export interface RelationshipResult {
   cheonganhap: string[]; // 천간합 관계
   cheonganchung: string[]; // 천간충 관계
+  cheonganhapTypes?: ("합" | "합반" | "합거")[]; // 천간합 종류 (대운 전용)
   yukhap: string[]; // 육합 관계
   samhap: string[]; // 삼합 관계
   amhap: string[]; // 암합 관계
@@ -131,6 +186,80 @@ export const getJijiRelationships = (pillars: {
       if (JIJI_RELATIONSHIPS.yukae[ji1] === ji2) {
         result.yukae.push(`${ji1}${ji2}(${pillar1}-${pillar2})`);
       }
+    }
+  }
+
+  return result;
+};
+
+/**
+ * 현재 대운의 천간/지지와 사주팔자 4기둥 간의 관계를 계산한다.
+ * @param daewoonGanji 대운 간지 (예: "甲子")
+ * @param pillars 사주팔자 4기둥
+ * @returns 대운-원국 관계 결과
+ */
+export const getDaewoonRelationships = (
+  daewoonGanji: string,
+  pillars: { year: string; month: string; day: string; hour: string }
+): RelationshipResult => {
+  const result: RelationshipResult = {
+    cheonganhap: [], cheonganchung: [],
+    cheonganhapTypes: [],
+    yukhap: [], samhap: [], amhap: [], banghap: [],
+    yukchung: [], yukhyung: [], yukpa: [], yukae: [],
+  };
+
+  const dGan = daewoonGanji[0];
+  const dJi = daewoonGanji[1];
+  const pillarKeys = ["year", "month", "day", "hour"] as const;
+
+  // ── 천간합 먼저 계산 (2-1 규칙 적용을 위해) ──
+  for (const key of pillarKeys) {
+    const pGan = pillars[key][0];
+    if (JIJI_RELATIONSHIPS.cheonganhap[dGan] === pGan) {
+      result.cheonganhap.push(`${dGan}${pGan}(daewoon-${key})`);
+      result.cheonganhapTypes!.push(classifyCheonganhap(dGan, dJi, pGan, pillars));
+    }
+  }
+
+  // ── 지지 관계 + 천간충 (합 없을 때만) ──
+  for (const key of pillarKeys) {
+    const pillarStr = pillars[key];
+    const pGan = pillarStr[0];
+    const pJi = pillarStr[1];
+
+    // 2-1: 천간합이 있으면 천간충 표기하지 않음
+    if (result.cheonganhap.length === 0) {
+      if (JIJI_RELATIONSHIPS.cheonganchung[dGan] === pGan) {
+        result.cheonganchung.push(`${dGan}${pGan}(daewoon-${key})`);
+      } else if (JIJI_RELATIONSHIPS.cheonganchung[pGan] === dGan) {
+        result.cheonganchung.push(`${dGan}${pGan}(daewoon-${key})`);
+      }
+    }
+
+    if (JIJI_RELATIONSHIPS.yukhap[dJi] === pJi) {
+      result.yukhap.push(`${dJi}${pJi}(daewoon-${key})`);
+    }
+    if (JIJI_RELATIONSHIPS.samhap[dJi]?.includes(pJi)) {
+      result.samhap.push(`${dJi}${pJi}(daewoon-${key})`);
+    }
+    if (JIJI_RELATIONSHIPS.amhap[dJi]?.includes(pJi)) {
+      result.amhap.push(`${dJi}${pJi}(daewoon-${key})`);
+    }
+    if (JIJI_RELATIONSHIPS.banghap[dJi]?.includes(pJi)) {
+      result.banghap.push(`${dJi}${pJi}(daewoon-${key})`);
+    }
+    if (JIJI_RELATIONSHIPS.yukchung[dJi] === pJi) {
+      result.yukchung.push(`${dJi}${pJi}(daewoon-${key})`);
+    }
+    if (JIJI_RELATIONSHIPS.yukhyung[dJi]?.includes(pJi)) {
+      result.yukhyung.push(`${dJi}${pJi}(daewoon-${key})`);
+    }
+    if (JIJI_RELATIONSHIPS.yukpa[dJi] === pJi) {
+      result.yukpa.push(`${dJi}${pJi}(daewoon-${key})`);
+    }
+    if (JIJI_RELATIONSHIPS.yukae[dJi] === pJi) {
+      result.yukae.push(`${dJi}${pJi}(daewoon-${key})`);
     }
   }
 
