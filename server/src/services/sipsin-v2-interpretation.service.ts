@@ -37,6 +37,11 @@ import {
   normalizeCheonganhapKey,
   normalizeCheonganchungKey,
 } from "../data/interpretation/daewoon-cheongan.data";
+import {
+  DAEWOON_JIJI_INTERP,
+  type JijiRelType,
+  type Ilgan,
+} from "../data/interpretation/daewoon-jiji.data";
 import type { SajuData } from "../types/saju.d";
 import type { RelationshipResult } from "./relationship.service";
 
@@ -247,10 +252,12 @@ export interface DaewoonRelInterp {
   yukpa: JiRelInterpretation[];
   yukae: JiRelInterpretation[];
   amhap: { concept: string; note: string };
+  ganjiInterp?: string | null;
+  ganjiIlganInterp?: string | null;
 }
 
 /** 대운과 원국 4기둥 간의 관계 해설을 조합한다. */
-export function buildDaewoonRelInterp(rels: RelationshipResult): DaewoonRelInterp {
+export function buildDaewoonRelInterp(rels: RelationshipResult, ilgan = "", ganji = ""): DaewoonRelInterp {
   // ── 천간합: 합/합반/합거 타입 + 방향(간1대운/간2대운) 선택 ──
   const cheonganhapInterps: CheonganhapInterpretation[] = [];
   for (let i = 0; i < rels.cheonganhap.length; i++) {
@@ -260,12 +267,15 @@ export function buildDaewoonRelInterp(rels: RelationshipResult): DaewoonRelInter
     const group = DAEWOON_CHEONGANHAP_INTERP[canonKey] ?? null;
     if (group) {
       const dir = rawKey === canonKey ? "간1대운" : "간2대운";
+      const slot = group[hapType][dir];
+      const ilganText = ilgan ? ((slot.ilgan as Record<string, string>)[ilgan] ?? "") : "";
       cheonganhapInterps.push({
         pair: group.pair,
         name: group.name,
         hwaohaeng: group.hwaohaeng,
         hapType,
-        essence: group[hapType][dir],
+        essence: slot.base,
+        ilganEssence: ilganText || undefined,
         description: "",
         effect: "",
         frozen: "",
@@ -281,10 +291,13 @@ export function buildDaewoonRelInterp(rels: RelationshipResult): DaewoonRelInter
     const entry = DAEWOON_CHEONGANCHUNG_INTERP[canonKey] ?? null;
     if (entry) {
       const dir = rawKey === canonKey ? "간1대운" : "간2대운";
+      const slot = entry[dir];
+      const ilganText = ilgan ? ((slot.ilgan as Record<string, string>)[ilgan] ?? "") : "";
       cheonganchungInterps.push({
         pair: entry.pair,
         name: entry.name,
-        essence: entry[dir],
+        essence: slot.base,
+        ilganEssence: ilganText || undefined,
         description: "",
         effect: "",
       });
@@ -299,7 +312,11 @@ export function buildDaewoonRelInterp(rels: RelationshipResult): DaewoonRelInter
     const gKey = samhapGroupKey(m[1], m[2]);
     if (gKey && !seenSamhap.has(gKey)) {
       const interp = SAMHAP_INTERPRETATIONS[gKey] ?? null;
-      if (interp) { samhapInterps.push(interp); seenSamhap.add(gKey); }
+      if (interp) {
+        const ilganText = getJijiIlganText(s, "삼합", ilgan);
+        samhapInterps.push(ilganText ? { ...interp, ilganEssence: ilganText } : interp);
+        seenSamhap.add(gKey);
+      }
     }
   }
 
@@ -311,7 +328,11 @@ export function buildDaewoonRelInterp(rels: RelationshipResult): DaewoonRelInter
     const gKey = banghapGroupKey(m[1], m[2]);
     if (gKey && !seenBanghap.has(gKey)) {
       const interp = BANGHAP_INTERPRETATIONS[gKey] ?? null;
-      if (interp) { banghapInterps.push(interp); seenBanghap.add(gKey); }
+      if (interp) {
+        const ilganText = getJijiIlganText(s, "방합", ilgan);
+        banghapInterps.push(ilganText ? { ...interp, ilganEssence: ilganText } : interp);
+        seenBanghap.add(gKey);
+      }
     }
   }
 
@@ -322,22 +343,47 @@ export function buildDaewoonRelInterp(rels: RelationshipResult): DaewoonRelInter
   return {
     cheonganhap: cheonganhapInterps,
     cheonganchung: cheonganchungInterps,
-    yukhap: _lookupJiRels(rels.yukhap, YUKHAP_INTERPRETATIONS),
+    yukhap: _lookupJiRels(rels.yukhap, YUKHAP_INTERPRETATIONS, "육합", ilgan),
     samhap: samhapInterps,
     banghap: banghapInterps,
-    yukchung: _lookupJiRels(rels.yukchung, YUKCHUNG_INTERPRETATIONS),
-    yukhyung: _lookupJiRels(rels.yukhyung, YUKHYUNG_INTERPRETATIONS),
-    yukpa: _lookupJiRels(rels.yukpa, YUKPA_INTERPRETATIONS),
-    yukae: _lookupJiRels(rels.yukae, YUKAE_INTERPRETATIONS),
+    yukchung: _lookupJiRels(rels.yukchung, YUKCHUNG_INTERPRETATIONS, "충", ilgan),
+    yukhyung: _lookupJiRels(rels.yukhyung, YUKHYUNG_INTERPRETATIONS, "형", ilgan),
+    yukpa: _lookupJiRels(rels.yukpa, YUKPA_INTERPRETATIONS, "파", ilgan),
+    yukae: _lookupJiRels(rels.yukae, YUKAE_INTERPRETATIONS, "해", ilgan),
     amhap: { concept: AMHAP_CONCEPT, note: amhapNote },
+    ganjiInterp: ganji ? (DAEWOON_GANJI_INTERP[ganji] ?? null) : null,
+    ganjiIlganInterp: (ganji && ilgan) ? (DAEWOON_ILGAN_INTERP[ganji]?.[ilgan] ?? null) : null,
   };
 }
 
 // ── 내부 헬퍼 ──────────────────────────────────────────────────────────────
 
+/** 관계 문자열 "子午(daewoon-year)"에서 대운 지지 추출 */
+function getDaewoonJiFromRelStr(str: string): string | null {
+  const m = str.match(/^(.)(.)\((.+)-(.+)\)$/);
+  if (!m) return null;
+  if (m[3] === "daewoon") return m[1];
+  if (m[4] === "daewoon") return m[2];
+  return null;
+}
+
+/** daewoon-jiji.data.ts에서 일간별 추가 해석 조회 */
+function getJijiIlganText(
+  relStr: string,
+  relType: JijiRelType,
+  ilgan: string
+): string {
+  if (!ilgan) return "";
+  const daewoonJi = getDaewoonJiFromRelStr(relStr);
+  if (!daewoonJi) return "";
+  return DAEWOON_JIJI_INTERP[daewoonJi]?.[ilgan as Ilgan]?.[relType] ?? "";
+}
+
 function _lookupJiRels(
   list: string[],
-  map: Record<string, JiRelInterpretation>
+  map: Record<string, JiRelInterpretation>,
+  relType?: JijiRelType,
+  ilgan = ""
 ): JiRelInterpretation[] {
   const result: JiRelInterpretation[] = [];
   const seen = new Set<string>();
@@ -345,7 +391,11 @@ function _lookupJiRels(
     const key = relKey(s);
     if (!seen.has(key)) {
       const interp = map[key] ?? null;
-      if (interp) { result.push(interp); seen.add(key); }
+      if (interp) {
+        const ilganText = relType ? getJijiIlganText(s, relType, ilgan) : "";
+        result.push(ilganText ? { ...interp, ilganEssence: ilganText } : interp);
+        seen.add(key);
+      }
     }
   }
   return result;

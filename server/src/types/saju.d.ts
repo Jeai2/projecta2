@@ -95,6 +95,9 @@ export interface SajuData {
   sipsinV2Interpretation?: import("../services/sipsin-v2-interpretation.service").SipsinV2Interpretation; // ✅ SipsinV2 전용 해설
   currentDaewoonRelationships?: RelationshipResult; // ✅ 현재 대운-원국 관계
   currentDaewoonInterp?: import("../services/sipsin-v2-interpretation.service").DaewoonRelInterp; // ✅ 현재 대운 관계 해설
+  currentSewoonRelationships?: RelationshipResult; // ✅ 현재 세운-원국+대운 관계
+  currentSewoonInterp?: import("../services/sipsin-v2-interpretation.service").DaewoonRelInterp; // ✅ 현재 세운 관계 해설
+  sewoonForCurrentDaewoon?: SewoonData[]; // ✅ 현재 대운 기간 10년 세운 목록
   currentDaewoon: Daewoon | null;
   currentSewoon: SewoonData;
   daewoonFull: Daewoon[];

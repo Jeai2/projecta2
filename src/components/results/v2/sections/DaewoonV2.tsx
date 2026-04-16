@@ -3,7 +3,7 @@
 
 import { useFortuneStore } from "@/store/fortuneStore";
 import { SectionFrame } from "../SectionFrame";
-import { AlertCircle, BookOpen } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Daewoon } from "@/types/fortune";
 import {
@@ -94,6 +94,36 @@ const DAEWOON_GANJI_IMAGE: Record<string, string> = {
   甲寅: "", 乙卯: "", 丙辰: "", 丁巳: "", 戊午: "",
   己未: "", 庚申: "", 辛酉: "", 壬戌: "", 癸亥: "",
 };
+
+// ── 해설 텍스트 변환 헬퍼 (사주 원국 치환 등) ────────────────────────
+const GAN_KO_FULL: Record<string, string> = {
+  甲: "갑목", 乙: "을목", 丙: "병화", 丁: "정화", 戊: "무토",
+  己: "기토", 庚: "경금", 辛: "신금", 壬: "임수", 癸: "계수"
+};
+const GAN_HANJA_FULL: Record<string, string> = {
+  甲: "甲木", 乙: "乙木", 丙: "丙火", 丁: "丁火", 戊: "戊土",
+  己: "己土", 庚: "庚金", 辛: "辛金", 壬: "壬水", 癸: "癸水"
+};
+const LOC_HANJA: Record<string, string> = {
+  년간: "年干", 월간: "月干", 일간: "日干", 시간: "時干",
+};
+
+function formatInterpText(text: string | null | undefined, pillars: any): string {
+  if (!text) return "";
+  return text.replace(/☆\{USER 사주원국의 ([甲乙丙丁戊己庚辛壬癸])\}/g, (match, hanja) => {
+    const locs: string[] = [];
+    if (pillars?.year?.gan === hanja) locs.push("년간");
+    if (pillars?.month?.gan === hanja) locs.push("월간");
+    if (pillars?.day?.gan === hanja) locs.push("일간");
+    if (pillars?.hour?.gan === hanja) locs.push("시간");
+
+    if (locs.length === 0) return match;
+
+    const koName = GAN_KO_FULL[hanja] ?? hanja;
+    const hjName = GAN_HANJA_FULL[hanja] ?? hanja;
+    return locs.map((loc) => `${loc}(${LOC_HANJA[loc]}) ${koName}(${hjName})`).join(", ");
+  });
+}
 
 // ── 대운표 전용 컴포넌트 ─────────────────────────────────────────
 
@@ -207,44 +237,8 @@ function SectionHeader({ title }: { title: string }) {
   );
 }
 
-function SubHeader({ title }: { title: string }) {
-  return (
-    <div className="flex items-center gap-2 mb-3">
-      <div className="w-1 h-3.5 rounded-full bg-amber-200" />
-      <p className="text-[11px] font-semibold text-text-light tracking-wide">
-        {title}
-      </p>
-    </div>
-  );
-}
-
 function EmptyNote({ text = "없음" }: { text?: string }) {
   return <p className="text-sm text-text-subtle italic mb-6">{text}</p>;
-}
-
-function InterpBox({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="mt-3 mb-5 rounded-xl border border-amber-100 bg-amber-50/60 px-4 py-3 text-[13px] leading-[1.85] text-amber-900 space-y-1.5">
-      <div className="flex items-center gap-1.5 mb-1">
-        <BookOpen className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-        <span className="text-[11px] font-semibold text-amber-600 tracking-wide">
-          해설
-        </span>
-      </div>
-      {children}
-    </div>
-  );
-}
-
-function InterpLine({ label, text }: { label?: string; text: string }) {
-  return (
-    <p className="text-[13px] text-amber-900 leading-[1.85]">
-      {label && (
-        <span className="font-semibold text-amber-700 mr-1.5">{label}</span>
-      )}
-      {text}
-    </p>
-  );
 }
 
 function RelRow({
@@ -297,9 +291,6 @@ function CurrentDaewoonCard({
   const ji = daeun.ganji[1];
   const ganOhaeng = GAN_TO_OHAENG[gan] ?? "土";
   const jiOhaeng = JI_TO_OHAENG[ji] ?? "土";
-  const yearInCycle = currentYear - daeun.year + 1;
-  const endYear = daeun.year + 9;
-  const endAge = daeun.age + 9;
 
   const pillarList = [
     { label: "시주", data: pillars.hour },
@@ -310,12 +301,16 @@ function CurrentDaewoonCard({
 
   return (
     <div className="rounded-2xl border border-accent-gold/30 bg-gradient-to-br from-amber-50/60 to-white p-5 mb-8">
-      <div className="text-[10px] font-semibold text-accent-gold tracking-widest uppercase mb-3">
-        현재 대운
-      </div>
-
-      {/* 사주팔자 4기둥 */}
-      <div className="flex gap-1 mb-4">
+      {/* 사주팔자 4기둥 + 대운 한 행 */}
+      <div className="flex gap-1 mb-3">
+        {/* 대운 기둥 */}
+        <div className="flex-1 flex flex-col items-center gap-1 rounded-xl border border-gray-200 bg-white/70 py-2.5">
+          <span className="text-[9px] text-accent-gold font-semibold">대운</span>
+          <GanjiChar char={gan} ohaeng={ganOhaeng} />
+          <GanjiChar char={ji} ohaeng={jiOhaeng} />
+        </div>
+        {/* 구분선 */}
+        <div className="w-px bg-amber-200 mx-0.5 self-stretch" />
         {pillarList.map(({ label, data }) => (
           <div
             key={label}
@@ -328,52 +323,6 @@ function CurrentDaewoonCard({
         ))}
       </div>
 
-      <div className="border-t border-amber-100 pt-4 flex items-center gap-4">
-        <div className="flex flex-col gap-1.5 items-center">
-          <GanjiChar char={gan} ohaeng={ganOhaeng} />
-          <GanjiChar char={ji} ohaeng={jiOhaeng} />
-        </div>
-        <div className="flex flex-col gap-1 min-w-0">
-          <span className="text-base font-bold text-text-light font-myeongjo">
-            {daeun.ganji} 대운
-          </span>
-          <span className="text-[12px] text-text-muted">
-            만 {daeun.age}세 — {endAge}세 &nbsp;·&nbsp; {daeun.year} — {endYear}
-            년
-          </span>
-          <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-            {daeun.sipsin.gan && (
-              <span className="text-[11px] bg-white border border-gray-200 rounded px-1.5 py-0.5 text-text-muted">
-                천간 {daeun.sipsin.gan}
-              </span>
-            )}
-            {daeun.sipsin.ji && (
-              <span className="text-[11px] bg-white border border-gray-200 rounded px-1.5 py-0.5 text-text-muted">
-                지지 {daeun.sipsin.ji}
-              </span>
-            )}
-            {daeun.sibiwunseong && (
-              <span className="text-[11px] bg-white border border-gray-200 rounded px-1.5 py-0.5 text-text-muted">
-                {daeun.sibiwunseong}
-              </span>
-            )}
-          </div>
-        </div>
-        <div className="ml-auto flex flex-col items-end gap-1 shrink-0">
-          <span className="text-xs font-semibold text-accent-gold">
-            {yearInCycle}년차
-          </span>
-          <div className="w-20 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-accent-gold rounded-full"
-              style={{ width: `${(yearInCycle / 10) * 100}%` }}
-            />
-          </div>
-          <span className="text-[10px] text-text-subtle">
-            {10 - yearInCycle + 1}년 남음
-          </span>
-        </div>
-      </div>
     </div>
   );
 }
@@ -616,29 +565,29 @@ export const DaewoonV2 = () => {
 
   // ── 격국 유지/변화 조건 계산 ──────────────────────────────────
   const daewoonGan = activeDaeun?.ganji?.[0] ?? "";
-  const daewoonJi  = activeDaeun?.ganji?.[1] ?? "";
-  const monthJi    = pillars?.month?.ji ?? "";
+  const daewoonJi = activeDaeun?.ganji?.[1] ?? "";
+  const monthJi = pillars?.month?.ji ?? "";
 
   // 조건①: 월지 지장간 중 대운 천간 투간 여부
   const isTugan = daewoonGan !== "" && (JIJANGGAN_HJ[monthJi] ?? []).includes(daewoonGan);
 
   // 조건②: 방합·삼합 결과 오행 == 대운 천간 오행
   const daewoonGanOhaeng = GAN_TO_OHAENG[daewoonGan] ?? "";
-  const hasSamhap  = (daewoonRels?.samhap?.length ?? 0) > 0;
+  const hasSamhap = (daewoonRels?.samhap?.length ?? 0) > 0;
   const hasBanghap = (daewoonRels?.banghap?.length ?? 0) > 0;
-  const hapOhaeng  =
-    (hasSamhap  && SAMHAP_RESULT_OHAENG[daewoonJi])  ? SAMHAP_RESULT_OHAENG[daewoonJi]  :
-    (hasBanghap && BANGHAP_RESULT_OHAENG[daewoonJi]) ? BANGHAP_RESULT_OHAENG[daewoonJi] :
-    "";
+  const hapOhaeng =
+    (hasSamhap && SAMHAP_RESULT_OHAENG[daewoonJi]) ? SAMHAP_RESULT_OHAENG[daewoonJi] :
+      (hasBanghap && BANGHAP_RESULT_OHAENG[daewoonJi]) ? BANGHAP_RESULT_OHAENG[daewoonJi] :
+        "";
   const isSameOhaeng = hapOhaeng !== "" && hapOhaeng === daewoonGanOhaeng;
 
   // 조건③: 방합·삼합 결과 오행 == 사주 내 천간(일간 제외) 오행
   const matchingSajuGanForHap = hapOhaeng !== ""
     ? [
-        { gan: pillars.year.gan, sipsin: pillars.year.ganSipsin },
-        { gan: pillars.month.gan, sipsin: pillars.month.ganSipsin },
-        { gan: pillars.hour.gan, sipsin: pillars.hour.ganSipsin },
-      ].find(g => g.gan && GAN_TO_OHAENG[g.gan] === hapOhaeng)
+      { gan: pillars.year.gan, sipsin: pillars.year.ganSipsin },
+      { gan: pillars.month.gan, sipsin: pillars.month.ganSipsin },
+      { gan: pillars.hour.gan, sipsin: pillars.hour.ganSipsin },
+    ].find(g => g.gan && GAN_TO_OHAENG[g.gan] === hapOhaeng)
     : undefined;
   const isSajuGanMatch = !!matchingSajuGanForHap;
 
@@ -702,15 +651,15 @@ export const DaewoonV2 = () => {
   // ── 대운 가상 기둥 데이터 (파서에 daewoon 키로 주입) ─────────────
   const daewoonPillarData = activeDaeun
     ? {
-        gan: activeDaeun.ganji[0],
-        ji: activeDaeun.ganji[1],
-        ganOhaeng: GAN_TO_OHAENG[activeDaeun.ganji[0]] ?? "土",
-        jiOhaeng: JI_TO_OHAENG[activeDaeun.ganji[1]] ?? "土",
-        ganSipsin: activeDaeun.sipsin.gan,
-        jiSipsin: activeDaeun.sipsin.ji,
-        sibiwunseong: activeDaeun.sibiwunseong ?? "",
-        sinsal: [],
-      }
+      gan: activeDaeun.ganji[0],
+      ji: activeDaeun.ganji[1],
+      ganOhaeng: GAN_TO_OHAENG[activeDaeun.ganji[0]] ?? "土",
+      jiOhaeng: JI_TO_OHAENG[activeDaeun.ganji[1]] ?? "土",
+      ganSipsin: activeDaeun.sipsin.gan,
+      jiSipsin: activeDaeun.sipsin.ji,
+      sibiwunseong: activeDaeun.sibiwunseong ?? "",
+      sinsal: [],
+    }
     : undefined;
   const extPillars = {
     ...pillars,
@@ -718,16 +667,23 @@ export const DaewoonV2 = () => {
   };
 
   // ── 대운-원국 관계 파싱 ──────────────────────────────────────────
+  const PILLAR_ORDER: Record<string, number> = { year: 0, month: 1, day: 2, hour: 3, daewoon: 4 };
   const ganRels = (list: string[]) =>
     list.flatMap((s) => {
       const r = parseGanRel(s, extPillars);
       return r ? [r] : [];
     });
-  const jiRels = (list: string[]) =>
-    list.flatMap((s) => {
+  const jiRels = (list: string[]) => {
+    const rels = list.flatMap((s) => {
       const r = parseJiRel(s, extPillars);
       return r ? [r] : [];
     });
+    return rels.sort((a, b) => {
+      const aKey = Math.min(PILLAR_ORDER[a.pillar1] ?? 99, PILLAR_ORDER[a.pillar2] ?? 99);
+      const bKey = Math.min(PILLAR_ORDER[b.pillar1] ?? 99, PILLAR_ORDER[b.pillar2] ?? 99);
+      return aKey - bKey;
+    });
+  };
 
   const cheonganhapRels = ganRels(daewoonRels?.cheonganhap ?? []);
   const cheonganchungRels = ganRels(daewoonRels?.cheonganchung ?? []);
@@ -740,18 +696,17 @@ export const DaewoonV2 = () => {
   const yukpaRels = jiRels(daewoonRels?.yukpa ?? []);
   const yukaeRels = jiRels(daewoonRels?.yukae ?? []);
   const yukhapRels = jiRels(daewoonRels?.yukhap ?? []);
-  const amhapRels = jiRels(daewoonRels?.amhap ?? []);
 
   const hyungChungPaHaeRels: {
     rel: ParsedRel;
     type: string;
     dimRight: boolean;
   }[] = [
-    ...yukchungRels.map((r) => ({ rel: r, type: "충", dimRight: false })),
-    ...yukhyungRels.map((r) => ({ rel: r, type: "형", dimRight: false })),
-    ...yukpaRels.map((r) => ({ rel: r, type: "파", dimRight: false })),
-    ...yukaeRels.map((r) => ({ rel: r, type: "해", dimRight: false })),
-  ];
+      ...yukchungRels.map((r) => ({ rel: r, type: "충", dimRight: false })),
+      ...yukhyungRels.map((r) => ({ rel: r, type: "형", dimRight: false })),
+      ...yukpaRels.map((r) => ({ rel: r, type: "파", dimRight: false })),
+      ...yukaeRels.map((r) => ({ rel: r, type: "해", dimRight: false })),
+    ];
 
   return (
     <SectionFrame
@@ -802,14 +757,6 @@ export const DaewoonV2 = () => {
           水: "border-blue-300",
           土: "border-amber-300",
         };
-        const GROUP_LABEL_COLOR: Record<string, string> = {
-          木: "text-emerald-500",
-          火: "text-rose-400",
-          金: "text-slate-400",
-          水: "text-blue-400",
-          土: "text-amber-500",
-        };
-
         // 연속 방합 그룹으로 묶기
         const cols = [...daewoonFull].reverse();
         const groups: { items: typeof cols; groupOhaeng: string }[] = [];
@@ -877,7 +824,7 @@ export const DaewoonV2 = () => {
                           className={cn(
                             "flex flex-col items-center py-3 px-3 gap-1.5 min-w-[3rem] bg-white",
                             di < group.items.length - 1 &&
-                              "border-r border-gray-100",
+                            "border-r border-gray-100",
                           )}
                         >
                           <span className="text-[9px] font-medium text-text-subtle">
@@ -955,9 +902,8 @@ export const DaewoonV2 = () => {
       })()}
 
       <p className="mt-5 mb-8 text-[13px] leading-[1.9] text-text-muted">
-        {userName}의 대운시기는 {firstDaeun.year}년(만 {firstDaeun.age}세)을
-        시작으로 10년마다 바뀌며, 바뀌는 시기마다 성격과 가치관, 주변환경에 큰
-        영향을 주게 됩니다.
+        대운(大運)이란, 내가 태어난 계절인 월지(月支)에서 출발하여, 삶 속에서 순차적으로 만나게 되는 내 삶의 계절들입니다. {userName}의 대운(大運)은 {firstDaeun.year}년(만 {firstDaeun.age}세)을
+        시작으로 10년마다 변화하며, 변화하는 시기마다 성격과 가치관 그리고 주변환경에 큰 영향을 주지만 그것은 '나'를 만드는 과정입니다.
         {strengthType && favorableDirection && (
           <>
             {" "}
@@ -1005,12 +951,12 @@ export const DaewoonV2 = () => {
             <div className="space-y-6">
               {interp.daewoonGanjiInterp && (
                 <p className="text-[13px] leading-[1.9] text-text-muted whitespace-pre-wrap">
-                  {interp.daewoonGanjiInterp}
+                  {formatInterpText(interp.daewoonGanjiInterp, pillars)}
                 </p>
               )}
               {interp.daewoonGanjiIlganInterp && (
                 <p className="text-[13px] leading-[1.9] text-text-muted whitespace-pre-wrap">
-                  {interp.daewoonGanjiIlganInterp}
+                  {formatInterpText(interp.daewoonGanjiIlganInterp, pillars)}
                 </p>
               )}
             </div>
@@ -1075,9 +1021,9 @@ export const DaewoonV2 = () => {
 
             // 년/월/시간 중 格의 십신이고 월지 지장간에 포함된 천간 찾기
             const matched = [
-              { gan: pillars.year.gan,  sipsin: pillars.year.ganSipsin,  label: "년간" },
+              { gan: pillars.year.gan, sipsin: pillars.year.ganSipsin, label: "년간" },
               { gan: pillars.month.gan, sipsin: pillars.month.ganSipsin, label: "월간" },
-              { gan: pillars.hour.gan,  sipsin: pillars.hour.ganSipsin,  label: "시간" },
+              { gan: pillars.hour.gan, sipsin: pillars.hour.ganSipsin, label: "시간" },
             ].find(c => c.sipsin === baseSipsin && jj.includes(c.gan));
 
             // fallback: saRyeongGan
@@ -1085,20 +1031,20 @@ export const DaewoonV2 = () => {
               ? (GAN_HANGUL_TO_HANJA[gyeokguk.saRyeongGan] ?? gyeokguk.saRyeongGan)
               : null;
 
-            const displayGan    = matched?.gan ?? saRyeongHanja;
+            const displayGan = matched?.gan ?? saRyeongHanja;
             if (!displayGan) return null;
 
             const displayOhaeng = GAN_TO_OHAENG[displayGan] ?? "土";
-            const displayLabel  = matched?.label ?? "지장간";
-            const displayIdx    = jj.indexOf(displayGan);
-            const displayRole   = displayIdx !== -1 ? getRoleLabel(displayIdx) : "지장간";
+            const displayLabel = matched?.label ?? "지장간";
+            const displayIdx = jj.indexOf(displayGan);
+            const displayRole = displayIdx !== -1 ? getRoleLabel(displayIdx) : "지장간";
 
             // 格 유지: 각 요소의 sipsin 계산
             const monthJiSipsin = pillars.month.jiSipsin ?? "";
             const displayGanSipsin =
               matched?.label === "년간" ? (pillars.year.ganSipsin ?? "") :
-              matched?.label === "월간" ? (pillars.month.ganSipsin ?? "") :
-              matched?.label === "시간" ? (pillars.hour.ganSipsin ?? "") : "";
+                matched?.label === "월간" ? (pillars.month.ganSipsin ?? "") :
+                  matched?.label === "시간" ? (pillars.hour.ganSipsin ?? "") : "";
 
             return (
               <div className="flex items-center gap-4 flex-wrap mb-6">
@@ -1144,7 +1090,7 @@ export const DaewoonV2 = () => {
             }
             const jiList = Array.from(jiMap.entries()).map(([char, v]) => ({ char, ...v }));
             const hapLabel = hasSamhap ? "삼합" : "방합";
-            const targetGan    = isSameOhaeng ? daewoonGan : (matchingSajuGanForHap?.gan ?? "");
+            const targetGan = isSameOhaeng ? daewoonGan : (matchingSajuGanForHap?.gan ?? "");
             const targetOhaeng = isSameOhaeng ? daewoonGanOhaeng : (GAN_TO_OHAENG[targetGan] ?? "土");
             const targetSipsin = isSameOhaeng
               ? (activeDaeun?.sipsin?.gan ?? "대운")
@@ -1199,7 +1145,7 @@ export const DaewoonV2 = () => {
               </span>을(를) 사용하는 것이 유리하게 작용된다고 볼 수
               있습니다.
               {interp?.daewoonGyeokgukInterp?.[changedGyeokSipsin] ? (
-                <>{" "}{interp.daewoonGyeokgukInterp[changedGyeokSipsin]}</>
+                <>{" "}{formatInterpText(interp.daewoonGyeokgukInterp[changedGyeokSipsin], pillars)}</>
               ) : null}
             </>
           ) : (
@@ -1213,7 +1159,7 @@ export const DaewoonV2 = () => {
               사주(四柱)가 사용하고자 하는 기운이 변함이 없다는 것과
               같습니다.
               {interp?.daewoonGyeokgukInterp?.[gyeokguk?.gyeokguk?.baseSipsin ?? ""] ? (
-                <>{" "}{interp.daewoonGyeokgukInterp[gyeokguk!.gyeokguk!.baseSipsin]}</>
+                <>{" "}{formatInterpText(interp.daewoonGyeokgukInterp[gyeokguk!.gyeokguk!.baseSipsin], pillars)}</>
               ) : null}
             </>
           )}
@@ -1222,10 +1168,10 @@ export const DaewoonV2 = () => {
 
       </div>
 
-<p className="text-[13px] leading-[1.9] text-text-muted mb-4 whitespace-pre-wrap">
-              격(格)을 통해 이 시기 대운 속에서 드러나는 ‘나의 기준과 방향성’을 알아보았고,
-이제부터는 이러한 기준 위에서, 실제 삶의 흐름 속에 어떤 변화와 움직임이 나타나는지 천간의 작용을 통해 구체적으로 살펴보겠습니다.
-            </p>
+      <p className="text-[13px] leading-[1.9] text-text-muted mb-4 whitespace-pre-wrap">
+        격(格)을 통해 이 시기 대운 속에서 드러나는 ‘나의 기준과 방향성’을 알아보았고,
+        이제부터는 이러한 기준 위에서, 실제 삶의 흐름 속에 어떤 변화와 움직임이 나타나는지 천간의 작용을 통해 구체적으로 살펴보겠습니다.
+      </p>
 
 
       {/* ════════════════════════════════════════
@@ -1234,6 +1180,10 @@ export const DaewoonV2 = () => {
       {hasCheonganAction ? (
         <div className="border-t border-gray-100 pt-6 mb-6">
           <SectionHeader title="천간(天干) · 대운 작용" />
+
+          <p className="text-[13px] leading-[1.9] text-text-muted mb-4 whitespace-pre-wrap">
+            대운 천간(天干)으로 우리는 삶에 있어서 어떠한 모습이 반영될 것인지 미리 알 수가 있습니다. 천간(天干)의 특성상 드러나는 순수한 기운이기에, 대운이 변화된 시점부터 10년의 시기동안에 '나'라는 존재가 무엇을 위해서 살아가는 지를 알 수 있습니다.
+          </p>
 
           <>
             <div className="flex flex-wrap gap-4 mb-3">
@@ -1248,52 +1198,63 @@ export const DaewoonV2 = () => {
               ))}
             </div>
 
-            <p className="text-[13px] leading-[1.9] text-text-muted mb-4 whitespace-pre-wrap">
-              대운에서 들어오는 천간의 기운은 원국의 천간과 반응하여 생각이나 가치관, 사회적인 역할(직업, 관계) 등에 뚜렷한 전환점을 만들어냅니다. 기존의 흐름이 묶이거나(합반) 새롭게 돌파구를 찾는(충) 과정에서 체감할 수 있는 굵직한 변화가 나타나기 쉬운 시기입니다.
-            </p>
-
             {(() => {
               const entries: {
                 label: string;
                 hapType?: "합" | "합반" | "합거";
                 text: string;
+                ilganText?: string;
+                rel?: ParsedRel;
               }[] = [];
-              cheonganhapRels.forEach((_, i) => {
+              cheonganhapRels.forEach((rel, i) => {
                 const h = daewoonInterp?.cheonganhap[i];
                 if (h)
                   entries.push({
                     label: h.name,
                     hapType: h.hapType,
                     text: h.essence,
+                    ilganText: h.ilganEssence,
+                    rel,
                   });
               });
-              cheonganchungRels.forEach((_, i) => {
+              cheonganchungRels.forEach((rel, i) => {
                 const c = daewoonInterp?.cheonganchung[i];
                 if (c)
                   entries.push({
                     label: c.name,
                     text: c.essence,
+                    ilganText: c.ilganEssence,
+                    rel,
                   });
               });
               if (entries.length === 0) return null;
               return (
-                <div className="space-y-3 mb-2">
-                  {entries.map((e, i) => (
-                    <p key={i} className="text-[13px] leading-[1.9] text-text-muted">
-                      {e.label && (
-                        <span className="font-semibold text-text-light">
-                          {e.label}
-                          {e.hapType && (
-                            <span className="ml-1.5 text-[11px] font-normal text-text-subtle">
-                              ({e.hapType})
+                <div className="space-y-4 mb-2">
+                  {entries.map((e, i) => {
+                    return (
+                      <div key={i} className="space-y-2">
+                        <p className="text-[13px] leading-[1.9] text-text-muted">
+                          {e.label && (
+                            <span className="font-semibold text-text-light">
+                              {e.label}
+                              {e.hapType && (
+                                <span className="ml-1.5 text-[11px] font-normal text-text-subtle">
+                                  ({e.hapType})
+                                </span>
+                              )}
+                              {" — "}
                             </span>
                           )}
-                          {" — "}
-                        </span>
-                      )}
-                      {e.text}
-                    </p>
-                  ))}
+                          {formatInterpText(e.text, pillars)}
+                        </p>
+                        {e.ilganText && (
+                          <p className="text-[13px] leading-[1.9] text-text-muted">
+                            {formatInterpText(e.ilganText, pillars)}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               );
             })()}
@@ -1315,10 +1276,9 @@ export const DaewoonV2 = () => {
         <SectionHeader title="지지(地支) · 대운 작용" />
 
         {samhapRels.length === 0 &&
-        banghapRels.length === 0 &&
-        hyungChungPaHaeRels.length === 0 &&
-        yukhapRels.length === 0 &&
-        amhapRels.length === 0 ? (
+          banghapRels.length === 0 &&
+          hyungChungPaHaeRels.length === 0 &&
+          yukhapRels.length === 0 ? (
           <EmptyNote />
         ) : (
           <>
@@ -1340,14 +1300,12 @@ export const DaewoonV2 = () => {
                   dimRight={item.dimRight}
                 />
               ))}
-              {amhapRels.map((rel, i) => (
-                <RelRow key={`a${i}`} rel={rel} relType="암합" />
-              ))}
             </div>
             {(() => {
               const entries: {
                 label?: string;
                 essence: string;
+                ilganEssence?: string;
                 description: string;
                 effect?: string;
               }[] = [];
@@ -1357,6 +1315,7 @@ export const DaewoonV2 = () => {
                   entries.push({
                     label: s.name,
                     essence: s.essence,
+                    ilganEssence: s.ilganEssence,
                     description: s.description,
                     effect: s.effect,
                   });
@@ -1367,6 +1326,7 @@ export const DaewoonV2 = () => {
                   entries.push({
                     label: b.name,
                     essence: b.essence,
+                    ilganEssence: b.ilganEssence,
                     description: b.description,
                     effect: b.effect,
                   });
@@ -1377,6 +1337,7 @@ export const DaewoonV2 = () => {
                   entries.push({
                     label: y.name,
                     essence: y.essence,
+                    ilganEssence: y.ilganEssence,
                     description: y.description,
                     effect: y.effect,
                   });
@@ -1399,37 +1360,42 @@ export const DaewoonV2 = () => {
                   entries.push({
                     label: j.name,
                     essence: j.essence,
+                    ilganEssence: j.ilganEssence,
                     description: j.description,
                     effect: j.effect,
                   });
               });
-              if (amhapRels.length > 0 && daewoonInterp?.amhap) {
-                entries.push({
-                  essence: daewoonInterp.amhap.concept,
-                  description: daewoonInterp.amhap.note,
-                });
-              }
               if (entries.length === 0) return null;
               return (
-                <InterpBox>
+                <div className="space-y-4 mb-2">
                   {entries.map((e, i) => (
-                    <div
-                      key={i}
-                      className={
-                        i > 0 ? "border-t border-gray-100 pt-2 mt-2" : ""
-                      }
-                    >
-                      {e.label && (
-                        <InterpLine label={e.label} text={e.essence} />
+                    <div key={i} className="space-y-2">
+                      <p className="text-[13px] leading-[1.9] text-text-muted">
+                        {e.label && (
+                          <span className="font-semibold text-text-light">
+                            {e.label}{" — "}
+                          </span>
+                        )}
+                        {formatInterpText(e.essence, pillars)}
+                      </p>
+                      {e.ilganEssence && (
+                        <p className="text-[13px] leading-[1.9] text-text-muted">
+                          {formatInterpText(e.ilganEssence, pillars)}
+                        </p>
                       )}
-                      {!e.label && <InterpLine text={e.essence} />}
-                      <InterpLine text={e.description} />
+                      {e.description && (
+                        <p className="text-[13px] leading-[1.9] text-text-muted">
+                          {formatInterpText(e.description, pillars)}
+                        </p>
+                      )}
                       {e.effect && (
-                        <InterpLine label="대운 작용:" text={e.effect} />
+                        <p className="text-[13px] leading-[1.9] text-text-muted">
+                          {formatInterpText(e.effect, pillars)}
+                        </p>
                       )}
                     </div>
                   ))}
-                </InterpBox>
+                </div>
               );
             })()}
           </>

@@ -158,6 +158,21 @@ export interface SajuData {
     yukae: string[];
   };
   currentDaewoonInterp?: DaewoonRelInterp;
+  currentSewoonRelationships?: {
+    cheonganhap: string[];
+    cheonganchung: string[];
+    cheonganhapTypes?: ("합" | "합반" | "합거")[];
+    yukhap: string[];
+    samhap: string[];
+    amhap: string[];
+    banghap: string[];
+    yukchung: string[];
+    yukhyung: string[];
+    yukpa: string[];
+    yukae: string[];
+  };
+  currentSewoonInterp?: DaewoonRelInterp;
+  sewoonForCurrentDaewoon?: SewoonData[];
   currentDaewoon: Daewoon | null;
   currentSewoon: SewoonData;
   daewoonFull: Daewoon[];
@@ -371,6 +386,7 @@ export interface SipsinV2CheonganhapInterp {
   hwaohaeng: string;
   hapType?: "합" | "합반" | "합거"; // 대운 전용: 합 분류
   essence: string;
+  ilganEssence?: string; // 일간별 추가 해석
   description: string;
   effect: string;
   frozen: string;
@@ -380,6 +396,7 @@ export interface SipsinV2CheonganchungInterp {
   pair: string;
   name: string;
   essence: string;
+  ilganEssence?: string; // 일간별 추가 해석
   description: string;
   effect: string;
 }
@@ -389,6 +406,7 @@ export interface SipsinV2JiRelInterp {
   name: string;
   hwaohaeng?: string;
   essence: string;
+  ilganEssence?: string;
   description: string;
   effect: string;
 }
@@ -429,6 +447,8 @@ export interface DaewoonRelInterp {
   yukpa: SipsinV2JiRelInterp[];
   yukae: SipsinV2JiRelInterp[];
   amhap: { concept: string; note: string };
+  ganjiInterp?: string | null;
+  ganjiIlganInterp?: string | null;
 }
 
 export interface SipsinV2Interpretation {

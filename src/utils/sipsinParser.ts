@@ -30,7 +30,7 @@ export const GAN_HANGUL_TO_HANJA: Record<string, string> = {
 /** 기둥 영문 → 한국어 */
 export const PILLAR_KO: Record<string, string> = {
   year: "년주", month: "월주", day: "일주", hour: "시주",
-  daewoon: "대운",
+  daewoon: "대운", sewoon: "세운",
 };
 
 // ── 타입 ─────────────────────────────────────────────────────────────────
@@ -52,6 +52,7 @@ type PillarsMap = {
   day: PillarData;
   hour: PillarData;
   daewoon?: PillarData;
+  sewoon?: PillarData;
 };
 
 // ── 파서 ─────────────────────────────────────────────────────────────────

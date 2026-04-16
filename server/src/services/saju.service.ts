@@ -16,7 +16,7 @@ import { analyzeSaryeong } from "./saryeong.service"; // ✅ 사령 분석 impor
 import { calculateJinsin } from "./jinsin.service"; // ✅ 진신 분석 import
 import { analyzeYongsin } from "./yongsin.service";
 import { buildSipsinV2Interpretation, buildDaewoonRelInterp } from "./sipsin-v2-interpretation.service"; // ✅ SipsinV2 해설
-import { getJijiRelationships, getDaewoonRelationships } from "./relationship.service"; // ✅ 지지 관계 계산
+import { getJijiRelationships, getDaewoonRelationships, getSewoonRelationships } from "./relationship.service"; // ✅ 지지 관계 계산
 import {
   getSeasonalDataForYear,
   getLoadedSeasonalData,
@@ -387,9 +387,40 @@ export const getSajuDetails = async (
         hour:  hourPillar[0]  + hourPillar[1],
       });
       sajuData.currentDaewoonRelationships = daewoonRels;
-      sajuData.currentDaewoonInterp = buildDaewoonRelInterp(daewoonRels);
+      sajuData.currentDaewoonInterp = buildDaewoonRelInterp(daewoonRels, dayPillar[0]);
     } catch (error) {
       console.error("대운 관계 계산 중 오류 발생:", error);
+    }
+  }
+
+  // ✅ 현재 세운-원국+대운 관계 계산
+  try {
+    const sajuPillars = {
+      year:  yearPillar[0]  + yearPillar[1],
+      month: monthPillar[0] + monthPillar[1],
+      day:   dayPillar[0]   + dayPillar[1],
+      hour:  hourPillar[0]  + hourPillar[1],
+    };
+    const sewoonRels = getSewoonRelationships(
+      currentSewoon.ganji,
+      sajuPillars,
+      currentDaewoon?.ganji
+    );
+    sajuData.currentSewoonRelationships = sewoonRels;
+    sajuData.currentSewoonInterp = buildDaewoonRelInterp(sewoonRels, dayPillar[0], currentSewoon.ganji);
+  } catch (error) {
+    console.error("세운 관계 계산 중 오류 발생:", error);
+  }
+
+  // ✅ 현재 대운 기간 10년 세운 목록 계산
+  if (currentDaewoon) {
+    try {
+      sajuData.sewoonForCurrentDaewoon = Array.from({ length: 10 }, (_, i) => {
+        const year = currentDaewoon.year + i;
+        return getSewoonForYear(year, dayPillar[0]);
+      });
+    } catch (error) {
+      console.error("세운 목록 계산 중 오류 발생:", error);
     }
   }
 

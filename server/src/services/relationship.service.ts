@@ -267,6 +267,82 @@ export const getDaewoonRelationships = (
 };
 
 /**
+ * 현재 세운의 천간/지지와 사주팔자 4기둥+대운 간의 관계를 계산한다.
+ * @param sewoonGanji 세운 간지 (예: "甲子")
+ * @param pillars 사주팔자 4기둥
+ * @param daewoonGanji 현재 대운 간지 (선택)
+ */
+export const getSewoonRelationships = (
+  sewoonGanji: string,
+  pillars: { year: string; month: string; day: string; hour: string },
+  daewoonGanji?: string
+): RelationshipResult => {
+  const result: RelationshipResult = {
+    cheonganhap: [], cheonganchung: [],
+    cheonganhapTypes: [],
+    yukhap: [], samhap: [], amhap: [], banghap: [],
+    yukchung: [], yukhyung: [], yukpa: [], yukae: [],
+  };
+
+  const sGan = sewoonGanji[0];
+  const sJi = sewoonGanji[1];
+
+  const pillarKeys = ["year", "month", "day", "hour"] as const;
+  const allTargets: { key: string; gan: string; ji: string }[] = pillarKeys.map((k) => ({
+    key: k, gan: pillars[k][0], ji: pillars[k][1],
+  }));
+  if (daewoonGanji) {
+    allTargets.push({ key: "daewoon", gan: daewoonGanji[0], ji: daewoonGanji[1] });
+  }
+
+  // ── 천간합 먼저 계산 (2-1 규칙) ──
+  for (const t of allTargets) {
+    if (JIJI_RELATIONSHIPS.cheonganhap[sGan] === t.gan) {
+      result.cheonganhap.push(`${sGan}${t.gan}(sewoon-${t.key})`);
+      result.cheonganhapTypes!.push(classifyCheonganhap(sGan, sJi, t.gan, pillars));
+    }
+  }
+
+  // ── 지지 관계 + 천간충 ──
+  for (const t of allTargets) {
+    if (result.cheonganhap.length === 0) {
+      if (JIJI_RELATIONSHIPS.cheonganchung[sGan] === t.gan) {
+        result.cheonganchung.push(`${sGan}${t.gan}(sewoon-${t.key})`);
+      } else if (JIJI_RELATIONSHIPS.cheonganchung[t.gan] === sGan) {
+        result.cheonganchung.push(`${sGan}${t.gan}(sewoon-${t.key})`);
+      }
+    }
+
+    if (JIJI_RELATIONSHIPS.yukhap[sJi] === t.ji) {
+      result.yukhap.push(`${sJi}${t.ji}(sewoon-${t.key})`);
+    }
+    if (JIJI_RELATIONSHIPS.samhap[sJi]?.includes(t.ji)) {
+      result.samhap.push(`${sJi}${t.ji}(sewoon-${t.key})`);
+    }
+    if (JIJI_RELATIONSHIPS.amhap[sJi]?.includes(t.ji)) {
+      result.amhap.push(`${sJi}${t.ji}(sewoon-${t.key})`);
+    }
+    if (JIJI_RELATIONSHIPS.banghap[sJi]?.includes(t.ji)) {
+      result.banghap.push(`${sJi}${t.ji}(sewoon-${t.key})`);
+    }
+    if (JIJI_RELATIONSHIPS.yukchung[sJi] === t.ji) {
+      result.yukchung.push(`${sJi}${t.ji}(sewoon-${t.key})`);
+    }
+    if (JIJI_RELATIONSHIPS.yukhyung[sJi]?.includes(t.ji)) {
+      result.yukhyung.push(`${sJi}${t.ji}(sewoon-${t.key})`);
+    }
+    if (JIJI_RELATIONSHIPS.yukpa[sJi] === t.ji) {
+      result.yukpa.push(`${sJi}${t.ji}(sewoon-${t.key})`);
+    }
+    if (JIJI_RELATIONSHIPS.yukae[sJi] === t.ji) {
+      result.yukae.push(`${sJi}${t.ji}(sewoon-${t.key})`);
+    }
+  }
+
+  return result;
+};
+
+/**
  * 상세한 관계 정보를 반환한다.
  * @param pillars 사주팔자 객체
  * @returns 상세 관계 정보 배열

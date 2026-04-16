@@ -36,7 +36,8 @@ export interface CheonganhapInterpretation {
   name: string; // "갑기합화토"
   hwaohaeng: string; // 합화 오행 "土"
   hapType?: "합" | "합반" | "합거"; // 대운 전용: 합 분류
-  essence: string; // 한 줄 핵심
+  essence: string; // 기본 해석 (모든 일간 공통)
+  ilganEssence?: string; // 일간별 추가 해석 (있을 때만 다음 문단으로 표시)
   description: string; // 합의 의미와 특성
   effect: string; // 사주 내 작용 효과
   frozen: string; // 동결(합거) 시 의미
@@ -45,7 +46,8 @@ export interface CheonganhapInterpretation {
 export interface CheonganchungInterpretation {
   pair: string; // "甲庚"
   name: string; // "갑경충"
-  essence: string;
+  essence: string; // 기본 해석 (모든 일간 공통)
+  ilganEssence?: string; // 일간별 추가 해석 (있을 때만 다음 문단으로 표시)
   description: string;
   effect: string; // 충(沖)의 작용
 }
@@ -55,6 +57,7 @@ export interface JiRelInterpretation {
   name: string; // "자오충", "인오술 삼합화화국"
   hwaohaeng?: string; // 합화 오행 (합 관계일 때)
   essence: string;
+  ilganEssence?: string; // 일간별 추가 해석 (daewoon-jiji.data.ts에서 조회)
   description: string;
   effect: string;
 }
