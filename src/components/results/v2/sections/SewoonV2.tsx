@@ -277,64 +277,62 @@ function SewoonTable({
 
 function CurrentSewoonCard({
   sewoon,
-  currentYear,
+  daewoon,
   pillars,
 }: {
   sewoon: { year: number; ganji: string; sipsin: { gan: string | null; ji: string | null }; sibiwunseong: string | null };
-  currentYear: number;
+  daewoon?: { ganji: string; sipsin: { gan: string | null; ji: string | null } } | null;
   pillars: any;
 }) {
-  const ganOhaeng = GAN_TO_OHAENG[sewoon.ganji[0]] ?? "土";
-  const jiOhaeng  = JI_TO_OHAENG[sewoon.ganji[1]]  ?? "土";
-  const sGan = ohaengStyle[ganOhaeng] ?? { bg: "bg-gray-50", border: "border-gray-200", text: "text-gray-700" };
-  const sJi  = ohaengStyle[jiOhaeng]  ?? { bg: "bg-gray-50", border: "border-gray-200", text: "text-gray-700" };
+  const pillarList = [
+    { label: "시주", gan: pillars.hour.gan, ji: pillars.hour.ji, ganOhaeng: pillars.hour.ganOhaeng, jiOhaeng: pillars.hour.jiOhaeng },
+    { label: "일주", gan: pillars.day.gan,  ji: pillars.day.ji,  ganOhaeng: pillars.day.ganOhaeng,  jiOhaeng: pillars.day.jiOhaeng  },
+    { label: "월주", gan: pillars.month.gan, ji: pillars.month.ji, ganOhaeng: pillars.month.ganOhaeng, jiOhaeng: pillars.month.jiOhaeng },
+    { label: "년주", gan: pillars.year.gan,  ji: pillars.year.ji,  ganOhaeng: pillars.year.ganOhaeng,  jiOhaeng: pillars.year.jiOhaeng  },
+  ];
+
+  const swGanOhaeng = GAN_TO_OHAENG[sewoon.ganji[0]] ?? "土";
+  const swJiOhaeng  = JI_TO_OHAENG[sewoon.ganji[1]]  ?? "土";
+  const dwGanOhaeng = daewoon ? (GAN_TO_OHAENG[daewoon.ganji[0]] ?? "土") : null;
+  const dwJiOhaeng  = daewoon ? (JI_TO_OHAENG[daewoon.ganji[1]]  ?? "土") : null;
 
   return (
-    <div className="rounded-xl border border-amber-100 bg-amber-50/30 p-5 mb-6">
-      <div className="flex items-start gap-4">
-        {/* 간지 */}
-        <div className="flex flex-col items-center gap-1.5 shrink-0">
-          <span className={cn("text-3xl font-myeongjo font-bold", sGan.text)}>
-            {sewoon.ganji[0]}
-          </span>
-          <span className={cn("text-3xl font-myeongjo font-bold", sJi.text)}>
-            {sewoon.ganji[1]}
-          </span>
+    <div className="rounded-2xl border border-accent-gold/30 bg-gradient-to-br from-amber-50/60 to-white p-5 mb-6">
+      <div className="flex gap-1">
+        {/* 세운 기둥 */}
+        <div className="flex-1 flex flex-col items-center gap-1 rounded-xl border border-gray-200 bg-white/70 py-2.5">
+          <span className="text-[9px] text-amber-600 font-semibold">세운</span>
+          <GanjiChar char={sewoon.ganji[0]} ohaeng={swGanOhaeng} />
+          <GanjiChar char={sewoon.ganji[1]} ohaeng={swJiOhaeng} />
         </div>
 
         {/* 구분선 */}
-        <div className="w-px self-stretch bg-amber-100 shrink-0" />
+        <div className="w-px bg-amber-200 mx-0.5 self-stretch" />
 
-        {/* 상세 */}
-        <div className="flex-1 space-y-2">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm font-semibold text-text-light">{sewoon.year}년 세운</span>
-            <span className="text-xs text-text-subtle">({sewoon.ganji})</span>
+        {/* 대운 기둥 */}
+        {daewoon && dwGanOhaeng && dwJiOhaeng && (
+          <>
+            <div className="flex-1 flex flex-col items-center gap-1 rounded-xl border border-gray-200 bg-white/70 py-2.5">
+              <span className="text-[9px] text-accent-gold font-semibold">대운</span>
+              <GanjiChar char={daewoon.ganji[0]} ohaeng={dwGanOhaeng} />
+              <GanjiChar char={daewoon.ganji[1]} ohaeng={dwJiOhaeng} />
+            </div>
+            {/* 구분선 */}
+            <div className="w-px bg-amber-200 mx-0.5 self-stretch" />
+          </>
+        )}
+
+        {/* 사주팔자 4기둥 */}
+        {pillarList.map(({ label, gan, ji, ganOhaeng, jiOhaeng }) => (
+          <div
+            key={label}
+            className="flex-1 flex flex-col items-center gap-1 rounded-xl bg-white/70 py-2.5"
+          >
+            <span className="text-[9px] text-text-subtle">{label}</span>
+            <GanjiChar char={gan} ohaeng={ganOhaeng} />
+            <GanjiChar char={ji} ohaeng={jiOhaeng} />
           </div>
-          <div className="flex gap-3 flex-wrap text-[12px] text-text-muted">
-            <span>
-              천간 십성:{" "}
-              <span className="font-medium text-text-light">{sewoon.sipsin.gan ?? "—"}</span>
-            </span>
-            <span>
-              지지 십성:{" "}
-              <span className="font-medium text-text-light">{sewoon.sipsin.ji ?? "—"}</span>
-            </span>
-            <span>
-              십이운성:{" "}
-              <span className="font-medium text-text-light">{sewoon.sibiwunseong ?? "—"}</span>
-            </span>
-          </div>
-          {/* 오행 배지 */}
-          <div className="flex gap-2 flex-wrap mt-1">
-            <span className={cn("text-[11px] rounded-md px-2 py-0.5 border font-medium", ohaengPill[ganOhaeng])}>
-              {sewoon.ganji[0]} · {ganOhaeng}
-            </span>
-            <span className={cn("text-[11px] rounded-md px-2 py-0.5 border font-medium", ohaengPill[jiOhaeng])}>
-              {sewoon.ganji[1]} · {jiOhaeng}
-            </span>
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   );
@@ -458,9 +456,9 @@ export const SewoonV2 = () => {
       </p>
 
       <p className="mb-8 text-[13px] leading-[1.9] text-text-muted">
-        세운(歲運)은 한 해 동안 흐르는 기운입니다. 대운이 10년의 큰 물길이라면,
-        세운은 그 안에서 매년 변화하는 작은 물결과도 같습니다. 같은 대운 안에 있더라도
-        세운에 따라 그 해의 삶의 질감과 방향이 달라지게 됩니다.
+        세운(歲運)은 그 해 우주가 머무는 기운의 좌표이며, 이 시간 우주 전체에 흐르는 에너지의 질(質)입니다.
+        우리의 의지와 무관하게 모든 존재에게 동일하게 주어지는 것, 그렇기에 세운(歲運)은 개인의 것이 아니라
+        시대를 나타내는 기운입니다. 
       </p>
 
       {/* ════════════════════════════════════════
@@ -469,20 +467,13 @@ export const SewoonV2 = () => {
       {(sewoonInterp?.ganjiInterp || sewoonInterp?.ganjiIlganInterp) && (
         <div className="mb-6">
           <SectionHeader title="세운의 의미" />
-          {/* 아이콘(세로) + 해석 나란히 */}
-          <div className="flex gap-3 items-start">
-            <div className="flex flex-col items-center gap-1 shrink-0">
-              <HanjaBadge
-                char={currentSewoon.ganji[0]}
-                ohaeng={GAN_TO_OHAENG[currentSewoon.ganji[0]] ?? "土"}
-                size="sm"
-              />
-              <HanjaBadge
-                char={currentSewoon.ganji[1]}
-                ohaeng={JI_TO_OHAENG[currentSewoon.ganji[1]] ?? "土"}
-                size="sm"
-              />
-            </div>
+          {/* [이미지] + [해석] 가로 배치 */}
+          <div className="flex gap-4 items-start">
+            <img
+              src="/byung5.png"
+              alt="세운의 의미"
+              className="w-24 shrink-0 rounded-lg"
+            />
             <div className="space-y-6">
               {sewoonInterp.ganjiInterp && (
                 <p className="text-[13px] leading-[1.9] text-text-muted whitespace-pre-wrap">
@@ -502,7 +493,7 @@ export const SewoonV2 = () => {
       {/* ── 현재 세운 요약 카드 ──────────────────────────────────────── */}
       <CurrentSewoonCard
         sewoon={currentSewoon}
-        currentYear={currentYear}
+        daewoon={currentDaewoon}
         pillars={pillars}
       />
 

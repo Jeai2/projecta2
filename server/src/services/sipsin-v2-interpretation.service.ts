@@ -31,6 +31,7 @@ import {
   type SangsinInterpretation,
 } from "../data/interpretation/sipsin-v2.data";
 import { DAEWOON_ILGAN_INTERP } from "../data/interpretation/daewoon-ilgan.data";
+import { SEWOON_GANJI_INTERP, SEWOON_ILGAN_INTERP } from "../data/interpretation/sewoon-ganji.data";
 import {
   DAEWOON_CHEONGANHAP_INTERP,
   DAEWOON_CHEONGANCHUNG_INTERP,
@@ -257,7 +258,7 @@ export interface DaewoonRelInterp {
 }
 
 /** 대운과 원국 4기둥 간의 관계 해설을 조합한다. */
-export function buildDaewoonRelInterp(rels: RelationshipResult, ilgan = "", ganji = ""): DaewoonRelInterp {
+export function buildDaewoonRelInterp(rels: RelationshipResult, ilgan = "", ganji = "", isSewoon = false): DaewoonRelInterp {
   // ── 천간합: 합/합반/합거 타입 + 방향(간1대운/간2대운) 선택 ──
   const cheonganhapInterps: CheonganhapInterpretation[] = [];
   for (let i = 0; i < rels.cheonganhap.length; i++) {
@@ -351,8 +352,8 @@ export function buildDaewoonRelInterp(rels: RelationshipResult, ilgan = "", ganj
     yukpa: _lookupJiRels(rels.yukpa, YUKPA_INTERPRETATIONS, "파", ilgan),
     yukae: _lookupJiRels(rels.yukae, YUKAE_INTERPRETATIONS, "해", ilgan),
     amhap: { concept: AMHAP_CONCEPT, note: amhapNote },
-    ganjiInterp: ganji ? (DAEWOON_GANJI_INTERP[ganji] ?? null) : null,
-    ganjiIlganInterp: (ganji && ilgan) ? (DAEWOON_ILGAN_INTERP[ganji]?.[ilgan] ?? null) : null,
+    ganjiInterp: ganji ? ((isSewoon ? SEWOON_GANJI_INTERP : DAEWOON_GANJI_INTERP)[ganji] ?? null) : null,
+    ganjiIlganInterp: (ganji && ilgan) ? ((isSewoon ? SEWOON_ILGAN_INTERP : DAEWOON_ILGAN_INTERP)[ganji]?.[ilgan] ?? null) : null,
   };
 }
 

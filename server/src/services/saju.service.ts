@@ -407,7 +407,7 @@ export const getSajuDetails = async (
       currentDaewoon?.ganji
     );
     sajuData.currentSewoonRelationships = sewoonRels;
-    sajuData.currentSewoonInterp = buildDaewoonRelInterp(sewoonRels, dayPillar[0], currentSewoon.ganji);
+    sajuData.currentSewoonInterp = buildDaewoonRelInterp(sewoonRels, dayPillar[0], currentSewoon.ganji, true);
   } catch (error) {
     console.error("세운 관계 계산 중 오류 발생:", error);
   }
