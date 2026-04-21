@@ -17,11 +17,11 @@ export const CHAPTER_TITLES = [
   "길신(吉神)",
   "대운 분석",
   "세운 분석",
-  "절운 분석",
+  "총론",
   "연애와 결혼",
   "직업과 진로",
   "건강",
-  "총평",
+  "절운 분석",
 ];
 
 export const ChapterNav = () => {

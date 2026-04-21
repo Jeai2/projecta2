@@ -25,6 +25,8 @@ interface SajuPillarLightProps {
   siwiMode?: boolean;
   /** 십신 분석 모드: 십이운성·신살·귀인 숨김, 글자·십성만 표시 */
   sipsinMode?: boolean;
+  /** 기본 모드: 간지 글자만 표시, 십신·십이운성·신살·귀인 모두 숨김 */
+  bareMode?: boolean;
 }
 
 export const SajuPillarLight: React.FC<SajuPillarLightProps> = ({
@@ -35,6 +37,7 @@ export const SajuPillarLight: React.FC<SajuPillarLightProps> = ({
   isEmpty = false,
   siwiMode = false,
   sipsinMode = false,
+  bareMode = false,
 }) => {
   const guiin =
     data.sinsal.find((s: SinsalHit) => s.name.includes("귀인"))?.name || "";
@@ -73,9 +76,11 @@ export const SajuPillarLight: React.FC<SajuPillarLightProps> = ({
       </span>
 
       {/* 천간 십성 */}
-      <span className={cn("text-[10px] h-4 flex items-center", siwiMode ? "text-gray-300" : "text-text-subtle")}>
-        {data.ganSipsin || ""}
-      </span>
+      {!bareMode && (
+        <span className={cn("text-[10px] h-4 flex items-center", siwiMode ? "text-gray-300" : "text-text-subtle")}>
+          {data.ganSipsin || ""}
+        </span>
+      )}
 
       {/* 천간 */}
       <div
@@ -104,12 +109,14 @@ export const SajuPillarLight: React.FC<SajuPillarLightProps> = ({
       </div>
 
       {/* 지지 십성 */}
-      <span className={cn("text-[10px] h-4 flex items-center", siwiMode ? "text-gray-300" : "text-text-subtle")}>
-        {data.jiSipsin || ""}
-      </span>
+      {!bareMode && (
+        <span className={cn("text-[10px] h-4 flex items-center", siwiMode ? "text-gray-300" : "text-text-subtle")}>
+          {data.jiSipsin || ""}
+        </span>
+      )}
 
-      {/* 십이운성 — siwiMode에서 강조, sipsinMode에서 숨김 */}
-      {!sipsinMode && (() => {
+      {/* 십이운성 — siwiMode에서 강조, sipsinMode·bareMode에서 숨김 */}
+      {!sipsinMode && !bareMode && (() => {
         const siwiName = data.sibiwunseong || "";
         const siwiRgb = siwiName ? sibiwunseongDescriptions[siwiName]?.bongbeopRgb : undefined;
         return (
@@ -125,15 +132,15 @@ export const SajuPillarLight: React.FC<SajuPillarLightProps> = ({
         );
       })()}
 
-      {/* 신살 — siwiMode·sipsinMode에서는 숨김 */}
-      {!siwiMode && !sipsinMode && (
+      {/* 신살 — siwiMode·sipsinMode·bareMode에서는 숨김 */}
+      {!siwiMode && !sipsinMode && !bareMode && (
         <span className="text-[10px] text-accent-teal h-4 flex items-center text-center leading-tight">
           {otherSinsal}
         </span>
       )}
 
-      {/* 귀인 — siwiMode·sipsinMode에서는 숨김 */}
-      {!siwiMode && !sipsinMode && (
+      {/* 귀인 — siwiMode·sipsinMode·bareMode에서는 숨김 */}
+      {!siwiMode && !sipsinMode && !bareMode && (
         <span className="text-[10px] text-accent-gold font-semibold h-4 flex items-center text-center">
           {guiin}
         </span>

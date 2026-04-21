@@ -33,6 +33,10 @@ import {
 import { DAEWOON_ILGAN_INTERP } from "../data/interpretation/daewoon-ilgan.data";
 import { SEWOON_GANJI_INTERP, SEWOON_ILGAN_INTERP } from "../data/interpretation/sewoon-ganji.data";
 import {
+  SEWOON_CHEONGANHAP_INTERP,
+  SEWOON_CHEONGANCHUNG_INTERP,
+} from "../data/interpretation/sewoon-cheongan.data";
+import {
   DAEWOON_CHEONGANHAP_INTERP,
   DAEWOON_CHEONGANCHUNG_INTERP,
   normalizeCheonganhapKey,
@@ -265,7 +269,7 @@ export function buildDaewoonRelInterp(rels: RelationshipResult, ilgan = "", ganj
     const rawKey = relKey(rels.cheonganhap[i]);
     const canonKey = normalizeCheonganhapKey(rawKey);
     const hapType = rels.cheonganhapTypes?.[i] ?? "합반";
-    const group = DAEWOON_CHEONGANHAP_INTERP[canonKey] ?? null;
+    const group = (isSewoon ? SEWOON_CHEONGANHAP_INTERP : DAEWOON_CHEONGANHAP_INTERP)[canonKey] ?? null;
     if (group) {
       const dir = rawKey === canonKey ? "간1대운" : "간2대운";
       const slot = group[hapType][dir];
@@ -289,7 +293,7 @@ export function buildDaewoonRelInterp(rels: RelationshipResult, ilgan = "", ganj
   for (const s of rels.cheonganchung) {
     const rawKey = relKey(s);
     const canonKey = normalizeCheonganchungKey(rawKey);
-    const entry = DAEWOON_CHEONGANCHUNG_INTERP[canonKey] ?? null;
+    const entry = (isSewoon ? SEWOON_CHEONGANCHUNG_INTERP : DAEWOON_CHEONGANCHUNG_INTERP)[canonKey] ?? null;
     if (entry) {
       const dir = rawKey === canonKey ? "간1대운" : "간2대운";
       const slot = entry[dir];

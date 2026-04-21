@@ -17,10 +17,10 @@ import {
 // ── 오행 색상 ──────────────────────────────────────────────────────
 const ohaengStyle: Record<string, { bg: string; border: string; text: string }> = {
   木: { bg: "bg-emerald-50", border: "border-emerald-200", text: "text-emerald-700" },
-  火: { bg: "bg-rose-50",    border: "border-rose-200",    text: "text-rose-700"    },
-  土: { bg: "bg-amber-50",   border: "border-amber-200",   text: "text-amber-700"   },
-  金: { bg: "bg-slate-100",  border: "border-slate-300",   text: "text-slate-600"   },
-  水: { bg: "bg-blue-50",    border: "border-blue-200",    text: "text-blue-700"    },
+  火: { bg: "bg-rose-50", border: "border-rose-200", text: "text-rose-700" },
+  土: { bg: "bg-amber-50", border: "border-amber-200", text: "text-amber-700" },
+  金: { bg: "bg-slate-100", border: "border-slate-300", text: "text-slate-600" },
+  水: { bg: "bg-blue-50", border: "border-blue-200", text: "text-blue-700" },
 };
 
 const ohaengPill: Record<string, string> = {
@@ -44,14 +44,33 @@ const LOC_HANJA: Record<string, string> = {
   년간: "年干", 월간: "月干", 일간: "日干", 시간: "時干",
 };
 
+// ── 간지 한글 읽기 매핑 ─────────────────────────────────────────────
+const GAN_KO: Record<string, string> = {
+  甲: "갑", 乙: "을", 丙: "병", 丁: "정", 戊: "무",
+  己: "기", 庚: "경", 辛: "신", 壬: "임", 癸: "계",
+};
+const JI_KO: Record<string, string> = {
+  子: "자", 丑: "축", 寅: "인", 卯: "묘", 辰: "진", 巳: "사",
+  午: "오", 未: "미", 申: "신", 酉: "유", 戌: "술", 亥: "해",
+};
+
+// ── 십신 → 카테고리 매핑 ────────────────────────────────────────────
+const SIPSIN_CATEGORY: Record<string, string> = {
+  비견: "비겁", 겁재: "비겁",
+  식신: "식상", 상관: "식상",
+  편재: "재성", 정재: "재성",
+  편관: "관성", 정관: "관성",
+  편인: "인성", 정인: "인성",
+};
+
 function formatInterpText(text: string | null | undefined, pillars: any): string {
   if (!text) return "";
   return text.replace(/☆\{USER 사주원국의 ([甲乙丙丁戊己庚辛壬癸])\}/g, (match, hanja) => {
     const locs: string[] = [];
-    if (pillars?.year?.gan === hanja)  locs.push("년간");
+    if (pillars?.year?.gan === hanja) locs.push("년간");
     if (pillars?.month?.gan === hanja) locs.push("월간");
-    if (pillars?.day?.gan === hanja)   locs.push("일간");
-    if (pillars?.hour?.gan === hanja)  locs.push("시간");
+    if (pillars?.day?.gan === hanja) locs.push("일간");
+    if (pillars?.hour?.gan === hanja) locs.push("시간");
     if (locs.length === 0) return match;
     const koName = GAN_KO_FULL[hanja] ?? hanja;
     const hjName = GAN_HANJA_FULL[hanja] ?? hanja;
@@ -86,7 +105,7 @@ function HanjaBadge({ char, ohaeng, dimmed = false, size = "md" }: {
       "inline-flex items-center justify-center rounded-lg border font-myeongjo font-bold leading-none",
       sizeClass,
       dimmed ? "bg-gray-100 border-gray-200 text-gray-300"
-             : (ohaengPill[ohaeng] ?? "bg-gray-50 border-gray-200 text-gray-800"),
+        : (ohaengPill[ohaeng] ?? "bg-gray-50 border-gray-200 text-gray-800"),
     )}>
       {char}
     </span>
@@ -279,22 +298,24 @@ function CurrentSewoonCard({
   sewoon,
   daewoon,
   pillars,
+  dimmedGanPillars,
 }: {
   sewoon: { year: number; ganji: string; sipsin: { gan: string | null; ji: string | null }; sibiwunseong: string | null };
   daewoon?: { ganji: string; sipsin: { gan: string | null; ji: string | null } } | null;
   pillars: any;
+  dimmedGanPillars?: Set<string>;
 }) {
   const pillarList = [
-    { label: "시주", gan: pillars.hour.gan, ji: pillars.hour.ji, ganOhaeng: pillars.hour.ganOhaeng, jiOhaeng: pillars.hour.jiOhaeng },
-    { label: "일주", gan: pillars.day.gan,  ji: pillars.day.ji,  ganOhaeng: pillars.day.ganOhaeng,  jiOhaeng: pillars.day.jiOhaeng  },
-    { label: "월주", gan: pillars.month.gan, ji: pillars.month.ji, ganOhaeng: pillars.month.ganOhaeng, jiOhaeng: pillars.month.jiOhaeng },
-    { label: "년주", gan: pillars.year.gan,  ji: pillars.year.ji,  ganOhaeng: pillars.year.ganOhaeng,  jiOhaeng: pillars.year.jiOhaeng  },
+    { label: "시주", key: "hour", gan: pillars.hour.gan, ji: pillars.hour.ji, ganOhaeng: pillars.hour.ganOhaeng, jiOhaeng: pillars.hour.jiOhaeng },
+    { label: "일주", key: "day", gan: pillars.day.gan, ji: pillars.day.ji, ganOhaeng: pillars.day.ganOhaeng, jiOhaeng: pillars.day.jiOhaeng },
+    { label: "월주", key: "month", gan: pillars.month.gan, ji: pillars.month.ji, ganOhaeng: pillars.month.ganOhaeng, jiOhaeng: pillars.month.jiOhaeng },
+    { label: "년주", key: "year", gan: pillars.year.gan, ji: pillars.year.ji, ganOhaeng: pillars.year.ganOhaeng, jiOhaeng: pillars.year.jiOhaeng },
   ];
 
   const swGanOhaeng = GAN_TO_OHAENG[sewoon.ganji[0]] ?? "土";
-  const swJiOhaeng  = JI_TO_OHAENG[sewoon.ganji[1]]  ?? "土";
+  const swJiOhaeng = JI_TO_OHAENG[sewoon.ganji[1]] ?? "土";
   const dwGanOhaeng = daewoon ? (GAN_TO_OHAENG[daewoon.ganji[0]] ?? "土") : null;
-  const dwJiOhaeng  = daewoon ? (JI_TO_OHAENG[daewoon.ganji[1]]  ?? "土") : null;
+  const dwJiOhaeng = daewoon ? (JI_TO_OHAENG[daewoon.ganji[1]] ?? "土") : null;
 
   return (
     <div className="rounded-2xl border border-accent-gold/30 bg-gradient-to-br from-amber-50/60 to-white p-5 mb-6">
@@ -314,7 +335,7 @@ function CurrentSewoonCard({
           <>
             <div className="flex-1 flex flex-col items-center gap-1 rounded-xl border border-gray-200 bg-white/70 py-2.5">
               <span className="text-[9px] text-accent-gold font-semibold">대운</span>
-              <GanjiChar char={daewoon.ganji[0]} ohaeng={dwGanOhaeng} />
+              <GanjiChar char={daewoon.ganji[0]} ohaeng={dwGanOhaeng} dimmed={!!dimmedGanPillars?.size} />
               <GanjiChar char={daewoon.ganji[1]} ohaeng={dwJiOhaeng} />
             </div>
             {/* 구분선 */}
@@ -323,13 +344,13 @@ function CurrentSewoonCard({
         )}
 
         {/* 사주팔자 4기둥 */}
-        {pillarList.map(({ label, gan, ji, ganOhaeng, jiOhaeng }) => (
+        {pillarList.map(({ label, key, gan, ji, ganOhaeng, jiOhaeng }) => (
           <div
             key={label}
             className="flex-1 flex flex-col items-center gap-1 rounded-xl bg-white/70 py-2.5"
           >
             <span className="text-[9px] text-text-subtle">{label}</span>
-            <GanjiChar char={gan} ohaeng={ganOhaeng} />
+            <GanjiChar char={gan} ohaeng={ganOhaeng} dimmed={dimmedGanPillars?.has(key)} />
             <GanjiChar char={ji} ohaeng={jiOhaeng} />
           </div>
         ))}
@@ -362,32 +383,59 @@ export const SewoonV2 = () => {
     sewoonForCurrentDaewoon,
     currentSewoonRelationships: sewoonRels,
     currentSewoonInterp: sewoonInterp,
+    currentDaewoonRelationships: daewoonRels,
+    wangseStrength,
   } = sajuData;
 
   const currentYear = new Date().getFullYear();
   const userName = fortuneResult?.userInfo?.name || "당신";
 
+  // ── 신강/신약 · 유불리 판별 ──────────────────────────────────────
+  const strengthType =
+    (sajuData.yongsin?.selectedTier?.details?.strengthType as string) ||
+    wangseStrength?.level ||
+    "";
+  const isSingang = strengthType === "신강" || strengthType === "강" || strengthType === "태강";
+  const isSinyak = strengthType === "신약" || strengthType === "약" || strengthType === "태약";
+  const strengthLabel = isSingang ? "신강" : isSinyak ? "신약" : "";
+  const favorableText = isSingang ? "식신, 재성, 관성" : isSinyak ? "인성, 비겁" : "";
+
+  // 세운 천간 십성의 카테고리로 유리/불리 판별
+  const sewoonGanCategory = SIPSIN_CATEGORY[currentSewoon.sipsin.gan ?? ""] ?? "";
+  const YURI_SINGANG = ["식상", "재성", "관성"];
+  const YURI_SINYAK = ["인성", "비겁"];
+  const sewoonIsYuri = isSingang
+    ? YURI_SINGANG.includes(sewoonGanCategory)
+    : isSinyak
+      ? YURI_SINYAK.includes(sewoonGanCategory)
+      : null;
+
+  // 세운 간지 한글 이름 (예: "병오(丙午)")
+  const sewoonGanChar = currentSewoon.ganji[0];
+  const sewoonJiChar = currentSewoon.ganji[1];
+  const sewoonYearName = `${GAN_KO[sewoonGanChar] ?? ""}${JI_KO[sewoonJiChar] ?? ""}(${sewoonGanChar}${sewoonJiChar})`;
+
   // ── 세운+대운+원국 확장 기둥 (파서 주입) ─────────────────────────
   const daewoonPillarData = currentDaewoon
     ? {
-        gan: currentDaewoon.ganji[0],
-        ji:  currentDaewoon.ganji[1],
-        ganOhaeng: GAN_TO_OHAENG[currentDaewoon.ganji[0]] ?? "土",
-        jiOhaeng:  JI_TO_OHAENG[currentDaewoon.ganji[1]]  ?? "土",
-        ganSipsin: currentDaewoon.sipsin.gan,
-        jiSipsin:  currentDaewoon.sipsin.ji,
-        sibiwunseong: currentDaewoon.sibiwunseong ?? "",
-        sinsal: [],
-      }
+      gan: currentDaewoon.ganji[0],
+      ji: currentDaewoon.ganji[1],
+      ganOhaeng: GAN_TO_OHAENG[currentDaewoon.ganji[0]] ?? "土",
+      jiOhaeng: JI_TO_OHAENG[currentDaewoon.ganji[1]] ?? "土",
+      ganSipsin: currentDaewoon.sipsin.gan,
+      jiSipsin: currentDaewoon.sipsin.ji,
+      sibiwunseong: currentDaewoon.sibiwunseong ?? "",
+      sinsal: [],
+    }
     : undefined;
 
   const sewoonPillarData = {
     gan: currentSewoon.ganji[0],
-    ji:  currentSewoon.ganji[1],
+    ji: currentSewoon.ganji[1],
     ganOhaeng: GAN_TO_OHAENG[currentSewoon.ganji[0]] ?? "土",
-    jiOhaeng:  JI_TO_OHAENG[currentSewoon.ganji[1]]  ?? "土",
+    jiOhaeng: JI_TO_OHAENG[currentSewoon.ganji[1]] ?? "土",
     ganSipsin: currentSewoon.sipsin.gan,
-    jiSipsin:  currentSewoon.sipsin.ji,
+    jiSipsin: currentSewoon.sipsin.ji,
     sibiwunseong: currentSewoon.sibiwunseong ?? "",
     sinsal: [],
   };
@@ -413,23 +461,33 @@ export const SewoonV2 = () => {
     });
   };
 
-  const cheonganhapRels   = ganRels(sewoonRels?.cheonganhap   ?? []);
+  // 일간합 제외 — origIdx 보존(hapTypes·interp 배열 인덱스 맞춤용)
+  const cheonganhapRels = ganRels(sewoonRels?.cheonganhap ?? [])
+    .map((rel, origIdx) => ({ rel, origIdx }))
+    .filter(({ rel }) => rel.pillar1 !== "day" && rel.pillar2 !== "day");
   const cheonganchungRels = ganRels(sewoonRels?.cheonganchung ?? []);
   const hasCheonganAction = cheonganhapRels.length > 0 || cheonganchungRels.length > 0;
 
-  const samhapRels  = jiRels(sewoonRels?.samhap  ?? []);
+  // 대운과 천간합이 되는 사주원국 기둥 (카드에서 해당 천간을 회색 처리)
+  const daewoonHapPillars = new Set<string>();
+  ganRels(daewoonRels?.cheonganhap ?? []).forEach((rel) => {
+    if (rel.pillar1 === "daewoon") daewoonHapPillars.add(rel.pillar2);
+    if (rel.pillar2 === "daewoon") daewoonHapPillars.add(rel.pillar1);
+  });
+
+  const samhapRels = jiRels(sewoonRels?.samhap ?? []);
   const banghapRels = jiRels(sewoonRels?.banghap ?? []);
   const yukchungRels = jiRels(sewoonRels?.yukchung ?? []);
   const yukhyungRels = jiRels(sewoonRels?.yukhyung ?? []);
-  const yukpaRels    = jiRels(sewoonRels?.yukpa    ?? []);
-  const yukaeRels    = jiRels(sewoonRels?.yukae    ?? []);
-  const yukhapRels   = jiRels(sewoonRels?.yukhap   ?? []);
+  const yukpaRels = jiRels(sewoonRels?.yukpa ?? []);
+  const yukaeRels = jiRels(sewoonRels?.yukae ?? []);
+  const yukhapRels = jiRels(sewoonRels?.yukhap ?? []);
 
   const hyungChungPaHaeRels: { rel: ParsedRel; type: string }[] = [
     ...yukchungRels.map((r) => ({ rel: r, type: "충" })),
     ...yukhyungRels.map((r) => ({ rel: r, type: "형" })),
-    ...yukpaRels.map((r)    => ({ rel: r, type: "파" })),
-    ...yukaeRels.map((r)    => ({ rel: r, type: "해" })),
+    ...yukpaRels.map((r) => ({ rel: r, type: "파" })),
+    ...yukaeRels.map((r) => ({ rel: r, type: "해" })),
   ];
 
   const hasJijiAction =
@@ -452,13 +510,13 @@ export const SewoonV2 = () => {
       )}
 
       <p className="mt-2 mb-6 text-[11px] text-text-subtle leading-relaxed text-center">
-        세운은 매년 바뀌며, 대운의 큰 흐름 위에서 그 해의 구체적인 기운을 더합니다.
+        세운은 매년 바뀌며, 대운의 큰 흐름 위에서 그 해의 구체적인 시간적 기운을 더합니다.
       </p>
 
       <p className="mb-8 text-[13px] leading-[1.9] text-text-muted">
         세운(歲運)은 그 해 우주가 머무는 기운의 좌표이며, 이 시간 우주 전체에 흐르는 에너지의 질(質)입니다.
         우리의 의지와 무관하게 모든 존재에게 동일하게 주어지는 것, 그렇기에 세운(歲運)은 개인의 것이 아니라
-        시대를 나타내는 기운입니다. 
+        시대를 나타내는 시간의 기운입니다.
       </p>
 
       {/* ════════════════════════════════════════
@@ -495,25 +553,37 @@ export const SewoonV2 = () => {
         sewoon={currentSewoon}
         daewoon={currentDaewoon}
         pillars={pillars}
+        dimmedGanPillars={daewoonHapPillars}
       />
+
+      {strengthLabel && favorableText && (
+        <p className="mb-8 text-[13px] leading-[1.9] text-text-muted">
+          사주원국의 세기가 {strengthLabel}인 사주로써 {favorableText}이 들어오는 것이 {userName}에게 좋습니다.
+          {sewoonIsYuri !== null && (
+            <>
+              {" "}그렇기에 올해 {currentYear} {sewoonYearName}년의 영향은 {userName}에게 상당히{" "}
+              {sewoonIsYuri ? "유리" : "불리"}한 면이 있습니다.
+            </>
+          )}
+        </p>
+      )}
 
       {/* ════════════════════════════════════════
           천간(天干) — 세운 작용
       ════════════════════════════════════════ */}
-      <div className="border-t border-gray-100 pt-6 mb-6">
+      <div className="pt-6 mb-6">
         <SectionHeader title="천간(天干) · 세운 작용" />
 
         {hasCheonganAction ? (
           <>
             <p className="text-[13px] leading-[1.9] text-text-muted mb-4">
-              세운의 천간(天干)은 이 한 해 동안 {userName}이 바깥 세상과 어떤 방식으로
-              부딪히고 교류하게 될지를 보여줍니다. 합(合)은 끌어당기는 인연과 변화를,
-              충(沖)은 자극과 갈등, 혹은 능동적 행동을 암시합니다.
+              세운의 천간(天干)은 한 해의 거울과 같아 {userName}이 외부 세상과 어떤 방식으로
+              부딪히고 교류하게 될지를 보여줍니다.
             </p>
 
             <div className="flex flex-wrap gap-4 mb-4">
-              {cheonganhapRels.map((rel, i) => {
-                const hapType = sewoonRels?.cheonganhapTypes?.[i];
+              {cheonganhapRels.map(({ rel, origIdx }, i) => {
+                const hapType = sewoonRels?.cheonganhapTypes?.[origIdx];
                 return <RelRow key={`hap${i}`} rel={rel} relType={hapType ?? "합"} />;
               })}
               {cheonganchungRels.map((rel, i) => (
@@ -523,10 +593,10 @@ export const SewoonV2 = () => {
 
             {/* 천간 해설 */}
             {(() => {
-              const entries: { label?: string; text: string; ilganText?: string; rel: ParsedRel }[] = [];
-              cheonganhapRels.forEach((rel, i) => {
-                const h = sewoonInterp?.cheonganhap[i];
-                if (h) entries.push({ label: h.name, hapType: h.hapType, text: h.essence, ilganText: h.ilganEssence, rel } as any);
+              const entries: { label?: string; hapType?: "합" | "합반" | "합거"; text: string; ilganText?: string; rel: ParsedRel }[] = [];
+              cheonganhapRels.forEach(({ rel, origIdx }) => {
+                const h = sewoonInterp?.cheonganhap[origIdx];
+                if (h) entries.push({ label: h.name, hapType: h.hapType, text: h.essence, ilganText: h.ilganEssence, rel });
               });
               cheonganchungRels.forEach((rel, i) => {
                 const c = sewoonInterp?.cheonganchung[i];
@@ -539,7 +609,15 @@ export const SewoonV2 = () => {
                     <div key={i} className="space-y-1">
                       <p className="text-[13px] leading-[1.9] text-text-muted">
                         {e.label && (
-                          <span className="font-semibold text-text-light">{e.label}{" — "}</span>
+                          <span className="font-semibold text-text-light">
+                            {e.label}
+                            {e.hapType && (
+                              <span className="ml-1.5 text-[11px] font-normal text-text-subtle">
+                                ({e.hapType})
+                              </span>
+                            )}
+                            {" — "}
+                          </span>
                         )}
                         {formatInterpText(e.text, pillars)}
                       </p>
@@ -575,9 +653,9 @@ export const SewoonV2 = () => {
 
             {/* 관계 시각화 */}
             <div className="flex flex-wrap gap-4 mb-4">
-              {samhapRels.map((rel, i)  => <RelRow key={`s${i}`}  rel={rel} relType="삼합" />)}
-              {banghapRels.map((rel, i) => <RelRow key={`b${i}`}  rel={rel} relType="방합" />)}
-              {yukhapRels.map((rel, i)  => <RelRow key={`y${i}`}  rel={rel} relType="육합" />)}
+              {samhapRels.map((rel, i) => <RelRow key={`s${i}`} rel={rel} relType="삼합" />)}
+              {banghapRels.map((rel, i) => <RelRow key={`b${i}`} rel={rel} relType="방합" />)}
+              {yukhapRels.map((rel, i) => <RelRow key={`y${i}`} rel={rel} relType="육합" />)}
               {hyungChungPaHaeRels.map((item, i) => (
                 <RelRow key={`h${i}`} rel={item.rel} relType={item.type} />
               ))}
@@ -609,8 +687,8 @@ export const SewoonV2 = () => {
               const interpByType = {
                 충: sewoonInterp?.yukchung ?? [],
                 형: sewoonInterp?.yukhyung ?? [],
-                파: sewoonInterp?.yukpa    ?? [],
-                해: sewoonInterp?.yukae    ?? [],
+                파: sewoonInterp?.yukpa ?? [],
+                해: sewoonInterp?.yukae ?? [],
               } as Record<string, NonNullable<typeof sewoonInterp>["yukchung"]>;
 
               const counters: Record<string, number> = { 충: 0, 형: 0, 파: 0, 해: 0 };

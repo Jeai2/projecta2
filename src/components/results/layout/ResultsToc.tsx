@@ -20,8 +20,8 @@ const TABLE_OF_CONTENTS = [
   "건강의 모든 것",
   "대운 분석",
   "세운 분석(올해)",
-  "절운 분석",
   "총평",
+  "절운 분석",
 ];
 
 export const ResultsToc = () => {

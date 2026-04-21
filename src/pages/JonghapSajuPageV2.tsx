@@ -15,6 +15,7 @@ import { SinsalV2 } from "@/components/results/v2/sections/SinsalV2";
 import { GilsinV2 } from "@/components/results/v2/sections/GilsinV2";
 import { DaewoonV2 } from "@/components/results/v2/sections/DaewoonV2";
 import { SewoonV2 } from "@/components/results/v2/sections/SewoonV2";
+import { ChongronV2 } from "@/components/results/v2/sections/ChongronV2";
 import { Clock } from "lucide-react";
 
 const ComingSoon = ({ chapterNum }: { chapterNum: number }) => (
@@ -52,6 +53,7 @@ const JonghapSajuPageV2 = () => {
       case 8:  return <GilsinV2 />;
       case 9:  return <DaewoonV2 />;
       case 10: return <SewoonV2 />;
+      case 11: return <ChongronV2 />;
       default: return <ComingSoon chapterNum={resultCurrentPage} />;
     }
   };

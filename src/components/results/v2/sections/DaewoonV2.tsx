@@ -722,7 +722,7 @@ export const DaewoonV2 = () => {
       />
 
       <p className="mt-5 mb-6 text-[11px] text-text-subtle leading-relaxed text-center">
-        대운은 약 10년 주기로 바뀌며, 삶의 큰 흐름과 방향성에 영향을 줍니다.
+        대운은 약 10년 주기로 바뀌며, 나만의 계절을 만들어가는 삶의 큰 흐름과 방향성에 영향을 줍니다.
       </p>
 
       {/* ── 대운표-해설 사이 설명글 ── 직접 수정 가능 ─────────────── */}
@@ -902,7 +902,7 @@ export const DaewoonV2 = () => {
       })()}
 
       <p className="mt-5 mb-8 text-[13px] leading-[1.9] text-text-muted">
-        대운(大運)이란, 내가 태어난 계절인 월지(月支)에서 출발하여, 삶 속에서 순차적으로 만나게 되는 내 삶의 계절들입니다. {userName}의 대운(大運)은 {firstDaeun.year}년(만 {firstDaeun.age}세)을
+        대운(大運)이란, 내가 태어난 계절인 월지(月支)에서 출발하여, 삶 속에서 순차적으로 만나게 되는 내 삶의 공간을 체워주는 계절들입니다. {userName}의 대운(大運)은 {firstDaeun.year}년(만 {firstDaeun.age}세)을
         시작으로 10년마다 변화하며, 변화하는 시기마다 성격과 가치관 그리고 주변환경에 큰 영향을 주지만 그것은 '나'를 만드는 과정입니다.
         {strengthType && favorableDirection && (
           <>
