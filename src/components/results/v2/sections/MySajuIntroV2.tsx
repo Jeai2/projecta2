@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 const ganjiImageMap: Record<string, string> = {
   "庚寅": "/gungin.png",
   "戊戌": "/musul.png",
+  "壬戌": "/imsul.png",
   "壬未": "/immi.png",
   "丁未": "/jeongmi.png",
   "己未": "/gimi.png",
@@ -221,6 +222,9 @@ export const MySajuIntroV2 = () => {
           if (parts.length === 0) return null;
           return `즉, ${userName}님은 ${parts.join(" ")}에 태어났습니다.`;
         })()}
+        <br />
+        <br />
+        ㅇㅇㅇ
       </p>
       {/* 신강신약 */}
       {wangseStrength && (
