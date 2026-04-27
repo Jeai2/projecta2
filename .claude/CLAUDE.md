@@ -32,7 +32,7 @@
 | `sajurog-tech-architect` | sonnet | 기술 전략 및 구조 설계. 실무 구현이 아닌 기획 관점 유지 |
 | `sajurog-ux-designer` | sonnet | UX 흐름 및 서비스 경험 전략. 동양 신비주의 + 현대적 감성 유지 |
 | `sajurog-content-strategist` | sonnet | 사주명리 콘텐츠 전략. 용어 정확성 및 타겟 감성 적합성 관리 |
-| `sajulog-evaluator` | sonnet | 기획 논의 품질 검수. 방향성 이탈, 의견 충돌, blind spot 감지 |
+| `sajurog-evaluator` | sonnet | 기획 논의 품질 검수. 방향성 이탈, 의견 충돌, blind spot 감지 |
 
 ### 병렬 실행 규칙
 

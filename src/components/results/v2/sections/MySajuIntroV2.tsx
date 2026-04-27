@@ -1,9 +1,10 @@
 // src/components/results/v2/sections/MySajuIntroV2.tsx
 
+import { useState, useRef, useEffect } from "react";
 import { useFortuneStore } from "@/store/fortuneStore";
 import { SectionFrame } from "../SectionFrame";
 import { SajuPillarLight } from "../SajuPillarLight";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, HelpCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // 육십갑자 → 이미지 파일 매핑 (나머지 52개 추가 예정, 未완료)
@@ -33,6 +34,21 @@ const jiHangul: Record<string, string> = {
 const OHAENG_SUPPORT: Record<string, string[]> = {
   木: ["木", "水"], 火: ["火", "木"], 土: ["土", "火"],
   金: ["金", "土"], 水: ["水", "金"],
+};
+
+// 십성-오행 관계 매핑 (생극제화)
+const OHAENG_SAENG: Record<string, string> = { 木: "火", 火: "土", 土: "金", 金: "水", 水: "木" };
+const OHAENG_GEUK: Record<string, string> = { 木: "土", 火: "金", 土: "水", 金: "木", 水: "火" };
+const OHAENG_SAENG_REV: Record<string, string> = { 木: "水", 火: "木", 土: "火", 金: "土", 水: "金" };
+const OHAENG_GEUK_REV: Record<string, string> = { 木: "金", 火: "水", 土: "木", 金: "火", 水: "土" };
+const OHAENG_NAME: Record<string, string> = { 木: "목(木)", 火: "화(火)", 土: "토(土)", 金: "금(金)", 水: "수(水)" };
+
+const OHAENG_TEXT_COLOR: Record<string, string> = {
+  木: "text-emerald-600",
+  火: "text-rose-600",
+  土: "text-amber-600",
+  金: "text-slate-500",
+  水: "text-blue-600",
 };
 
 const ohaengBadge: Record<string, string> = {
@@ -76,16 +92,36 @@ function GanjiBadge({ char, ohaeng, dimmed = false }: { char: string; ohaeng: st
   );
 }
 
-function SectionHeader({ title }: { title: string }) {
+function SectionHeader({ title, rightElement }: { title: string; rightElement?: React.ReactNode }) {
   return (
-    <h3 className="text-xs font-semibold text-accent-gold tracking-widest uppercase mb-5">
-      {title}
-    </h3>
+    <div className="flex items-center gap-1.5 mb-5">
+      <h3 className="text-xs font-semibold text-accent-gold tracking-widest uppercase mb-0">
+        {title}
+      </h3>
+      {rightElement}
+    </div>
   );
 }
 
 export const MySajuIntroV2 = () => {
   const { fortuneResult } = useFortuneStore();
+  const [showWangseInfo, setShowWangseInfo] = useState(false);
+  const wangseInfoRef = useRef<HTMLDivElement>(null);
+
+  // 외부 클릭 시 툴팁 닫기
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (wangseInfoRef.current && !wangseInfoRef.current.contains(event.target as Node)) {
+        setShowWangseInfo(false);
+      }
+    }
+    if (showWangseInfo) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showWangseInfo]);
 
   if (!fortuneResult?.saju?.sajuData) {
     return (
@@ -113,6 +149,20 @@ export const MySajuIntroV2 = () => {
     { char: pillars.year.ji, ohaeng: pillars.year.jiOhaeng, label: "년지" },
     { char: pillars.hour.ji, ohaeng: pillars.hour.jiOhaeng, label: "시지" },
   ].map(item => ({ ...item, helps: supports.includes(item.ohaeng) }));
+
+  // 신강/신약에 따른 오행 추천
+  const isSingang = ["극왕", "태강", "신강", "중화"].includes(wangseStrength?.level ?? "");
+
+  const getOhaengSpan = (ohaeng: string) => {
+    if (!ohaeng) return null;
+    return <span className={OHAENG_TEXT_COLOR[ohaeng]}>{OHAENG_NAME[ohaeng]}</span>;
+  };
+
+  const bigeobOhaeng = getOhaengSpan(dayOhaeng);
+  const siksangOhaeng = getOhaengSpan(OHAENG_SAENG[dayOhaeng]);
+  const jaeseongOhaeng = getOhaengSpan(OHAENG_GEUK[dayOhaeng]);
+  const gwanseongOhaeng = getOhaengSpan(OHAENG_GEUK_REV[dayOhaeng]);
+  const inseongOhaeng = getOhaengSpan(OHAENG_SAENG_REV[dayOhaeng]);
 
   // 생년월일시 포맷: "1991年 11月 7日 寅時"
   const birthDate = fortuneResult.userInfo?.birthDate ?? "";
@@ -224,17 +274,43 @@ export const MySajuIntroV2 = () => {
         })()}
         <br />
         <br />
-        ㅇㅇㅇ
+        사주팔자(四柱八字)의 시작은 신강신약(身强身弱)으로 시작합니다.
       </p>
       {/* 신강신약 */}
       {wangseStrength && (
         <div className="border-t border-gray-100 pt-6 mb-6">
-          <SectionHeader title="신강신약" />
+          <div className="relative inline-block" ref={wangseInfoRef}>
+            <SectionHeader 
+              title="신강신약" 
+              rightElement={
+                <button 
+                  onClick={() => setShowWangseInfo(!showWangseInfo)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
+                  aria-label="신강신약 도움말"
+                >
+                  <HelpCircle className="w-3 h-3" />
+                </button>
+              }
+            />
+
+            {showWangseInfo && (
+              <div className="absolute top-8 left-0 z-10 w-full min-w-[280px] sm:w-[320px] bg-white border border-gray-200 rounded-xl shadow-lg p-4 text-[13px] leading-relaxed text-text-subtle">
+                <p className="font-semibold text-text-light mb-1.5">신강(身强)과 신약(身弱)</p>
+                <p className="mb-3">
+                  신(身)이란, 본원(本原)인 '나'일간(日干)의 몸(체,體)를 뜻하며, <span className="font-semibold text-text-light border-b border-accent-gold/40 pb-0.5">'나'가 기운을 활용하는 방향성을 세기 표기로 나타낸 것</span>입니다. 
+                  강약(强弱)으로 길흉(吉凶)을 완전히 판단하는 것은 불가하며, 이러한 판단은 위험합니다.
+                </p>
+                <p className="text-[12px] text-gray-400 bg-gray-50 p-2 rounded-lg mt-1">
+                  위 3가지를 기준으로 총 7단계(극약~극왕)로 나의 에너지를 자세히 분류하지만, 통상 신강(身强)과 신약(身弱)으로 크게 구분합니다.
+                </p>
+              </div>
+            )}
+          </div>
 
           <p className="text-[13px] leading-[1.9] text-text-muted mb-5">
             신강(身强)과 신약(身弱)은 {userName}님의 기운이 외부로 소모가 큰지, 내부에 쌓여있는지를 나타내는 세기입니다.
-            본원(本原) 즉, '나'를 뜻하는 일간(日干)의 오행(五行)을 기준으로 판단합니다. 내부에 쌓여 '나'를 도와주는 기운은 '득(得)'했다고 하고,
-            외부로 소모되는 기운은 '실(失)'했다고 합니다.
+            본원(本原) 즉, '나'를 뜻하는 일간(日干)의 오행(五行)을 기준으로 판단하며, 내부에 쌓여 '나'를 도와주는 기운은 '득(得)'했다고 하고,
+            외부로 소모되는 기운은 '실(失)'했다고 합니다. 
           </p>
 
           {/* 득령·득지·득세 시각화 — 가로형 */}
@@ -294,8 +370,17 @@ export const MySajuIntroV2 = () => {
           <p className="text-[13px] leading-[1.9] text-text-muted">
             그러므로{" "}
             <span className="font-semibold text-text-light">{userName}</span>님의 사주는{" "}
-            <span className="font-semibold text-text-light">{wangseStrength.level}</span> 사주입니다.{" "}
-            {wangseStrength.levelDetail}
+            <span className="font-semibold text-text-light">{wangseStrength.level}</span>한 사주입니다.
+            {" "}
+            {isSingang ? (
+              <>
+                신강한 사주는 내부에 에너지를 쌓아 갈무리하는 방식을 너무나도 잘하지만, 외부로 발산하는 것은 잘 못하기에 운용방식에 있어서 {userName}님은 <span className="font-semibold text-accent-gold">{siksangOhaeng}, {jaeseongOhaeng}, {gwanseongOhaeng}</span> 기운을 활용하는 것이 좋습니다.
+              </>
+            ) : (
+              <>
+                신약한 사주는 외부에서 에너지를 갈무리하는 방식을 너무나도 잘하지만, 내부로 수렴하는 것을 잘 못하기에 운용방식에 있어서 {userName}님은 <span className="font-semibold text-accent-gold">{inseongOhaeng}, {bigeobOhaeng}</span> 기운을 활용하는 것이 좋습니다.
+              </>
+            )}
           </p>
         </div>
       )}

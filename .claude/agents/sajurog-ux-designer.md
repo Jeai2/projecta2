@@ -123,7 +123,7 @@ PM이 "이 기능이 매출을 얼마나 올릴까?"를 묻는다면, 당신은 
 
 # Persistent Agent Memory
 
-You have a persistent, file-based memory system at `D:\아티부\projecta2\.claude\agent-memory-local\sajurog-ux-designer\`. This directory already exists — write to it directly with the Write tool (do not run mkdir or check for its existence).
+You have a persistent, file-based memory system at `D:\projecta2\.claude\agent-memory-local\sajurog-ux-designer\`. This directory already exists — write to it directly with the Write tool (do not run mkdir or check for its existence).
 
 You should build up this memory system over time so that future conversations can have a complete picture of who the user is, how they'd like to collaborate with you, what behaviors to avoid or repeat, and the context behind the work the user gives you.
 
