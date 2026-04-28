@@ -79,6 +79,29 @@ const jiAnimal: Record<string, string> = {
   午: "말", 未: "양", 申: "원숭이", 酉: "닭", 戌: "개", 亥: "돼지",
 };
 
+const JI_SEASON: Record<string, string> = {
+  寅: "봄", 卯: "봄",
+  巳: "여름", 午: "여름",
+  申: "가을", 酉: "가을",
+  亥: "겨울", 子: "겨울",
+  辰: "환절기", 戌: "환절기", 丑: "환절기", 未: "환절기",
+};
+
+const JIJANGGAN: Record<string, { gan: string; ohaeng: string; role: string; days: number }[]> = {
+  子: [{ gan: "癸", ohaeng: "水", role: "본기", days: 30 }],
+  丑: [{ gan: "癸", ohaeng: "水", role: "여기", days: 9 }, { gan: "辛", ohaeng: "金", role: "중기", days: 3 }, { gan: "己", ohaeng: "土", role: "본기", days: 18 }],
+  寅: [{ gan: "戊", ohaeng: "土", role: "여기", days: 7 }, { gan: "丙", ohaeng: "火", role: "중기", days: 7 }, { gan: "甲", ohaeng: "木", role: "본기", days: 16 }],
+  卯: [{ gan: "甲", ohaeng: "木", role: "여기", days: 10 }, { gan: "乙", ohaeng: "木", role: "본기", days: 20 }],
+  辰: [{ gan: "乙", ohaeng: "木", role: "여기", days: 9 }, { gan: "癸", ohaeng: "水", role: "중기", days: 3 }, { gan: "戊", ohaeng: "土", role: "본기", days: 18 }],
+  巳: [{ gan: "戊", ohaeng: "土", role: "여기", days: 7 }, { gan: "庚", ohaeng: "金", role: "중기", days: 7 }, { gan: "丙", ohaeng: "火", role: "본기", days: 16 }],
+  午: [{ gan: "丙", ohaeng: "火", role: "여기", days: 10 }, { gan: "己", ohaeng: "土", role: "중기", days: 10 }, { gan: "丁", ohaeng: "火", role: "본기", days: 10 }],
+  未: [{ gan: "丁", ohaeng: "火", role: "여기", days: 9 }, { gan: "乙", ohaeng: "木", role: "중기", days: 3 }, { gan: "己", ohaeng: "土", role: "본기", days: 18 }],
+  申: [{ gan: "戊", ohaeng: "土", role: "여기", days: 7 }, { gan: "壬", ohaeng: "水", role: "중기", days: 7 }, { gan: "庚", ohaeng: "金", role: "본기", days: 16 }],
+  酉: [{ gan: "庚", ohaeng: "金", role: "여기", days: 10 }, { gan: "辛", ohaeng: "金", role: "본기", days: 20 }],
+  戌: [{ gan: "辛", ohaeng: "金", role: "여기", days: 9 }, { gan: "丁", ohaeng: "火", role: "중기", days: 3 }, { gan: "戊", ohaeng: "土", role: "본기", days: 18 }],
+  亥: [{ gan: "戊", ohaeng: "土", role: "여기", days: 7 }, { gan: "甲", ohaeng: "木", role: "중기", days: 7 }, { gan: "壬", ohaeng: "水", role: "본기", days: 16 }],
+};
+
 function GanjiBadge({ char, ohaeng, dimmed = false }: { char: string; ohaeng: string; dimmed?: boolean }) {
   return (
     <span className={cn(
@@ -107,6 +130,8 @@ export const MySajuIntroV2 = () => {
   const { fortuneResult } = useFortuneStore();
   const [showWangseInfo, setShowWangseInfo] = useState(false);
   const wangseInfoRef = useRef<HTMLDivElement>(null);
+  const [showWoljiInfo, setShowWoljiInfo] = useState(false);
+  const woljiInfoRef = useRef<HTMLDivElement>(null);
 
   // 외부 클릭 시 툴팁 닫기
   useEffect(() => {
@@ -122,6 +147,20 @@ export const MySajuIntroV2 = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [showWangseInfo]);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (woljiInfoRef.current && !woljiInfoRef.current.contains(event.target as Node)) {
+        setShowWoljiInfo(false);
+      }
+    }
+    if (showWoljiInfo) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showWoljiInfo]);
 
   if (!fortuneResult?.saju?.sajuData) {
     return (
@@ -163,6 +202,41 @@ export const MySajuIntroV2 = () => {
   const jaeseongOhaeng = getOhaengSpan(OHAENG_GEUK[dayOhaeng]);
   const gwanseongOhaeng = getOhaengSpan(OHAENG_GEUK_REV[dayOhaeng]);
   const inseongOhaeng = getOhaengSpan(OHAENG_SAENG_REV[dayOhaeng]);
+
+  // 월지 파생값
+  const monthJi = pillars.month.ji;
+  const monthJiOhaeng = pillars.month.jiOhaeng;
+  const monthSeason = JI_SEASON[monthJi] ?? "";
+
+  // 당령·사령 — 서버 데이터 사용
+  const jijangganOfMonth = JIJANGGAN[monthJi] ?? [];
+  const dangnyeongData = fortuneResult.saju.sajuData.dangnyeong;
+  const saryeongData = fortuneResult.saju.sajuData.saryeong;
+
+  // 한글 천간 → 한자 변환
+  const GAN_HANGUL_TO_HANJA: Record<string, string> = {
+    갑: "甲", 을: "乙", 병: "丙", 정: "丁", 무: "戊",
+    기: "己", 경: "庚", 신: "辛", 임: "壬", 계: "癸",
+  };
+  const dangnyeongHanja = dangnyeongData
+    ? (GAN_HANGUL_TO_HANJA[dangnyeongData.dangnyeongGan] ?? dangnyeongData.dangnyeongGan)
+    : null;
+  const saryeongHanja = saryeongData
+    ? (GAN_HANGUL_TO_HANJA[saryeongData.saryeongGan] ?? saryeongData.saryeongGan)
+    : null;
+
+  // 지장간에서 인덱스 찾기
+  const dangnyeongIdx = jijangganOfMonth.findIndex(s => s.gan === dangnyeongHanja);
+  const saryeongIdx = jijangganOfMonth.findIndex(s => s.gan === saryeongHanja);
+  const dangnyeongStem = dangnyeongIdx >= 0 ? jijangganOfMonth[dangnyeongIdx] : null;
+  const saryeongStem = saryeongIdx >= 0 ? jijangganOfMonth[saryeongIdx] : null;
+
+  // 일간에 유리한지
+  const isDangnyeongHelps = dangnyeongStem ? supports.includes(dangnyeongStem.ohaeng) : false;
+  const isSaryeongHelps = saryeongStem ? supports.includes(saryeongStem.ohaeng) : false;
+
+  // 사령 role 한글 품요없이 서버 role 직접 사용 (초기/중기/정기 → 여기/중기/본기 매핑)
+  const ROLE_LABEL: Record<string, string> = { 초기: "여기(餘氣)", 중기: "중기(中氣)", 정기: "본기(本氣)" };
 
   // 생년월일시 포맷: "1991年 11月 7日 寅時"
   const birthDate = fortuneResult.userInfo?.birthDate ?? "";
@@ -280,10 +354,10 @@ export const MySajuIntroV2 = () => {
       {wangseStrength && (
         <div className="border-t border-gray-100 pt-6 mb-6">
           <div className="relative inline-block" ref={wangseInfoRef}>
-            <SectionHeader 
-              title="신강신약" 
+            <SectionHeader
+              title="신강신약"
               rightElement={
-                <button 
+                <button
                   onClick={() => setShowWangseInfo(!showWangseInfo)}
                   className="text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
                   aria-label="신강신약 도움말"
@@ -297,7 +371,7 @@ export const MySajuIntroV2 = () => {
               <div className="absolute top-8 left-0 z-10 w-full min-w-[280px] sm:w-[320px] bg-white border border-gray-200 rounded-xl shadow-lg p-4 text-[13px] leading-relaxed text-text-subtle">
                 <p className="font-semibold text-text-light mb-1.5">신강(身强)과 신약(身弱)</p>
                 <p className="mb-3">
-                  신(身)이란, 본원(本原)인 '나'일간(日干)의 몸(체,體)를 뜻하며, <span className="font-semibold text-text-light border-b border-accent-gold/40 pb-0.5">'나'가 기운을 활용하는 방향성을 세기 표기로 나타낸 것</span>입니다. 
+                  신(身)이란, 본원(本原)인 '나'일간(日干)의 몸(체,體)를 뜻하며, <span className="font-semibold text-text-light border-b border-accent-gold/40 pb-0.5">'나'가 기운을 활용하는 방향성을 세기 표기로 나타낸 것</span>입니다.
                   강약(强弱)으로 길흉(吉凶)을 완전히 판단하는 것은 불가하며, 이러한 판단은 위험합니다.
                 </p>
                 <p className="text-[12px] text-gray-400 bg-gray-50 p-2 rounded-lg mt-1">
@@ -310,7 +384,7 @@ export const MySajuIntroV2 = () => {
           <p className="text-[13px] leading-[1.9] text-text-muted mb-5">
             신강(身强)과 신약(身弱)은 {userName}님의 기운이 외부로 소모가 큰지, 내부에 쌓여있는지를 나타내는 세기입니다.
             본원(本原) 즉, '나'를 뜻하는 일간(日干)의 오행(五行)을 기준으로 판단하며, 내부에 쌓여 '나'를 도와주는 기운은 '득(得)'했다고 하고,
-            외부로 소모되는 기운은 '실(失)'했다고 합니다. 
+            외부로 소모되는 기운은 '실(失)'했다고 합니다.
           </p>
 
           {/* 득령·득지·득세 시각화 — 가로형 */}
@@ -374,16 +448,146 @@ export const MySajuIntroV2 = () => {
             {" "}
             {isSingang ? (
               <>
-                신강한 사주는 내부에 에너지를 쌓아 갈무리하는 방식을 너무나도 잘하지만, 외부로 발산하는 것은 잘 못하기에 운용방식에 있어서 {userName}님은 <span className="font-semibold text-accent-gold">{siksangOhaeng}, {jaeseongOhaeng}, {gwanseongOhaeng}</span> 기운을 활용하는 것이 좋습니다.
+                신강한 사주는 내부에 에너지를 쌓아 갈무리하는 방식을 너무나도 잘하지만, 외부로 발산하는 것은 잘 못하기에 운용방식에 있어서 {userName}님은 <span className="font-semibold text-accent-gold">{siksangOhaeng}, {jaeseongOhaeng}, {gwanseongOhaeng}</span> 기운을 활용하는 것 유리합니다.
               </>
             ) : (
               <>
-                신약한 사주는 외부에서 에너지를 갈무리하는 방식을 너무나도 잘하지만, 내부로 수렴하는 것을 잘 못하기에 운용방식에 있어서 {userName}님은 <span className="font-semibold text-accent-gold">{inseongOhaeng}, {bigeobOhaeng}</span> 기운을 활용하는 것이 좋습니다.
+                신약한 사주는 외부에서 에너지를 갈무리하는 방식을 너무나도 잘하지만, 내부로 수렴하는 것을 잘 못하기에 운용방식에 있어서 {userName}님은 <span className="font-semibold text-accent-gold">{inseongOhaeng}, {bigeobOhaeng}</span> 기운을 활용하는 것이 유리합니다.
               </>
             )}
           </p>
         </div>
       )}
+
+      {/* 월지 */}
+      <div className="border-t border-gray-100 pt-6 mb-6">
+        <div className="relative inline-block" ref={woljiInfoRef}>
+          <SectionHeader
+            title="월령(月令)"
+            rightElement={
+              <button
+                onClick={() => setShowWoljiInfo(!showWoljiInfo)}
+                className="text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
+                aria-label="월령 도움말"
+              >
+                <HelpCircle className="w-3 h-3" />
+              </button>
+            }
+          />
+
+          {showWoljiInfo && (
+            <div className="absolute top-8 left-0 z-10 w-full min-w-[280px] sm:w-[320px] bg-white border border-gray-200 rounded-xl shadow-lg p-4 text-[13px] leading-relaxed text-text-subtle">
+              <p className="font-semibold text-text-light mb-1.5">월령(月令)이란</p>
+              <p className="mb-3">
+                월령(月令)은 월지(月支)의 다른 이름으로, <span className="font-semibold text-text-light border-b border-accent-gold/40 pb-0.5">사주를 주관하는 계절이자, 사주 전체에 명령을 내리는 강력한 기운</span>입니다.
+                일간(日干)이 태어난 계절의 기운을 받아 도움을 얻으면, 주도권을 얻었다고 하여 <span className="font-semibold text-text-light">'득령(得令)'</span>, 그렇지 못하면 <span className="font-semibold text-text-light">'실령(失令)'</span>이라 합니다.
+              </p>
+              <p className="text-[12px] text-gray-400 bg-gray-50 p-2 rounded-lg mt-1">
+                월지(月支)는 강약 판단의 중요한 기준이자, 대운(大運)의 필연적인 계절의 파노라마입니다.
+              </p>
+            </div>
+          )}
+        </div>
+
+        <p className="text-[13px] leading-[1.9] text-text-muted mb-5">
+          월지(月支)는 {userName}님이 태어난 달의 지지(地支)로, 그 계절(季節)의 기운을 사주 내에서 가장 강하게 발휘하는 자리입니다.
+          일간(日干)의 오행(五行)이 월지의 기운에 의해 힘을 얻으면 '득령(得令)'이라 하고, 그렇지 못하면 '실령(失令)'이라 합니다.
+        </p>
+
+        {/* 월지 아이콘 + 지장간 한자 아이콘 */}
+        <div className="flex items-start gap-3 mb-6">
+          <div className="flex flex-col items-center gap-1 flex-shrink-0">
+            <span className="text-[9px] text-text-subtle">월지</span>
+            <GanjiBadge char={monthJi} ohaeng={monthJiOhaeng} />
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="text-[9px] text-text-subtle text-center">지장간(地藏干)</span>
+            <div className="flex items-start gap-1.5">
+              {jijangganOfMonth.map((stem, i) => {
+                const isDng = i === dangnyeongIdx;
+                const isSry = i === saryeongIdx;
+                const label = isDng && isSry
+                  ? "당령·사령"
+                  : isDng ? "당령"
+                    : isSry ? "사령"
+                      : null;
+                return (
+                  <div key={i} className="flex flex-col items-center gap-0.5">
+                    <GanjiBadge char={stem.gan} ohaeng={stem.ohaeng} />
+                    {label ? (
+                      <span className={cn(
+                        "text-[8px] font-semibold px-1 rounded leading-tight",
+                        isDng && isSry ? "text-accent-gold"
+                          : isSry ? "text-emerald-600"
+                            : "text-blue-500"
+                      )}>
+                        {label}
+                      </span>
+                    ) : (
+                      <span className="text-[8px] text-transparent leading-tight">-</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* 당령 */}
+        <div className="flex items-start gap-3 mb-4">
+          <span className={cn(
+            "flex-shrink-0 text-[11px] font-semibold px-2.5 py-1 rounded-full border mt-0.5",
+            isDangnyeongHelps
+              ? (ohaengBadge[dangnyeongStem?.ohaeng ?? ""] ?? "bg-gray-50 border-gray-200 text-gray-700")
+              : "bg-gray-50 border-gray-200 text-gray-400"
+          )}>
+            {userName} 당령(當令)
+          </span>
+          <p className="text-[13px] leading-[1.9] text-text-muted">
+            {dangnyeongData ? (
+              <>
+                <span className="font-semibold text-text-light">{dangnyeongData.jeolgi}</span> 절기에 태어나,
+                당령 천간은 <span className="font-semibold text-text-light">{dangnyeongHanja}({dangnyeongData.dangnyeongGan})</span>입니다.{" "}
+                {isDangnyeongHelps ? (
+                  <>당령 기운 {getOhaengSpan(dangnyeongStem?.ohaeng ?? "")}이 일간 {getOhaengSpan(dayOhaeng)}을 도와주므로, 절기의 기운이 {userName}님 편에 있습니다.</>
+                ) : (
+                  <>당령 기운 {getOhaengSpan(dangnyeongStem?.ohaeng ?? "")}이 일간 {getOhaengSpan(dayOhaeng)}을 돕지 않으므로, 절기의 기운이 {userName}님을 돕지 않습니다.</>
+                )}
+              </>
+            ) : (
+              <span className="text-gray-400">당령 데이터 없음</span>
+            )}
+          </p>
+        </div>
+
+        {/* 사령 */}
+        <div className="flex items-start gap-3">
+          <span className={cn(
+            "flex-shrink-0 text-[11px] font-semibold px-2.5 py-1 rounded-full border mt-0.5",
+            isSaryeongHelps
+              ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+              : "bg-gray-50 border-gray-200 text-gray-400"
+          )}>
+            {userName} 사령(司令)
+          </span>
+          <p className="text-[13px] leading-[1.9] text-text-muted">
+            {saryeongData ? (
+              <>
+                절기 시작일로부터 <span className="font-semibold text-text-light">{saryeongData.daysFromStart}일</span> 경과,
+                월지 {monthJi} 내 {ROLE_LABEL[saryeongData.role] ?? saryeongData.role} 구간의{" "}
+                <span className="font-semibold text-text-light">{saryeongHanja}({saryeongData.saryeongGan})</span>이 사령(司令)하고 있습니다.{" "}
+                {isSaryeongHelps ? (
+                  <>사령 천간 {getOhaengSpan(saryeongStem?.ohaeng ?? "")} 기운이 일간 {getOhaengSpan(dayOhaeng)}을 도와주므로, 지장간의 실질 기운이 {userName}님에게 유리하게 작용합니다.</>
+                ) : (
+                  <>사령 천간 {getOhaengSpan(saryeongStem?.ohaeng ?? "")} 기운이 일간 {getOhaengSpan(dayOhaeng)}을 돕지 않으므로, 지장간의 실질 기운이 {userName}님에게 불리하게 작용합니다.</>
+                )}
+              </>
+            ) : (
+              <span className="text-gray-400">사령 데이터 없음</span>
+            )}
+          </p>
+        </div>
+      </div>
     </SectionFrame>
   );
 };

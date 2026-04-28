@@ -1,0 +1,1 @@
+- [홈 화면 콘텐츠 전략 방향](project_homepage_content_direction.md) — GeneralHome.tsx H1/서브카피/기능카드 진단 및 AI 상담 진입 전략 (2026-04-27)
