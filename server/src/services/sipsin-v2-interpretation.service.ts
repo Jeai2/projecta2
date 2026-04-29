@@ -20,6 +20,8 @@ import {
   SANGSIN_INTERPRETATION,
   DAEWOON_GANJI_INTERP,
   DAEWOON_GYEOKGUK_INTERP,
+  MYSAJU_DANGNYEONG_INTERP,
+  MYSAJU_SARYEONG_INTERP,
   type WoljiInterpretation,
   type DangnyeongInterpretation,
   type SaryeongRoleInterpretation,
@@ -118,6 +120,10 @@ export interface SipsinV2Interpretation {
   daewoonGanjiInterp: string | null;
   /** 육십갑자 대운 × 일간(日干) 조합별 해석 */
   daewoonGanjiIlganInterp: string | null;
+  /** MySajuIntroV2 전용 — 월지별 당령 추가 해석 */
+  mysajuDangnyeongText: string | null;
+  /** MySajuIntroV2 전용 — 월지별 사령 추가 해석 */
+  mysajuSaryeongText: string | null;
 }
 
 // ── 메인 함수 ──────────────────────────────────────────────────────────────
@@ -241,6 +247,8 @@ export function buildSipsinV2Interpretation(sajuData: SajuData): SipsinV2Interpr
     daewoonGanjiIlganInterp: currentDaewoon
       ? (DAEWOON_ILGAN_INTERP[currentDaewoon.ganji]?.[pillars.day.gan] ?? null)
       : null,
+    mysajuDangnyeongText: MYSAJU_DANGNYEONG_INTERP[woljiChar] ?? null,
+    mysajuSaryeongText: MYSAJU_SARYEONG_INTERP[woljiChar] ?? null,
   };
 }
 

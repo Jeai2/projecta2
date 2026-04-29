@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useFortuneStore } from "@/store/fortuneStore";
 import { SectionFrame } from "../SectionFrame";
 import { SajuPillarLight } from "../SajuPillarLight";
-import { AlertCircle, HelpCircle } from "lucide-react";
+import { AlertCircle, HelpCircle, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // 육십갑자 → 이미지 파일 매핑 (나머지 52개 추가 예정, 未완료)
@@ -102,13 +102,21 @@ const JIJANGGAN: Record<string, { gan: string; ohaeng: string; role: string; day
   亥: [{ gan: "戊", ohaeng: "土", role: "여기", days: 7 }, { gan: "甲", ohaeng: "木", role: "중기", days: 7 }, { gan: "壬", ohaeng: "水", role: "본기", days: 16 }],
 };
 
-function GanjiBadge({ char, ohaeng, dimmed = false }: { char: string; ohaeng: string; dimmed?: boolean }) {
+function GanjiBadge({ char, ohaeng, dimmed = false, size = "md", className }: { char: string; ohaeng: string; dimmed?: boolean; size?: "sm" | "md" | "lg"; className?: string }) {
+  const sizeClasses = {
+    sm: "w-8 h-8 rounded-lg text-[16px] border-2",
+    md: "w-10 h-10 rounded-xl text-xl border-2",
+    lg: "w-12 h-12 rounded-2xl text-[22px] border-2"
+  };
+
   return (
     <span className={cn(
-      "inline-flex items-center justify-center w-10 h-10 rounded-xl border-2 font-myeongjo font-bold text-xl leading-none",
+      "inline-flex items-center justify-center font-myeongjo font-bold leading-none",
+      sizeClasses[size],
       dimmed
         ? "bg-gray-50 border-gray-100 text-gray-300"
-        : (ohaengBadge[ohaeng] ?? "bg-gray-50 border-gray-200 text-gray-700")
+        : (ohaengBadge[ohaeng] ?? "bg-gray-50 border-gray-200 text-gray-700"),
+      className
     )}>
       {char}
     </span>
@@ -173,7 +181,7 @@ export const MySajuIntroV2 = () => {
     );
   }
 
-  const { pillars, wangseStrength } = fortuneResult.saju.sajuData;
+  const { pillars, wangseStrength, sipsinV2Interpretation: interp } = fortuneResult.saju.sajuData;
   const userName = fortuneResult.userInfo?.name || "무명(無名)";
 
   // 신강신약 득령·득지·득세 계산
@@ -495,41 +503,63 @@ export const MySajuIntroV2 = () => {
         </p>
 
         {/* 월지 아이콘 + 지장간 한자 아이콘 */}
-        <div className="flex items-start gap-3 mb-6">
-          <div className="flex flex-col items-center gap-1 flex-shrink-0">
-            <span className="text-[9px] text-text-subtle">월지</span>
-            <GanjiBadge char={monthJi} ohaeng={monthJiOhaeng} />
+        <div className="grid grid-cols-[auto_auto_auto] gap-x-3 mb-6 justify-start items-center">
+
+          {/* --- Row 1: Header Labels --- */}
+          <div className="text-center pb-1.5 self-end">
+            <span className="text-[10px] font-medium text-text-subtle">월지(月支)</span>
           </div>
-          <div className="flex flex-col gap-1">
-            <span className="text-[9px] text-text-subtle text-center">지장간(地藏干)</span>
-            <div className="flex items-start gap-1.5">
-              {jijangganOfMonth.map((stem, i) => {
-                const isDng = i === dangnyeongIdx;
-                const isSry = i === saryeongIdx;
-                const label = isDng && isSry
-                  ? "당령·사령"
-                  : isDng ? "당령"
-                    : isSry ? "사령"
-                      : null;
-                return (
-                  <div key={i} className="flex flex-col items-center gap-0.5">
-                    <GanjiBadge char={stem.gan} ohaeng={stem.ohaeng} />
-                    {label ? (
+          <div /> {/* 빈칸 */}
+          <div className="text-center pb-1.5 self-end">
+            <span className="text-[10px] font-medium text-text-subtle">지장간(地藏干)</span>
+          </div>
+
+          {/* --- Row 2: Badges & Box --- */}
+          <div className="flex justify-center relative z-10">
+            <GanjiBadge char={monthJi} ohaeng={monthJiOhaeng} size="lg" className="shadow-sm" />
+          </div>
+
+          <div className="flex justify-center text-gray-300 relative z-10">
+            <ChevronRight className="w-5 h-5" />
+          </div>
+
+          <div className="flex items-center gap-2 p-2 bg-gray-50/80 rounded-2xl border border-gray-100 shadow-inner relative z-10">
+            {jijangganOfMonth.map((stem, i) => (
+              <GanjiBadge key={i} char={stem.gan} ohaeng={stem.ohaeng} size="md" className="bg-white shadow-sm" />
+            ))}
+          </div>
+
+          {/* --- Row 3: Bottom Labels --- */}
+          <div /> {/* 빈칸 */}
+          <div /> {/* 빈칸 */}
+          <div className="flex items-start gap-2 px-2 -mt-1 relative z-0 self-start">
+            {jijangganOfMonth.map((stem, i) => {
+              const isDng = i === dangnyeongIdx;
+              const isSry = i === saryeongIdx;
+              const label = isDng && isSry
+                ? "당령·사령"
+                : isDng ? "당령"
+                  : isSry ? "사령"
+                    : null;
+
+              return (
+                <div key={i} className="flex justify-center w-10">
+                  {label ? (
+                    <div className="flex flex-col items-center">
+                      <div className="w-px h-3 bg-gray-200 mb-1" />
                       <span className={cn(
-                        "text-[8px] font-semibold px-1 rounded leading-tight",
-                        isDng && isSry ? "text-accent-gold"
-                          : isSry ? "text-emerald-600"
-                            : "text-blue-500"
+                        "text-[10px] font-semibold px-2 py-0.5 rounded-full border leading-tight whitespace-nowrap shadow-sm",
+                        isDng && isSry ? "bg-amber-50 border-amber-200 text-amber-700"
+                          : isSry ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                            : "bg-blue-50 border-blue-200 text-blue-700"
                       )}>
                         {label}
                       </span>
-                    ) : (
-                      <span className="text-[8px] text-transparent leading-tight">-</span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -558,6 +588,12 @@ export const MySajuIntroV2 = () => {
               <span className="text-gray-400">당령 데이터 없음</span>
             )}
           </p>
+          {/* MySajuIntroV2 전용 당령 추가 해석 — server/src/data/interpretation/sipsin-v2.data.ts > MYSAJU_DANGNYEONG_INTERP 에서 수정 */}
+          {interp?.mysajuDangnyeongText && (
+            <p className="mt-2 text-[12px] leading-[1.85] text-gray-400 bg-gray-50 rounded-xl px-3 py-2.5 border border-gray-100">
+              {interp.mysajuDangnyeongText}
+            </p>
+          )}
         </div>
 
         {/* 사령 */}
@@ -586,6 +622,12 @@ export const MySajuIntroV2 = () => {
               <span className="text-gray-400">사령 데이터 없음</span>
             )}
           </p>
+          {/* MySajuIntroV2 전용 사령 추가 해석 — server/src/data/interpretation/sipsin-v2.data.ts > MYSAJU_SARYEONG_INTERP 에서 수정 */}
+          {interp?.mysajuSaryeongText && (
+            <p className="mt-2 text-[12px] leading-[1.85] text-gray-400 bg-gray-50 rounded-xl px-3 py-2.5 border border-gray-100">
+              {interp.mysajuSaryeongText}
+            </p>
+          )}
         </div>
       </div>
     </SectionFrame>
