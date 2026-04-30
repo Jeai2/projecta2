@@ -247,8 +247,12 @@ export function buildSipsinV2Interpretation(sajuData: SajuData): SipsinV2Interpr
     daewoonGanjiIlganInterp: currentDaewoon
       ? (DAEWOON_ILGAN_INTERP[currentDaewoon.ganji]?.[pillars.day.gan] ?? null)
       : null,
-    mysajuDangnyeongText: MYSAJU_DANGNYEONG_INTERP[woljiChar] ?? null,
-    mysajuSaryeongText: MYSAJU_SARYEONG_INTERP[woljiChar] ?? null,
+    mysajuDangnyeongText: dangnyeong
+      ? (MYSAJU_DANGNYEONG_INTERP[woljiChar]?.[GAN_HAN[dangnyeong.dangnyeongGan] ?? dangnyeong.dangnyeongGan] ?? null)
+      : null,
+    mysajuSaryeongText: saryeong
+      ? (MYSAJU_SARYEONG_INTERP[woljiChar]?.[GAN_HAN[saryeong.saryeongGan] ?? saryeong.saryeongGan] ?? null)
+      : null,
   };
 }
 

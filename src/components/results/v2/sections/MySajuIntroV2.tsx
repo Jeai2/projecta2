@@ -7,17 +7,31 @@ import { SajuPillarLight } from "../SajuPillarLight";
 import { AlertCircle, HelpCircle, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// 육십갑자 → 이미지 파일 매핑 (나머지 52개 추가 예정, 未완료)
+// 육십갑자 → 이미지 파일 매핑 (나머지 52개 추가 예정, 未,子완료)
 const ganjiImageMap: Record<string, string> = {
   "庚寅": "/gungin.png",
+  "壬寅": "/imin.png",
+  "戊寅": "/muin.png",
+  "丙寅": "/byungin.png",
+  "甲寅": "/gapin.png",
   "戊戌": "/musul.png",
   "壬戌": "/imsul.png",
+  "丙戌": "/byungsul.png",
+  "甲戌": "/gapsul.png",
+  "庚戌": "/gyongsul.png",
   "壬未": "/immi.png",
   "丁未": "/jeongmi.png",
   "己未": "/gimi.png",
   "乙未": "/eulmi.png",
   "辛未": "/sinmi.png",
   "辛巳": "/sinsa.png",
+  "乙巳": "/eulsa.png",
+  "丁巳": "/jeongsa.png",
+  "壬子": "/imja.png",
+  "庚子": "/gyongja.png",
+  "丙子": "/byongja.png",
+  "甲子": "/gabja.png",
+  "戊子": "/muja.png",
 };
 
 // 천간·지지 한자 → 한글 발음
