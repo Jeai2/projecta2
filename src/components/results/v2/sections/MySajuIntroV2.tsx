@@ -501,7 +501,8 @@ export const MySajuIntroV2 = () => {
             <div className="absolute top-8 left-0 z-10 w-full min-w-[280px] sm:w-[320px] bg-white border border-gray-200 rounded-xl shadow-lg p-4 text-[13px] leading-relaxed text-text-subtle">
               <p className="font-semibold text-text-light mb-1.5">월령(月令)이란</p>
               <p className="mb-3">
-                월령(月令)은 월지(月支)의 다른 이름으로, <span className="font-semibold text-text-light border-b border-accent-gold/40 pb-0.5">사주를 주관하는 계절이자, 사주 전체에 명령을 내리는 강력한 기운</span>입니다.
+                령(令)은 <span className="font-semibold text-text-light border-b border-accent-gold/40 pb-0.5">'시키다' 또는 '명령하다'</span>는 뜻으로,
+                <span className="font-semiblod text-text-light pb-0.5">사주 전체에 명령</span>을 내린다고 하여, 월지(月支)에 령(令)을 붙여 중요성을 강조하였습니다.
                 일간(日干)이 태어난 계절의 기운을 받아 도움을 얻으면, 주도권을 얻었다고 하여 <span className="font-semibold text-text-light">'득령(得令)'</span>, 그렇지 못하면 <span className="font-semibold text-text-light">'실령(失令)'</span>이라 합니다.
               </p>
               <p className="text-[12px] text-gray-400 bg-gray-50 p-2 rounded-lg mt-1">
@@ -512,8 +513,8 @@ export const MySajuIntroV2 = () => {
         </div>
 
         <p className="text-[13px] leading-[1.9] text-text-muted mb-5">
-          월지(月支)는 {userName}님이 태어난 달의 지지(地支)로, 그 계절(季節)의 기운을 사주 내에서 가장 강하게 발휘하는 자리입니다.
-          일간(日干)의 오행(五行)이 월지의 기운에 의해 힘을 얻으면 '득령(得令)'이라 하고, 그렇지 못하면 '실령(失令)'이라 합니다.
+          월지(月支)는 {userName}님이 태어난 달의 지지(地支)로, 내 사주팔자의 계절의 분위기를 주도하는 가장 중요한 요소입니다.
+          월
         </p>
 
         {/* 월지 아이콘 + 지장간 한자 아이콘 */}
@@ -587,24 +588,9 @@ export const MySajuIntroV2 = () => {
           )}>
             {userName} 당령(當令)
           </span>
-          <p className="text-[13px] leading-[1.9] text-text-muted">
-            {dangnyeongData ? (
-              <>
-                <span className="font-semibold text-text-light">{dangnyeongData.jeolgi}</span> 절기에 태어나,
-                당령 천간은 <span className="font-semibold text-text-light">{dangnyeongHanja}({dangnyeongData.dangnyeongGan})</span>입니다.{" "}
-                {isDangnyeongHelps ? (
-                  <>당령 기운 {getOhaengSpan(dangnyeongStem?.ohaeng ?? "")}이 일간 {getOhaengSpan(dayOhaeng)}을 도와주므로, 절기의 기운이 {userName}님 편에 있습니다.</>
-                ) : (
-                  <>당령 기운 {getOhaengSpan(dangnyeongStem?.ohaeng ?? "")}이 일간 {getOhaengSpan(dayOhaeng)}을 돕지 않으므로, 절기의 기운이 {userName}님을 돕지 않습니다.</>
-                )}
-              </>
-            ) : (
-              <span className="text-gray-400">당령 데이터 없음</span>
-            )}
-          </p>
           {/* MySajuIntroV2 전용 당령 추가 해석 — server/src/data/interpretation/sipsin-v2.data.ts > MYSAJU_DANGNYEONG_INTERP 에서 수정 */}
           {interp?.mysajuDangnyeongText && (
-            <p className="mt-2 text-[12px] leading-[1.85] text-gray-400 bg-gray-50 rounded-xl px-3 py-2.5 border border-gray-100">
+            <p className="text-[13px] leading-[1.9] text-text-muted">
               {interp.mysajuDangnyeongText}
             </p>
           )}
@@ -620,25 +606,9 @@ export const MySajuIntroV2 = () => {
           )}>
             {userName} 사령(司令)
           </span>
-          <p className="text-[13px] leading-[1.9] text-text-muted">
-            {saryeongData ? (
-              <>
-                절기 시작일로부터 <span className="font-semibold text-text-light">{saryeongData.daysFromStart}일</span> 경과,
-                월지 {monthJi} 내 {ROLE_LABEL[saryeongData.role] ?? saryeongData.role} 구간의{" "}
-                <span className="font-semibold text-text-light">{saryeongHanja}({saryeongData.saryeongGan})</span>이 사령(司令)하고 있습니다.{" "}
-                {isSaryeongHelps ? (
-                  <>사령 천간 {getOhaengSpan(saryeongStem?.ohaeng ?? "")} 기운이 일간 {getOhaengSpan(dayOhaeng)}을 도와주므로, 지장간의 실질 기운이 {userName}님에게 유리하게 작용합니다.</>
-                ) : (
-                  <>사령 천간 {getOhaengSpan(saryeongStem?.ohaeng ?? "")} 기운이 일간 {getOhaengSpan(dayOhaeng)}을 돕지 않으므로, 지장간의 실질 기운이 {userName}님에게 불리하게 작용합니다.</>
-                )}
-              </>
-            ) : (
-              <span className="text-gray-400">사령 데이터 없음</span>
-            )}
-          </p>
           {/* MySajuIntroV2 전용 사령 추가 해석 — server/src/data/interpretation/sipsin-v2.data.ts > MYSAJU_SARYEONG_INTERP 에서 수정 */}
           {interp?.mysajuSaryeongText && (
-            <p className="mt-2 text-[12px] leading-[1.85] text-gray-400 bg-gray-50 rounded-xl px-3 py-2.5 border border-gray-100">
+            <p className="text-[13px] leading-[1.9] text-text-muted">
               {interp.mysajuSaryeongText}
             </p>
           )}
